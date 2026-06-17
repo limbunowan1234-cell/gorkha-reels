@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Creator Dashboard - GorkhaReels</title>
+  <meta name="description" content="Manage your GorkhaReels profile, track earnings, and grow your audience">
+  <meta name="theme-color" content="#121212">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <link rel="shortcut icon" href="assets/logo.png">
+  
+  <!-- Open Graph -->
+  <meta property="og:title" content="Creator Dashboard - GorkhaReels">
+  <meta property="og:description" content="Manage your creator profile and earnings">
+  <meta property="og:image" content="assets/logo.png">
+  <meta property="og:type" content="website">
+  
+  <link rel="stylesheet" href="css/styles.css">
+  
+  <style>
+    .dashboard-header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding-top: 20px;
+    }
+
+    .dashboard-header h1 {
+      font-size: 24px;
+      margin-bottom: 8px;
+      color: var(--text-primary);
+    }
+
+    .quick-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .quick-actions .btn {
+      margin: 0;
+    }
+
+    .section-divider {
+      height: 1px;
+      background: var(--border-color);
+      margin: 24px 0;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .stat-box {
+      background: var(--dark-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .stat-icon {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+
+    .stat-title {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .stat-value {
+      font-size: 20px;
+      font-weight: bold;
+      color: var(--primary-red);
+    }
+
+    .earnings-breakdown {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .earning-source {
+      background: var(--dark-bg);
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+    }
+
+    .earning-source-title {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+    }
+
+    .earning-source-value {
+      font-size: 16px;
+      font-weight: bold;
+      color: var(--accent-gold);
+    }
+
+    .reels-section-title {
+      font-size: 16px;
+      font-weight: bold;
+      color: var(--text-primary);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-secondary);
+    }
+
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+
+    .profile-edit-section {
+      background: var(--dark-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 24px;
+    }
+
+    .profile-edit-button {
+      width: 100%;
+      margin-bottom: 8px;
+    }
+
+    @media (max-width: 480px) {
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .profile-stats {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <a href="/" style="display: flex; align-items: center; gap: 12px; text-decoration: none;">
+      <img src="assets/logo.png" alt="GorkhaReels" style="height: 32px; width: auto;">
+      <span class="header-logo">GorkhaReels</span>
+    </a>
+    <div style="flex: 1;"></div>
+  </header>
+
+  <!-- Dashboard Container -->
+  <div class="dashboard-container">
+    <!-- Profile Section -->
+    <div class="profile-header">
+      <img id="creator-avatar" src="https://via.placeholder.com/80" alt="Profile" class="profile-avatar">
+      <div class="profile-name" id="creator-name">Loading...</div>
+      <div style="font-size: 13px; color: var(--text-secondary);" id="creator-bio">No bio yet</div>
+      
+      <div class="profile-stats">
+        <div class="stat-item">
+          <div class="stat-number" id="followers-count">0</div>
+          <div class="stat-label">Followers</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" id="total-views">0</div>
+          <div class="stat-label">Views</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" id="total-reels">0</div>
+          <div class="stat-label">Videos</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+      <button class="btn btn-primary" id="upload-btn">📹 Upload Video</button>
+      <button class="btn btn-secondary" id="edit-profile-btn">✏️ Edit Profile</button>
+    </div>
+
+    <!-- Earnings Section -->
+    <div class="section-divider"></div>
+    <div style="margin-bottom: 24px;">
+      <div style="
+        font-size: 14px;
+        color: var(--text-secondary);
+        margin-bottom: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      ">💰 Total Earnings</div>
+      <div style="font-size: 36px; font-weight: bold; color: var(--accent-gold); margin-bottom: 16px;">
+        <span id="total-earnings">₹ 0.00</span>
+      </div>
+
+      <div class="earnings-breakdown">
+        <div class="earning-source">
+          <div class="earning-source-title">Ad Revenue</div>
+          <div class="earning-source-value" id="ad-revenue">₹ 0.00</div>
+        </div>
+        <div class="earning-source">
+          <div class="earning-source-title">Tips & Tips</div>
+          <div class="earning-source-value" id="tips-earnings">₹ 0.00</div>
+        </div>
+        <div class="earning-source">
+          <div class="earning-source-title">Sponsorship</div>
+          <div class="earning-source-value" id="sponsor-earnings">₹ 0.00</div>
+        </div>
+      </div>
+
+      <button class="btn btn-secondary" style="width: 100%; margin-top: 16px;">
+        🏦 Withdraw Earnings
+      </button>
+    </div>
+
+    <!-- Performance Stats -->
+    <div class="section-divider"></div>
+    <div style="margin-bottom: 24px;">
+      <div style="
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 16px;
+      ">📊 Performance</div>
+
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="stat-icon">👁️</div>
+          <div class="stat-title">Total Views</div>
+          <div class="stat-value" id="total-views-perf">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-icon">💬</div>
+          <div class="stat-title">Total Comments</div>
+          <div class="stat-value">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-icon">⭐</div>
+          <div class="stat-title">Engagement Rate</div>
+          <div class="stat-value">0%</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-icon">📈</div>
+          <div class="stat-title">Growth</div>
+          <div class="stat-value">+0%</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- My Videos Section -->
+    <div class="section-divider"></div>
+    <div style="margin-bottom: 24px;">
+      <div class="reels-section-title">
+        📹 My Videos
+      </div>
+      <div id="my-reels-container">
+        <div class="loading">
+          <div class="spinner"></div>
+          <p style="margin-left: 12px;">Loading your videos...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Account Section -->
+    <div class="section-divider"></div>
+    <div style="margin-bottom: 24px;">
+      <div style="
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 16px;
+      ">⚙️ Account</div>
+
+      <button class="btn btn-secondary" style="width: 100%; margin-bottom: 8px;">
+        🔐 Change Password
+      </button>
+      <button class="btn btn-secondary" style="width: 100%; margin-bottom: 8px;">
+        🏦 Bank Details
+      </button>
+      <button class="btn btn-secondary" style="width: 100%; margin-bottom: 8px;">
+        📋 Content Guidelines
+      </button>
+      <button class="btn btn-secondary" style="width: 100%; margin-bottom: 20px;">
+        📞 Support
+      </button>
+
+      <button class="btn btn-secondary" style="width: 100%;" id="logout-btn">
+        🚪 Logout
+      </button>
+    </div>
+
+    <!-- Spacing for bottom nav -->
+    <div style="height: 60px;"></div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <button class="nav-item" onclick="window.location.href='/'">
+      <span>🏠</span>
+      <span class="nav-label">Home</span>
+    </button>
+    <button class="nav-item" onclick="window.location.href='/?trending'">
+      <span>🔥</span>
+      <span class="nav-label">Trending</span>
+    </button>
+    <button class="nav-item" onclick="window.location.href='/upload.html'">
+      <span>➕</span>
+      <span class="nav-label">Create</span>
+    </button>
+    <button class="nav-item active">
+      <span>👤</span>
+      <span class="nav-label">Profile</span>
+    </button>
+  </nav>
+
+  <!-- Scripts -->
+  <script src="js/appwrite-config.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>
