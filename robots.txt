@@ -1,0 +1,30 @@
+# GorkhaReels robots.txt
+# Rules for search engine crawlers
+
+User-agent: *
+Allow: /
+Allow: /index.html
+Allow: /upload.html
+Allow: /creator-dashboard.html
+Allow: /styles.css
+Allow: /appwrite-config.js
+Allow: /feed.js
+Allow: /upload.js
+Allow: /dashboard.js
+Allow: /logo.png
+
+# Disallow private/admin areas (if any added later)
+# Disallow: /admin/
+# Disallow: /private/
+
+# Allow Google Bot to crawl more aggressively
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0
+
+# Allow Bing
+User-agent: Bingbot
+Allow: /
+
+# Sitemap location
+Sitemap: https://gorkhareel.com/sitemap.xml
