@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>404 - Page Not Found - GorkhaReels</title>
+  <meta name="description" content="Page not found on GorkhaReels">
+  <meta name="theme-color" content="#121212">
+  
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <link rel="stylesheet" href="css/styles.css">
+  
+  <style>
+    .error-container {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .error-code {
+      font-size: 96px;
+      font-weight: bold;
+      color: var(--primary-red);
+      line-height: 1;
+      margin-bottom: 20px;
+    }
+
+    .error-title {
+      font-size: 32px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: var(--text-primary);
+    }
+
+    .error-description {
+      font-size: 16px;
+      color: var(--text-secondary);
+      margin-bottom: 40px;
+      max-width: 400px;
+    }
+
+    .error-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      width: 100%;
+      max-width: 300px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="/" style="display: flex; align-items: center; gap: 12px; text-decoration: none;">
+      <img src="assets/logo.png" alt="GorkhaReels" style="height: 32px; width: auto;">
+      <span class="header-logo">GorkhaReels</span>
+    </a>
+  </header>
+
+  <div class="error-container">
+    <div class="error-code">404</div>
+    <h1 class="error-title">Page Not Found</h1>
+    <p class="error-description">
+      Oops! The page you're looking for doesn't exist. Let's get you back on track.
+    </p>
+    
+    <div class="error-actions">
+      <button class="btn btn-primary" onclick="window.location.href='/'">
+        🏠 Go to Home Feed
+      </button>
+      <button class="btn btn-secondary" onclick="window.location.href='/upload.html'">
+        📹 Upload a Video
+      </button>
+      <button class="btn btn-secondary" onclick="window.location.href='/creator-dashboard.html'">
+        👤 View Dashboard
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // Log 404 error for analytics (optional)
+    console.error('404 Error:', window.location.pathname);
+  </script>
+</body>
+</html>
