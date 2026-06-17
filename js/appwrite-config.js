@@ -10,7 +10,7 @@
 const APPWRITE_CONFIG = {
   ENDPOINT: 'https://fra.cloud.appwrite.io/v1',
   PROJECT_ID: 'gorkhareels',
-  DATABASE_ID: 'gorka_db',
+  DATABASE_ID: 'gorkha_db',
 
   COLLECTIONS: {
     CREATORS: 'creators',
