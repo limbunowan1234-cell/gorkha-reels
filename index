@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="GorkhaReels - Short-form video platform for Gorkha creators and community. Watch, create, and share videos from the Gorkha community.">
+  <meta name="theme-color" content="#121212">
+  <meta name="keywords" content="gorkha, reels, videos, short-form, gorkha community, darjeeling, nepali">
+  <meta name="author" content="Darjeeling Web Studio">
+  
+  <title>GorkhaReels - Gorkha Community Videos</title>
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <link rel="shortcut icon" href="assets/logo.png">
+  
+  <!-- Open Graph -->
+  <meta property="og:title" content="GorkhaReels - Gorkha Community Videos">
+  <meta property="og:description" content="Discover short-form videos from Gorkha creators and community">
+  <meta property="og:image" content="assets/logo.png">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://gorkhareel.com">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="GorkhaReels">
+  <meta name="twitter:description" content="Watch Gorkha community videos">
+  <meta name="twitter:image" content="assets/logo.png">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="sitemap" href="sitemap.xml">
+  
+  <style>
+    html {
+      scroll-behavior: smooth;
+      scroll-snap-type: y mandatory;
+    }
+
+    body {
+      overflow-y: scroll;
+      overflow-x: hidden;
+    }
+
+    #feed-container {
+      scroll-snap-align: start;
+    }
+
+    /* Video scroll snap */
+    .video-card {
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div style="display: flex; align-items: center; gap: 12px; text-decoration: none; cursor: pointer;" onclick="location.href='/'">
+      <img src="assets/logo.png" alt="GorkhaReels" style="height: 32px; width: auto;">
+      <div class="header-logo">GorkhaReels</div>
+    </div>
+    <div class="header-search">
+      <input type="text" id="search-input" placeholder="Search titles, creators...">
+    </div>
+    <div class="header-actions">
+      <button class="header-btn" id="notifications-btn" title="Notifications">🔔</button>
+      <button class="header-btn" id="menu-btn" title="Menu">⋮</button>
+    </div>
+  </header>
+
+  <!-- Feed Container -->
+  <div id="feed-container" class="feed-container">
+    <!-- Videos will be loaded here -->
+    <div class="loading">
+      <div class="spinner"></div>
+      <p style="margin-left: 12px;">Loading videos...</p>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" data-nav="home">
+      <span>🏠</span>
+      <span class="nav-label">Home</span>
+    </button>
+    <button class="nav-item" data-nav="trending">
+      <span>🔥</span>
+      <span class="nav-label">Trending</span>
+    </button>
+    <button class="nav-item" data-nav="create">
+      <span>➕</span>
+      <span class="nav-label">Create</span>
+    </button>
+    <button class="nav-item" data-nav="profile">
+      <span>👤</span>
+      <span class="nav-label">Profile</span>
+    </button>
+  </nav>
+
+  <!-- Scripts -->
+  <script src="js/appwrite-config.js"></script>
+  <script src="js/feed.js"></script>
+</body>
+</html>
