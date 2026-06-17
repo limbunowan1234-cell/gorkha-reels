@@ -57,7 +57,8 @@ class AppwriteClient {
         headers: {
           'Content-Type': 'application/json',
           'X-Appwrite-Project': this.projectId,
-          'X-Appwrite-Key': this.apiKey
+          'X-Appwrite-Key': this.apiKey,
+          'Access-Control-Allow-Credentials': 'true'
         }
       };
 
@@ -68,14 +69,20 @@ class AppwriteClient {
       const response = await fetch(`${this.baseURL}${path}`, options);
       
       if (!response.ok) {
-        const error = await response.json();
+        let error = null;
+        try {
+          error = await response.json();
+        } catch (e) {
+          error = { message: `HTTP ${response.status}` };
+        }
         throw new Error(error.message || `HTTP ${response.status}`);
       }
 
       return await response.json();
     } catch (error) {
       console.error('Appwrite API Error:', error);
-      throw error;
+      // Return user-friendly error
+      throw new Error(error.message || 'Failed to connect to server. Please try again.');
     }
   }
 
