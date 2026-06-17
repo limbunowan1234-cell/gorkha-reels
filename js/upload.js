@@ -1,137 +1,69 @@
 /**
- * GorkhaReels - Video Upload Manager
- * Handles video upload to Bunny CDN and metadata to Appwrite
+ * GorkhaReels - Video Upload Manager (Appwrite Web SDK)
+ * Uploads video to Bunny CDN, saves metadata to Appwrite
  */
 
 class UploadManager {
   constructor() {
     this.selectedFile = null;
-    this.uploadProgress = 0;
-    this.isUploading = false;
-
-    if (!session.isLoggedIn()) {
-      this.redirectToLogin();
-      return;
-    }
-
     this.init();
   }
 
-  init() {
+  async init() {
+    await session.refresh();
+    if (!session.isLoggedIn()) {
+      window.location.href = './login.html';
+      return;
+    }
     this.setupEventListeners();
     this.loadUserProfile();
   }
 
-  /**
-   * Setup form event listeners
-   */
   setupEventListeners() {
-    // Video drop zone
     const dropZone = document.getElementById('video-drop-zone');
     if (dropZone) {
       dropZone.addEventListener('dragover', (e) => this.handleDragOver(e));
       dropZone.addEventListener('dragleave', (e) => this.handleDragLeave(e));
       dropZone.addEventListener('drop', (e) => this.handleDrop(e));
       dropZone.addEventListener('click', () => {
-        const input = document.getElementById('video-input');
-        if (input) input.click();
+        document.getElementById('video-input')?.click();
       });
     }
 
-    // Video input change
-    const videoInput = document.getElementById('video-input');
-    if (videoInput) {
-      videoInput.addEventListener('change', (e) => this.handleVideoSelect(e));
-    }
+    document.getElementById('video-input')?.addEventListener('change', (e) => this.handleVideoSelect(e));
+    document.getElementById('submit-btn')?.addEventListener('click', () => this.submitForm());
+  }
 
-    // Submit button
-    const submitBtn = document.getElementById('submit-btn');
-    if (submitBtn) {
-      submitBtn.addEventListener('click', () => this.submitForm());
+  loadUserProfile() {
+    const user = session.getUser();
+    const nameField = document.getElementById('creator-name');
+    if (nameField && user) {
+      nameField.textContent = user.name || user.email;
     }
   }
 
-  /**
-   * Load user profile
-   */
-  async loadUserProfile() {
-    try {
-      const user = session.getUser();
-      if (!user) return;
-
-      const creator = await appwrite.getDocument(
-        APPWRITE_CONFIG.COLLECTIONS.CREATORS,
-        user.userId
-      );
-
-      // Display user info
-      const nameField = document.getElementById('creator-name');
-      if (nameField) {
-        nameField.textContent = creator.name || user.name;
-      }
-    } catch (error) {
-      console.error('Error loading profile:', error);
-    }
-  }
-
-  /**
-   * Handle drag over
-   */
   handleDragOver(e) {
     e.preventDefault();
-    e.stopPropagation();
-    const dropZone = document.getElementById('video-drop-zone');
-    if (dropZone) {
-      dropZone.classList.add('dragover');
-    }
+    document.getElementById('video-drop-zone')?.classList.add('dragover');
   }
-
-  /**
-   * Handle drag leave
-   */
   handleDragLeave(e) {
     e.preventDefault();
-    e.stopPropagation();
-    const dropZone = document.getElementById('video-drop-zone');
-    if (dropZone) {
-      dropZone.classList.remove('dragover');
-    }
+    document.getElementById('video-drop-zone')?.classList.remove('dragover');
   }
-
-  /**
-   * Handle drop
-   */
   handleDrop(e) {
     e.preventDefault();
-    e.stopPropagation();
-    const dropZone = document.getElementById('video-drop-zone');
-    if (dropZone) {
-      dropZone.classList.remove('dragover');
-    }
-
-    const files = e.dataTransfer.files;
-    if (files.length > 0) {
-      this.handleVideoSelect({ target: { files } });
+    document.getElementById('video-drop-zone')?.classList.remove('dragover');
+    if (e.dataTransfer.files.length > 0) {
+      this.handleVideoSelect({ target: { files: e.dataTransfer.files } });
     }
   }
 
-  /**
-   * Handle video selection
-   */
   handleVideoSelect(e) {
-    const files = e.target.files;
-    if (files.length === 0) return;
-
-    const file = files[0];
-
-    // Validate file
-    if (!this.validateVideo(file)) {
-      return;
-    }
+    const file = e.target.files[0];
+    if (!file || !this.validateVideo(file)) return;
 
     this.selectedFile = file;
 
-    // Show preview
     const reader = new FileReader();
     reader.onload = (evt) => {
       const preview = document.getElementById('video-preview');
@@ -139,8 +71,6 @@ class UploadManager {
         preview.src = evt.target.result;
         preview.style.display = 'block';
       }
-
-      // Show file info
       const fileInfo = document.getElementById('file-info');
       if (fileInfo) {
         const sizeMB = (file.size / 1024 / 1024).toFixed(2);
@@ -148,79 +78,61 @@ class UploadManager {
       }
     };
     reader.readAsDataURL(file);
-
     Toast.success('Video selected!');
   }
 
-  /**
-   * Validate video file
-   */
   validateVideo(file) {
-    const maxSize = 500 * 1024 * 1024; // 500MB
-    const allowedTypes = ['video/mp4', 'video/webm', 'video/quicktime'];
-
-    if (!allowedTypes.includes(file.type)) {
-      Toast.error('Invalid video format. Use MP4, WebM, or MOV');
+    const maxSize = 500 * 1024 * 1024;
+    const allowed = ['video/mp4', 'video/webm', 'video/quicktime'];
+    if (!allowed.includes(file.type)) {
+      Toast.error('Use MP4, WebM, or MOV format');
       return false;
     }
-
     if (file.size > maxSize) {
-      Toast.error('Video must be less than 500MB');
+      Toast.error('Video must be under 500MB');
       return false;
     }
-
     return true;
   }
 
-  /**
-   * Submit form and upload
-   */
   async submitForm() {
+    const title = document.getElementById('title')?.value?.trim();
+    const description = document.getElementById('description')?.value?.trim();
+    const category = document.getElementById('category')?.value;
+    const language = document.getElementById('language')?.value;
+    const hashtags = document.getElementById('hashtags')?.value?.trim();
+
+    if (!this.selectedFile || !title) {
+      Toast.error('Please select a video and enter a title');
+      return;
+    }
+    if (title.length < 3) {
+      Toast.error('Title must be at least 3 characters');
+      return;
+    }
+
+    const submitBtn = document.getElementById('submit-btn');
+    const progressBar = document.getElementById('progress-bar');
+
     try {
-      // Validate inputs
-      const title = document.getElementById('title')?.value?.trim();
-      const description = document.getElementById('description')?.value?.trim();
-      const category = document.getElementById('category')?.value;
-      const language = document.getElementById('language')?.value;
-      const hashtags = document.getElementById('hashtags')?.value?.trim();
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Uploading...';
+      progressBar?.classList.add('active');
 
-      if (!this.selectedFile || !title) {
-        Toast.error('Please select a video and enter a title');
-        return;
-      }
-
-      if (title.length < 3) {
-        Toast.error('Title must be at least 3 characters');
-        return;
-      }
-
-      // Start upload
-      this.isUploading = true;
-      const submitBtn = document.getElementById('submit-btn');
-      if (submitBtn) {
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'Uploading...';
-      }
-
-      // Upload video to Bunny
+      // 1. Upload to Bunny CDN
       const fileName = `${Date.now()}_${this.sanitizeFileName(this.selectedFile.name)}`;
-      console.log('Uploading video to Bunny CDN...');
-      
       const uploadResult = await bunny.uploadVideo(this.selectedFile, fileName);
       console.log('✅ Video uploaded:', uploadResult.url);
 
-      // Generate thumbnail
-      const thumbnailUrl = `${uploadResult.url}?quality=60&width=320`;
-
-      // Create reel document in Appwrite
+      // 2. Save metadata to Appwrite
       const user = session.getUser();
       const reelData = {
-        reelId: appwrite.generateId(),
-        creatorId: user.userId,
-        creatorName: user.name,
-        creatorPic: user.profilePic || '',
+        reelId: ID.unique(),
+        creatorId: user.$id,
+        creatorName: user.name || user.email,
+        creatorPic: '',
         videoUrl: uploadResult.url,
-        thumbnail: thumbnailUrl,
+        thumbnail: `${uploadResult.url}?thumb=1`,
         title,
         description: description || '',
         hashtags: hashtags || '',
@@ -237,98 +149,43 @@ class UploadManager {
         adRevenue: 0
       };
 
-      console.log('Creating reel document...');
-      const createdReel = await appwrite.createDocument(
-        APPWRITE_CONFIG.COLLECTIONS.REELS,
-        reelData
-      );
+      await db.create(APPWRITE_CONFIG.COLLECTIONS.REELS, reelData);
+      console.log('✅ Reel saved');
 
-      console.log('✅ Reel created:', createdReel.$id);
-
-      // Update creator totalReels count
-      try {
-        const creator = await appwrite.getDocument(
-          APPWRITE_CONFIG.COLLECTIONS.CREATORS,
-          user.userId
-        );
-
-        await appwrite.updateDocument(
-          APPWRITE_CONFIG.COLLECTIONS.CREATORS,
-          user.userId,
-          {
-            totalReels: (creator.totalReels || 0) + 1
-          }
-        );
-      } catch (error) {
-        console.error('Error updating creator stats:', error);
-      }
-
-      // Success
       Toast.success('🎉 Video uploaded successfully!');
-      
-      // Reset form
       this.resetForm();
 
-      // Redirect after 2 seconds
       setTimeout(() => {
-        window.location.href = '/';
-      }, 2000);
+        window.location.href = './index.html';
+      }, 1500);
 
     } catch (error) {
       console.error('Upload error:', error);
       Toast.error(`Upload failed: ${error.message}`);
     } finally {
-      this.isUploading = false;
-      const submitBtn = document.getElementById('submit-btn');
-      if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Upload Video';
-      }
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Upload Video';
+      progressBar?.classList.remove('active');
     }
   }
 
-  /**
-   * Sanitize file name
-   */
   sanitizeFileName(name) {
-    return name
-      .replace(/[^a-zA-Z0-9._-]/g, '_')
-      .toLowerCase()
-      .substring(0, 100);
+    return name.replace(/[^a-zA-Z0-9._-]/g, '_').toLowerCase().substring(0, 100);
   }
 
-  /**
-   * Reset form
-   */
   resetForm() {
-    document.getElementById('title').value = '';
-    document.getElementById('description').value = '';
-    document.getElementById('hashtags').value = '';
-    document.getElementById('category').value = 'other';
-    document.getElementById('language').value = 'Nepali';
-    
+    ['title', 'description', 'hashtags'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
     const preview = document.getElementById('video-preview');
-    if (preview) {
-      preview.style.display = 'none';
-    }
-
+    if (preview) preview.style.display = 'none';
     const fileInfo = document.getElementById('file-info');
-    if (fileInfo) {
-      fileInfo.textContent = '';
-    }
-
+    if (fileInfo) fileInfo.textContent = '';
     this.selectedFile = null;
-  }
-
-  /**
-   * Redirect to login
-   */
-  redirectToLogin() {
-    window.location.href = '/login.html';
   }
 }
 
-// Initialize upload manager when DOM is ready
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
     window.uploadManager = new UploadManager();
