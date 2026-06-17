@@ -1,6 +1,9 @@
 /**
  * GorkhaReels - Authentication System
- * Login/Signup with Appwrite backend
+ * Uses Appwrite Account API (proper session-based auth)
+ *
+ * Signup:  account.create() -> creates user + auto-hashes password
+ * Login:   account.createEmailPasswordSession() -> creates session
  */
 
 class AuthManager {
@@ -8,11 +11,7 @@ class AuthManager {
     this.setupEventListeners();
   }
 
-  /**
-   * Setup event listeners for login/signup forms
-   */
   setupEventListeners() {
-    // Login
     const loginBtn = document.getElementById('login-btn');
     const loginEmail = document.getElementById('login-email');
     const loginPassword = document.getElementById('login-password');
@@ -27,32 +26,27 @@ class AuthManager {
       });
     }
 
-    // Signup
     const signupBtn = document.getElementById('signup-btn');
     if (signupBtn) {
       signupBtn.addEventListener('click', () => this.handleSignup());
     }
   }
 
-  /**
-   * Toggle between login and signup forms
-   */
   toggleForm() {
     const loginForm = document.getElementById('login-form');
     const signupForm = document.getElementById('signup-form');
-    
+
     if (loginForm && signupForm) {
       loginForm.style.display = loginForm.style.display === 'none' ? 'flex' : 'none';
       signupForm.style.display = signupForm.style.display === 'none' ? 'flex' : 'none';
-      
-      // Clear errors
-      document.getElementById('login-error').classList.remove('show');
-      document.getElementById('signup-error').classList.remove('show');
+
+      document.getElementById('login-error')?.classList.remove('show');
+      document.getElementById('signup-error')?.classList.remove('show');
     }
   }
 
   /**
-   * Handle login
+   * Handle LOGIN using Appwrite Account API
    */
   async handleLogin() {
     const email = document.getElementById('login-email')?.value?.trim();
@@ -60,9 +54,8 @@ class AuthManager {
     const errorEl = document.getElementById('login-error');
     const loginBtn = document.getElementById('login-btn');
 
-    // Validate
     if (!email || !password) {
-      this.showError(errorEl, 'Please enter email/username and password');
+      this.showError(errorEl, 'Please enter email and password');
       return;
     }
 
@@ -71,74 +64,47 @@ class AuthManager {
       loginBtn.classList.add('loading');
       loginBtn.textContent = 'Signing in...';
 
-      // Try to find user by email or username
-      let user = null;
-      
+      // Clear any existing session first
       try {
-        // Search by email
-        const result = await appwrite.getDocuments(
-          APPWRITE_CONFIG.COLLECTIONS.CREATORS,
-          [`queries[]=email=${email}`]
-        );
-
-        if (result.documents.length > 0) {
-          user = result.documents[0];
-        }
-      } catch (err) {
-        // Email not found, try username
-        console.log('Email not found, trying username...');
+        await account.deleteSession('current');
+      } catch (e) {
+        // No existing session, that's fine
       }
 
-      if (!user) {
-        // Search by username (assuming email field can also contain username for simplicity)
-        const result = await appwrite.getDocuments(
-          APPWRITE_CONFIG.COLLECTIONS.CREATORS,
-          []
-        );
+      // Create new email/password session
+      await account.createEmailPasswordSession(email, password);
 
-        // Simple username search (in production, add username field to database)
-        user = result.documents.find(u => u.email === email);
-      }
+      // Get the logged-in user
+      await session.refresh();
 
-      if (!user) {
-        this.showError(errorEl, 'User not found. Please check email/username or sign up');
-        return;
-      }
-
-      // Validate password (simple check - in production, use proper password hashing)
-      // For now, we'll store password in Appwrite and compare
-      if (!user.password || user.password !== password) {
-        this.showError(errorEl, 'Invalid password');
-        return;
-      }
-
-      // Success - store user session
-      session.setUser({
-        userId: user.$id,
-        name: user.name,
-        email: user.email,
-        profilePic: user.profilePic
-      });
-
-      // Redirect to feed
       Toast.success('Welcome back! 🎉');
       setTimeout(() => {
-        window.location.href = '/';
+        window.location.href = './index.html';
       }, 1000);
 
     } catch (error) {
       console.error('Login error:', error);
-      const errorMessage = error.message || 'Login failed. Please check your credentials and try again.';
-      this.showError(errorEl, errorMessage);
+      let msg = 'Login failed. Please try again.';
+      if (error.message) {
+        if (error.message.includes('Invalid credentials') ||
+            error.message.includes('Invalid `email` or `password`')) {
+          msg = 'Invalid email or password';
+        } else if (error.message.includes('not be found')) {
+          msg = 'No account found. Please sign up first.';
+        } else {
+          msg = error.message;
+        }
+      }
+      this.showError(errorEl, msg);
     } finally {
       loginBtn.disabled = false;
       loginBtn.classList.remove('loading');
-      loginBtn.textContent = 'Sign In';
+      loginBtn.textContent = '🔓 Sign In';
     }
   }
 
   /**
-   * Handle signup
+   * Handle SIGNUP using Appwrite Account API
    */
   async handleSignup() {
     const name = document.getElementById('signup-name')?.value?.trim();
@@ -148,32 +114,27 @@ class AuthManager {
     const errorEl = document.getElementById('signup-error');
     const signupBtn = document.getElementById('signup-btn');
 
-    // Validate
+    // Validation
     if (!name || !email || !username || !password) {
       this.showError(errorEl, 'Please fill in all fields');
       return;
     }
-
     if (name.length < 2) {
       this.showError(errorEl, 'Name must be at least 2 characters');
       return;
     }
-
     if (!this.isValidEmail(email)) {
       this.showError(errorEl, 'Please enter a valid email');
       return;
     }
-
     if (username.length < 3) {
       this.showError(errorEl, 'Username must be at least 3 characters');
       return;
     }
-
     if (!/^[a-zA-Z0-9_]+$/.test(username)) {
-      this.showError(errorEl, 'Username can only contain letters, numbers, and underscore');
+      this.showError(errorEl, 'Username: letters, numbers, underscore only');
       return;
     }
-
     if (password.length < 8) {
       this.showError(errorEl, 'Password must be at least 8 characters');
       return;
@@ -184,78 +145,68 @@ class AuthManager {
       signupBtn.classList.add('loading');
       signupBtn.textContent = 'Creating account...';
 
-      // Check if email already exists
-      try {
-        const existing = await appwrite.getDocuments(
-          APPWRITE_CONFIG.COLLECTIONS.CREATORS,
-          [`queries[]=email=${email}`]
-        );
+      // 1. Create the Appwrite account (password auto-hashed with Argon2)
+      const user = await account.create(ID.unique(), email, password, name);
+      console.log('✅ Account created:', user.$id);
 
-        if (existing.documents.length > 0) {
-          this.showError(errorEl, 'Email already registered. Please login instead.');
-          return;
-        }
-      } catch (err) {
-        console.log('Email check passed');
+      // 2. Log them in immediately
+      await account.createEmailPasswordSession(email, password);
+      await session.refresh();
+
+      // 3. Create their creator profile in the database
+      try {
+        await db.create(
+          APPWRITE_CONFIG.COLLECTIONS.CREATORS,
+          {
+            userId: user.$id,
+            name: name,
+            email: email,
+            bio: '',
+            profilePic: '',
+            followers: 0,
+            totalViews: 0,
+            totalReels: 0,
+            totalEarnings: 0,
+            isVerified: false,
+            isActive: true,
+            createdAt: new Date().toISOString()
+          },
+          user.$id  // use the auth user id as the document id
+        );
+        console.log('✅ Creator profile created');
+      } catch (profileErr) {
+        // Profile creation failed but account exists - not fatal
+        console.warn('Profile creation warning:', profileErr.message);
       }
 
-      // Create new user
-      const newUser = await appwrite.createDocument(
-        APPWRITE_CONFIG.COLLECTIONS.CREATORS,
-        {
-          userId: appwrite.generateId(),
-          name,
-          email,
-          password, // ⚠️ In production, use proper password hashing!
-          bio: '',
-          profilePic: '',
-          followers: 0,
-          totalViews: 0,
-          totalReels: 0,
-          totalEarnings: 0,
-          isVerified: false,
-          isActive: true,
-          createdAt: new Date().toISOString()
-        },
-        email // Use email as document ID
-      );
-
-      // Success - store user session
-      session.setUser({
-        userId: newUser.$id,
-        name: newUser.name,
-        email: newUser.email,
-        profilePic: newUser.profilePic
-      });
-
-      // Redirect to feed
       Toast.success('Account created! Welcome to GorkhaReels! 🎉');
       setTimeout(() => {
-        window.location.href = '/';
+        window.location.href = './index.html';
       }, 1000);
 
     } catch (error) {
       console.error('Signup error:', error);
-      const errorMessage = error.message || 'Signup failed. Please check your connection and try again.';
-      this.showError(errorEl, errorMessage);
+      let msg = 'Signup failed. Please try again.';
+      if (error.message) {
+        if (error.message.includes('already exists') ||
+            error.message.includes('A user with the same')) {
+          msg = 'Email already registered. Please sign in.';
+        } else {
+          msg = error.message;
+        }
+      }
+      this.showError(errorEl, msg);
     } finally {
       signupBtn.disabled = false;
       signupBtn.classList.remove('loading');
-      signupBtn.textContent = 'Create Account';
+      signupBtn.textContent = '🎬 Create Account';
     }
   }
 
-  /**
-   * Validate email format
-   */
   isValidEmail(email) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   }
 
-  /**
-   * Show error message
-   */
   showError(element, message) {
     if (element) {
       element.textContent = message;
@@ -264,19 +215,12 @@ class AuthManager {
   }
 }
 
-/**
- * Global function to toggle forms
- */
 function toggleForm() {
-  const authManager = window.authManager;
-  if (authManager) {
-    authManager.toggleForm();
+  if (window.authManager) {
+    window.authManager.toggleForm();
   }
 }
 
-/**
- * Initialize auth system
- */
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
     window.authManager = new AuthManager();
@@ -285,4 +229,4 @@ if (document.readyState === 'loading') {
   window.authManager = new AuthManager();
 }
 
-console.log('✅ Auth Manager Loaded');
+console.log('✅ Auth Manager Loaded (Account API)');
