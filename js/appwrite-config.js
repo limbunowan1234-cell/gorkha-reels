@@ -26,8 +26,8 @@ const APPWRITE_CONFIG = {
 
 // ============== BUNNY CDN CONFIG ==============
 const BUNNY_CONFIG = {
-  API_KEY: 'c8e90f7f-5178-465d-b0d0-5a818fe5856e5ac756c5-2d50-4796-959f-721f70256804',
-  STORAGE_ZONE: 'gorkhareel',
+  API_KEY: 'cf694f78-8568-4497-9e764c8848c4-728e-4d89',
+  STORAGE_ZONE: 'gorkhareels',
   PULL_ZONE_URL: 'https://gorkhareel-video.b-cdn.net/',
   STORAGE_ENDPOINT: 'https://storage.bunnycdn.com/'
 };
