@@ -63,6 +63,7 @@
 
     .form-group {
       text-align: left;
+      position: relative;
     }
 
     .form-group label {
@@ -75,9 +76,18 @@
       letter-spacing: 0.5px;
     }
 
+    .form-icon {
+      position: absolute;
+      left: 12px;
+      top: 38px;
+      font-size: 18px;
+      color: var(--text-secondary);
+      pointer-events: none;
+    }
+
     .form-group input {
       width: 100%;
-      padding: 12px;
+      padding: 12px 12px 12px 40px;
       background: var(--dark-bg);
       border: 1px solid var(--border-color);
       border-radius: 8px;
@@ -218,7 +228,7 @@
       <div id="login-error" class="error-message"></div>
 
       <div class="form-group">
-        <label for="login-email">Email or Username</label>
+        <label for="login-email">📧 Email or Username</label>
         <input 
           type="text" 
           id="login-email" 
@@ -228,7 +238,7 @@
       </div>
 
       <div class="form-group">
-        <label for="login-password">Password</label>
+        <label for="login-password">🔐 Password</label>
         <input 
           type="password" 
           id="login-password" 
@@ -237,11 +247,11 @@
         >
       </div>
 
-      <button class="auth-button" id="login-btn">Sign In</button>
+      <button class="auth-button" id="login-btn">🔓 Sign In</button>
 
       <div class="auth-toggle">
         <div class="auth-toggle-text">Don't have an account?</div>
-        <button class="auth-toggle-button" onclick="toggleForm()">Create Account</button>
+        <button class="auth-toggle-button" onclick="toggleForm()">✨ Create Account</button>
       </div>
     </div>
 
@@ -254,7 +264,7 @@
       <div id="signup-error" class="error-message"></div>
 
       <div class="form-group">
-        <label for="signup-name">Full Name</label>
+        <label for="signup-name">👤 Full Name</label>
         <input 
           type="text" 
           id="signup-name" 
@@ -264,7 +274,7 @@
       </div>
 
       <div class="form-group">
-        <label for="signup-email">Email</label>
+        <label for="signup-email">📧 Email</label>
         <input 
           type="email" 
           id="signup-email" 
@@ -275,7 +285,7 @@
       </div>
 
       <div class="form-group">
-        <label for="signup-username">Username</label>
+        <label for="signup-username">🎭 Username</label>
         <input 
           type="text" 
           id="signup-username" 
@@ -286,7 +296,7 @@
       </div>
 
       <div class="form-group">
-        <label for="signup-password">Password</label>
+        <label for="signup-password">🔐 Password</label>
         <input 
           type="password" 
           id="signup-password" 
@@ -296,11 +306,11 @@
         <div class="form-helper">Min 8 characters</div>
       </div>
 
-      <button class="auth-button" id="signup-btn">Create Account</button>
+      <button class="auth-button" id="signup-btn">🎬 Create Account</button>
 
       <div class="auth-toggle">
         <div class="auth-toggle-text">Already have an account?</div>
-        <button class="auth-toggle-button" onclick="toggleForm()">Sign In</button>
+        <button class="auth-toggle-button" onclick="toggleForm()">🔓 Sign In</button>
       </div>
     </div>
   </div>
