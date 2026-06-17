@@ -128,7 +128,8 @@ class AuthManager {
 
     } catch (error) {
       console.error('Login error:', error);
-      this.showError(errorEl, `Login failed: ${error.message}`);
+      const errorMessage = error.message || 'Login failed. Please check your credentials and try again.';
+      this.showError(errorEl, errorMessage);
     } finally {
       loginBtn.disabled = false;
       loginBtn.classList.remove('loading');
@@ -235,7 +236,8 @@ class AuthManager {
 
     } catch (error) {
       console.error('Signup error:', error);
-      this.showError(errorEl, `Signup failed: ${error.message}`);
+      const errorMessage = error.message || 'Signup failed. Please check your connection and try again.';
+      this.showError(errorEl, errorMessage);
     } finally {
       signupBtn.disabled = false;
       signupBtn.classList.remove('loading');
