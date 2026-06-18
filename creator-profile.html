@@ -1,75 +1,230 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Creator Profile</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Creator Profile - GorkhaReels</title>
   <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .profile-header { padding: 20px; text-align: center; background: var(--dark-card); border-bottom: 1px solid var(--border-color); }
+    .profile-pic-large { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary-red); margin-bottom: 12px; }
+    .profile-stats { display: flex; justify-content: center; gap: 30px; margin: 15px 0; }
+    .stat { text-align: center; }
+    .stat-number { font-size: 20px; font-weight: 700; color: var(--text-primary); }
+    .stat-label { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+    .follow-btn { padding: 12px 40px; background: var(--primary-red); color: white; border: none; border-radius: 25px; font-weight: 700; font-size: 15px; cursor: pointer; margin-top: 10px; transition: all 0.2s; }
+    .follow-btn.following { background: var(--dark-bg); border: 1px solid var(--border-color); color: var(--text-secondary); }
+    .videos-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2px; padding: 0; background: var(--dark-bg); }
+    .video-thumb { position: relative; aspect-ratio: 9/16; background: #000; cursor: pointer; overflow: hidden; }
+    .video-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .video-views { position: absolute; bottom: 6px; left: 6px; font-size: 12px; color: white; background: rgba(0,0,0,0.6); padding: 2px 6px; border-radius: 4px; }
+  </style>
 </head>
 <body>
-<header><button onclick="history.back()">←</button><div id="profile-name">Loading...</div></header>
-<div id="profile-container" style="padding:20px;text-align:center">
-  <img id="profile-pic" src="assets/logo.png" style="width:100px;height:100px;border-radius:50%">
-  <h2 id="creator-name"></h2>
-  <div><span id="videos-count">0</span> Videos • <span id="followers-count">0</span> Followers</div>
-  <button id="follow-btn" style="margin-top:15px;padding:12px 30px;background:#ff3b30;color:white;border:none;border-radius:25px;font-weight:700">Follow</button>
-  <div id="videos-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px"></div>
-</div>
+  <header class="app-header">
+    <button onclick="history.back()" style="background:none;border:none;color:white;font-size:24px;padding:8px">←</button>
+    <div id="header-name" style="flex:1;text-align:center;font-weight:700">Profile</div>
+    <div style="width:40px"></div>
+  </header>
 
-<script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
-<script src="js/appwrite-config.js"></script>
-<script>
-class ProfileManager {
-  constructor(){ this.creatorId = new URLSearchParams(location.search).get('id'); this.init(); }
-  async init(){ await session.refresh(); this.loadProfile(); document.getElementById('follow-btn').onclick=()=>this.toggleFollow(); }
+  <div class="profile-header">
+    <img id="profile-pic" class="profile-pic-large" src="assets/logo.png" alt="Profile">
+    <h2 id="creator-name" style="margin:8px 0 4px;color:var(--text-primary)">Loading...</h2>
+    <p id="creator-bio" style="color:var(--text-secondary);font-size:14px;margin:0 20px"></p>
+    
+    <div class="profile-stats">
+      <div class="stat">
+        <div class="stat-number" id="videos-count">0</div>
+        <div class="stat-label">Videos</div>
+      </div>
+      <div class="stat">
+        <div class="stat-number" id="followers-count">0</div>
+        <div class="stat-label">Followers</div>
+      </div>
+      <div class="stat">
+        <div class="stat-number" id="views-count">0</div>
+        <div class="stat-label">Views</div>
+      </div>
+    </div>
 
-  async loadProfile(){
-    const creator = await db.get(APPWRITE_CONFIG.COLLECTIONS.CREATORS, this.creatorId);
-    document.getElementById('creator-name').textContent = creator.name;
-    document.getElementById('profile-pic').src = creator.profilePic || 'assets/logo.png';
-    document.getElementById('videos-count').textContent = creator.totalReels || 0;
+    <button id="follow-btn" class="follow-btn">Follow</button>
+  </div>
 
-    const followers = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [Query.equal('followingId', this.creatorId)]);
-    document.getElementById('followers-count').textContent = followers.total;
+  <div style="padding:15px 15px 5px;">
+    <h3 style="color:var(--text-primary);font-size:16px;margin:0">🎬 Videos</h3>
+  </div>
+  <div id="videos-grid" class="videos-grid"></div>
 
-    if(session.isLoggedIn()){
-      const myFollow = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [
-        Query.equal('followerID', session.getUserId()),
-        Query.equal('followingId', this.creatorId)
-      ]);
-      document.getElementById('follow-btn').textContent = myFollow.total>0? 'Following' : 'Follow';
-    }
-  }
+  <div id="loading" style="text-align:center;padding:40px;color:var(--text-secondary)">Loading profile...</div>
 
-  // FIXED FOLLOW WITH followingId
-  async toggleFollow(){
-    if(!session.isLoggedIn()){ location.href='./login.html'; return; }
-    const btn = document.getElementById('follow-btn');
-    const isFollowing = btn.textContent === 'Following';
-    const userId = session.getUserId();
+  <script src="https://cdn.jsdelivr.net/npm/appwrite@18.2.0/dist/iife/sdk.min.js"></script>
+  <script src="js/appwrite-config.js"></script>
+  <script src="js/utils.js"></script>
 
-    try {
-      if(isFollowing){
-        const follows = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [
-          Query.equal('followerID', userId),
-          Query.equal('followingId', this.creatorId)
-        ]);
-        if(follows.documents.length) await db.remove(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, follows.documents[0].$id);
-        btn.textContent = 'Follow'; btn.style.background = '#ff3b30';
-      } else {
-        await db.create(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, {
-          followId: ID.unique(),
-          followerID: userId,
-          followingId: this.creatorId, // REQUIRED - THIS WAS MISSING
-          CreatorId: this.creatorId,
-          createdAt: new Date().toISOString()
-        }, null, [Permission.read(Role.any()), Permission.delete(Role.user(userId))]);
-        btn.textContent = 'Following'; btn.style.background = '#333';
+  <script>
+    class ProfileManager {
+      constructor() {
+        this.creatorId = new URLSearchParams(window.location.search).get('id');
+        this.creator = null;
+        this.isFollowing = false;
+        this.init();
       }
-      this.loadProfile(); // refresh count
-    } catch(e){ console.error(e); alert('Follow failed: '+e.message); }
-  }
-}
-new ProfileManager();
-</script>
+
+      async init() {
+        if (!this.creatorId) {
+          alert('No creator ID'); history.back(); return;
+        }
+        await session.refresh();
+        await this.loadProfile();
+        document.getElementById('follow-btn').addEventListener('click', () => this.toggleFollow());
+      }
+
+      async loadProfile() {
+        try {
+          // Load creator info
+          this.creator = await db.get(APPWRITE_CONFIG.COLLECTIONS.CREATORS, this.creatorId);
+          
+          document.getElementById('creator-name').textContent = this.creator.name || 'Creator';
+          document.getElementById('header-name').textContent = this.creator.name || 'Profile';
+          document.getElementById('creator-bio').textContent = this.creator.bio || '';
+          document.getElementById('profile-pic').src = this.creator.profilePic || 'assets/logo.png';
+          document.getElementById('videos-count').textContent = this.creator.totalReels || 0;
+          document.getElementById('views-count').textContent = this.creator.totalViews || 0;
+
+          // Load followers count
+          const followers = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [
+            Query.equal('followingId', this.creatorId)
+          ]);
+          document.getElementById('followers-count').textContent = followers.total;
+
+          // Check if current user follows
+          if (session.isLoggedIn() && session.getUserId() !== this.creatorId) {
+            const myFollow = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [
+              Query.equal('followerID', session.getUserId()),
+              Query.equal('followingId', this.creatorId),
+              Query.limit(1)
+            ]);
+            this.isFollowing = myFollow.total > 0;
+            this.updateFollowButton();
+            document.getElementById('follow-btn').style.display = 'inline-block';
+          } else {
+            document.getElementById('follow-btn').style.display = 'none';
+          }
+
+          // Load videos
+          await this.loadVideos();
+          document.getElementById('loading').style.display = 'none';
+
+        } catch (error) {
+          console.error('Profile load failed:', error);
+          document.getElementById('loading').innerHTML = 'Failed to load profile';
+        }
+      }
+
+      async loadVideos() {
+        try {
+          const response = await db.list(APPWRITE_CONFIG.COLLECTIONS.REELS, [
+            Query.equal('creatorId', this.creatorId),
+            Query.equal('isDeleted', false),
+            Query.orderDesc('uploadedAt'),
+            Query.limit(50)
+          ]);
+
+          const grid = document.getElementById('videos-grid');
+          if (response.documents.length === 0) {
+            grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#888">No videos yet</div>';
+            return;
+          }
+
+          grid.innerHTML = response.documents.map(reel => `
+            <div class="video-thumb" onclick="window.location.href='./index.html?reel=${reel.$id}'">
+              <img src="${reel.thumbnail || 'assets/logo.png'}" alt="${escapeHtml(reel.title)}" onerror="this.src='assets/logo.png'">
+              <div class="video-views">👁️ ${reel.views || 0}</div>
+            </div>
+          `).join('');
+        } catch (e) {
+          console.error('Videos load failed:', e);
+        }
+      }
+
+      updateFollowButton() {
+        const btn = document.getElementById('follow-btn');
+        if (this.isFollowing) {
+          btn.textContent = 'Following';
+          btn.classList.add('following');
+        } else {
+          btn.textContent = 'Follow';
+          btn.classList.remove('following');
+        }
+      }
+
+      // FIXED: Added followingId
+      async toggleFollow() {
+        if (!session.isLoggedIn()) {
+          window.location.href = './login.html';
+          return;
+        }
+
+        const btn = document.getElementById('follow-btn');
+        const userId = session.getUserId();
+        btn.disabled = true;
+        btn.textContent = '...';
+
+        try {
+          if (this.isFollowing) {
+            // Unfollow
+            const follows = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [
+              Query.equal('followerID', userId),
+              Query.equal('followingId', this.creatorId),
+              Query.limit(1)
+            ]);
+            if (follows.documents.length > 0) {
+              await db.remove(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, follows.documents[0].$id);
+            }
+            this.isFollowing = false;
+            Toast.success('Unfollowed');
+          } else {
+            // Follow - WITH followingId FIX
+            await db.create(
+              APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS,
+              {
+                followId: ID.unique(),
+                followerID: userId,
+                followingId: this.creatorId,  // ← THIS WAS MISSING
+                CreatorId: this.creatorId,
+                createdAt: new Date().toISOString()
+              },
+              null,
+              [
+                Permission.read(Role.any()),
+                Permission.delete(Role.user(userId))
+              ]
+            );
+            this.isFollowing = true;
+            Toast.success('Following!');
+          }
+          
+          this.updateFollowButton();
+          // Refresh follower count
+          const followers = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [
+            Query.equal('followingId', this.creatorId)
+          ]);
+          document.getElementById('followers-count').textContent = followers.total;
+
+        } catch (error) {
+          console.error('Follow failed:', error);
+          Toast.error('Failed — check permissions');
+          this.updateFollowButton();
+        } finally {
+          btn.disabled = false;
+        }
+      }
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      new ProfileManager();
+    });
+  </script>
 </body>
 </html>
