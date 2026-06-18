@@ -5,6 +5,8 @@
  * ✅ FIX #15: Proper error handling for missing creator profile
  * ✅ COUNT VIDEOS DYNAMICALLY: Total videos counted from REELS collection (Option A)
  * ✅ DISPLAY USER VIDEOS: Show uploaded videos in dashboard
+ * ✅ FIXED: bankUpiId spelling (was bankUpild)
+ * ✅ ADDED: Real totalViews aggregation from reels
  */
 
 class DashboardManager {
@@ -111,7 +113,24 @@ class DashboardManager {
       const totalVideos = this.myReels.length;
       this.setText('total-reels', totalVideos);
       
-      console.log(`✅ Loaded ${this.myReels.length} reels`);
+      // NEW: Calculate real total views from all reels
+      const totalViews = this.myReels.reduce((sum, r) => sum + (r.views || 0), 0);
+      this.setText('total-views', this.formatNumber(totalViews));
+      this.setText('total-views-perf', this.formatNumber(totalViews));
+      
+      // Update creator profile with real views (optional)
+      if (this.creatorData && totalViews !== this.creatorData.totalViews) {
+        try {
+          await db.update(APPWRITE_CONFIG.COLLECTIONS.CREATORS, this.user.$id, {
+            totalViews: totalViews,
+            totalReels: totalVideos
+          });
+        } catch (e) {
+          console.log('Could not update creator stats:', e.message);
+        }
+      }
+      
+      console.log(`✅ Loaded ${this.myReels.length} reels, ${totalViews} total views`);
       this.displayMyReels();
     } catch (error) {
       console.error('Error loading reels:', error);
@@ -278,7 +297,7 @@ class DashboardManager {
           </div>
           <div style="margin-bottom:20px;">
             <label style="display:block;color:var(--text-secondary,#888);font-size:13px;margin-bottom:6px;">UPI ID (optional)</label>
-            <input id="bank-upi" type="text" value="${escapeHtml(d.bankUpild || '')}" placeholder="yourname@upi" style="width:100%;background:var(--dark-bg,#000);border:1px solid var(--border-color,#333);border-radius:8px;padding:12px;color:#fff;font-size:14px;box-sizing:border-box;">
+            <input id="bank-upi" type="text" value="${escapeHtml(d.bankUpiId || '')}" placeholder="yourname@upi" style="width:100%;background:var(--dark-bg,#000);border:1px solid var(--border-color,#333);border-radius:8px;padding:12px;color:#fff;font-size:14px;box-sizing:border-box;">
           </div>
           <button id="save-bank-btn" onclick="window.dashboardManager.saveBankDetails()" style="width:100%;background:var(--primary-red,#dc2626);border:none;border-radius:8px;padding:14px;color:#fff;font-weight:700;font-size:15px;cursor:pointer;">💾 Save Bank Details</button>
         </div>
@@ -304,12 +323,12 @@ class DashboardManager {
         bankAccountName: name,
         bankAccountNumber: account,
         bankIfscCode: ifsc,
-        bankUpild: upi || ''
+        bankUpiId: upi || ''
       });
       this.creatorData.bankAccountName = name;
       this.creatorData.bankAccountNumber = account;
       this.creatorData.bankIfscCode = ifsc;
-      this.creatorData.bankUpild = upi;
+      this.creatorData.bankUpiId = upi;
       Toast.success('✅ Bank details saved!');
       document.getElementById('bank-details-modal')?.remove();
     } catch (error) {
@@ -578,4 +597,4 @@ if (document.readyState === 'loading') {
   window.dashboardManager = new DashboardManager();
 }
 
-console.log('✅ Dashboard Manager Loaded (with dynamic video counting - Option A)');
+console.log('✅ Dashboard Manager Loaded (with bankUpiId fix + real views)');
