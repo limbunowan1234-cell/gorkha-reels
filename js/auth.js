@@ -150,6 +150,13 @@ class AuthManager {
       signupBtn.classList.add('loading');
       signupBtn.textContent = 'Creating account...';
 
+      // Clear any existing session first (prevents "session is active" error)
+      try {
+        await account.deleteSession('current');
+      } catch (e) {
+        // No existing session, that's fine
+      }
+
       let user = null;
 
       try {
