@@ -25,7 +25,8 @@ class FeedManager {
     this.isFullscreen = false;
     this.viewTimers = {};
     this.lastTimestamp = null;
-    this.mode = 'recommended'; // 'recommended' or 'trending'
+    this.mode = 'recommended';
+    this.creatorsCache = {}; // Cache creator profiles to avoid repeated fetches
 
     this.init();
   }
@@ -110,6 +111,8 @@ class FeedManager {
 
       // Load user likes for heart state
       await this.loadUserLikes();
+      // Load creator info for all reels
+      await this.loadCreatorCache(this.reels);
 
       console.log(`✅ Loaded ${this.reels.length} recommended reels`);
     } catch (error) {
@@ -163,8 +166,34 @@ class FeedManager {
     }
   }
 
-  // FIX #5: Load user's likes from database (NEW)
-  // FIXED: Use correct field name 'creatorId' instead of 'userId'
+  // Load creator profiles for a batch of reels (cached)
+  async loadCreatorCache(reels) {
+    const uncachedIds = [...new Set(
+      reels.map(r => r.creatorId).filter(id => id && !this.creatorsCache[id])
+    )];
+
+    for (const creatorId of uncachedIds) {
+      try {
+        const creator = await db.get(APPWRITE_CONFIG.COLLECTIONS.CREATORS, creatorId);
+        this.creatorsCache[creatorId] = creator;
+      } catch (e) {
+        // Creator not found - use placeholder
+        this.creatorsCache[creatorId] = { name: 'GorkhaReels Creator', profilePic: '' };
+      }
+    }
+  }
+
+  // Get creator info for a reel (from cache or reel's own embedded data)
+  getCreator(reel) {
+    // If reel has embedded creator info (new uploads), use that
+    if (reel.creatorName) {
+      return { name: reel.creatorName, profilePic: reel.creatorProfilePic || '' };
+    }
+    // Otherwise use cache
+    return this.creatorsCache[reel.creatorId] || { name: 'GorkhaReels Creator', profilePic: '' };
+  }
+
+  // Load user's likes from database
   async loadUserLikes() {
     try {
       if (!session.isLoggedIn()) return;
@@ -329,18 +358,24 @@ class FeedManager {
     const isLiked = this.likedReels.has(reel.$id);
     const escapedTitle = escapeHtml(reel.title);
     const escapedDesc = escapeHtml(reel.description || '');
-    
+    const creator = this.getCreator(reel);
+    const creatorName = escapeHtml(creator.name || 'GorkhaReels Creator');
+    const creatorPic = creator.profilePic || 'assets/logo.png';
+
     return `
       <div class="video-card">
         <video class="video-player" src="${reel.videoUrl}" loop playsinline preload="metadata"></video>
         <div class="video-overlay">
+          <!-- Creator Info (TikTok style) -->
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+            <img src="${creatorPic}" onerror="this.src='assets/logo.png'" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,0.6);">
+            <div>
+              <div style="font-size:14px;font-weight:700;color:#fff;">@${creatorName}</div>
+            </div>
+          </div>
+          <!-- Video Info -->
           <span class="video-category">${escapeHtml(reel.category || 'General')}</span>
           <h2 class="video-title">${escapedTitle}</h2>
-          <div class="video-meta">
-            <span>${reel.views || 0} views</span>
-            <span>•</span>
-            <span>${escapeHtml(reel.language || 'Nepali')}</span>
-          </div>
           <p class="video-description">${escapedDesc}</p>
         </div>
         <div class="action-buttons">
@@ -649,6 +684,152 @@ class FeedManager {
     }
   }
 
+  // ===== SEARCH FEATURE =====
+  openSearch() {
+    const overlay = document.getElementById('search-overlay');
+    if (overlay) {
+      overlay.style.display = 'flex';
+      setTimeout(() => {
+        document.getElementById('search-input-field')?.focus();
+      }, 100);
+
+      // Set up input listener
+      const input = document.getElementById('search-input-field');
+      const clearBtn = document.getElementById('search-clear-btn');
+
+      if (input) {
+        input.oninput = (e) => {
+          const q = e.target.value.trim();
+          clearBtn && (clearBtn.style.display = q ? 'block' : 'none');
+          this.handleSearchInput(q);
+        };
+
+        input.onkeydown = (e) => {
+          if (e.key === 'Enter') {
+            this.handleSearchInput(input.value.trim());
+          }
+          if (e.key === 'Escape') {
+            this.closeSearch();
+          }
+        };
+      }
+    }
+  }
+
+  closeSearch() {
+    const overlay = document.getElementById('search-overlay');
+    if (overlay) {
+      overlay.style.display = 'none';
+      const input = document.getElementById('search-input-field');
+      if (input) input.value = '';
+      const clearBtn = document.getElementById('search-clear-btn');
+      if (clearBtn) clearBtn.style.display = 'none';
+    }
+  }
+
+  handleSearchInput(query) {
+    if (!query || query.length < 2) {
+      const results = document.getElementById('search-results');
+      if (results) results.innerHTML = `
+        <div style="text-align:center;color:#737373;padding:60px 20px;">
+          <div style="font-size:40px;margin-bottom:12px;">🎬</div>
+          <p>Search for videos by title</p>
+        </div>`;
+      return;
+    }
+
+    // Debounce: wait 400ms after typing stops
+    clearTimeout(this._searchTimer);
+    this._searchTimer = setTimeout(() => this.searchReels(query), 400);
+  }
+
+  async searchReels(query) {
+    const results = document.getElementById('search-results');
+    if (!results) return;
+
+    results.innerHTML = `
+      <div style="text-align:center;color:#737373;padding:40px;">
+        <div class="spinner" style="margin:0 auto;width:28px;height:28px;border:2px solid #333;border-top-color:#dc2626;border-radius:50%;animation:spin 0.8s linear infinite;"></div>
+        <p style="margin-top:12px;">Searching...</p>
+      </div>`;
+
+    try {
+      // Fetch reels and filter client-side by title
+      const response = await db.list(APPWRITE_CONFIG.COLLECTIONS.REELS, [
+        Query.equal('isDeleted', false),
+        Query.orderDesc('uploadedAt'),
+        Query.limit(100)
+      ]);
+
+      const q = query.toLowerCase();
+      const matched = response.documents.filter(r =>
+        r.title?.toLowerCase().includes(q) ||
+        r.description?.toLowerCase().includes(q) ||
+        r.category?.toLowerCase().includes(q)
+      );
+
+      if (matched.length === 0) {
+        results.innerHTML = `
+          <div style="text-align:center;color:#737373;padding:60px 20px;">
+            <div style="font-size:40px;margin-bottom:12px;">😕</div>
+            <p>No videos found for "<strong style="color:#fff;">${escapeHtml(query)}</strong>"</p>
+          </div>`;
+        return;
+      }
+
+      results.innerHTML = `
+        <p style="color:#a3a3a3;font-size:13px;margin-bottom:14px;">${matched.length} result${matched.length > 1 ? 's' : ''} for "<strong style="color:#fff;">${escapeHtml(query)}</strong>"</p>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          ${matched.map(r => `
+            <div onclick="window.feedManager.playFromSearch('${r.$id}')" style="
+              display:flex;gap:12px;align-items:center;
+              background:#1a1a1a;border-radius:12px;
+              padding:10px;cursor:pointer;border:1px solid #2d2d2d;
+            ">
+              <div style="position:relative;width:64px;height:80px;flex-shrink:0;border-radius:8px;overflow:hidden;background:#242424;">
+                <img src="${r.thumbnail || 'assets/logo.png'}" style="width:100%;height:100%;object-fit:cover;">
+              </div>
+              <div style="flex:1;min-width:0;">
+                <p style="color:#fff;font-weight:600;font-size:14px;margin:0 0 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(r.title)}</p>
+                <p style="color:#a3a3a3;font-size:12px;margin:0 0 6px;">${escapeHtml(r.category || 'General')}</p>
+                <div style="display:flex;gap:12px;font-size:12px;color:#737373;">
+                  <span>👁️ ${r.views || 0}</span>
+                  <span>❤️ ${r.likes || 0}</span>
+                  <span>💬 ${r.comments || 0}</span>
+                </div>
+              </div>
+              <span style="color:#737373;font-size:20px;">›</span>
+            </div>
+          `).join('')}
+        </div>`;
+
+    } catch (error) {
+      console.error('Search failed:', error);
+      results.innerHTML = `
+        <div style="text-align:center;color:#737373;padding:40px;">
+          <p>Search failed. Try again.</p>
+        </div>`;
+    }
+  }
+
+  playFromSearch(reelId) {
+    // Close search and jump to that reel in the feed
+    this.closeSearch();
+    const idx = this.reels.findIndex(r => r.$id === reelId);
+    if (idx !== -1) {
+      this.currentIndex = idx;
+      this.displayCurrentVideo();
+    } else {
+      // Reel not in current feed — reload feed with this reel
+      Toast.info('Loading video...');
+      db.get(APPWRITE_CONFIG.COLLECTIONS.REELS, reelId).then(reel => {
+        this.reels = [reel];
+        this.currentIndex = 0;
+        this.displayCurrentVideo();
+      }).catch(() => Toast.error('Could not load video'));
+    }
+  }
+
   handleNavClick(e) {
     const nav = e.currentTarget.dataset.nav;
     switch (nav) {
@@ -702,6 +883,7 @@ class FeedManager {
       this.hasMore = false;
 
       await this.loadUserLikes();
+      await this.loadCreatorCache(this.reels);
       this.displayCurrentVideo();
       Toast.success('Trending now 🔥');
     } catch (e) {
