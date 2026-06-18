@@ -89,13 +89,14 @@ class FeedManager {
   }
 
   // FIX #5: Load user's likes from database (NEW)
+  // FIXED: Use correct field name 'creatorId' instead of 'userId'
   async loadUserLikes() {
     try {
       if (!session.isLoggedIn()) return;
       
       const userId = session.getUserId();
       const response = await db.list(APPWRITE_CONFIG.COLLECTIONS.LIKES, [
-        Query.equal('userId', userId),
+        Query.equal('creatorId', userId),
         Query.limit(1000)
       ]);
 
@@ -396,9 +397,9 @@ class FeedManager {
         likeButton?.classList.remove('liked');
         this.currentVideo.likes = Math.max(0, (this.currentVideo.likes || 1) - 1);
 
-        // Delete from DB
+        // Delete from DB (FIXED: Use correct field name 'creatorId')
         const likes = await db.list(APPWRITE_CONFIG.COLLECTIONS.LIKES, [
-          Query.equal('userId', userId),
+          Query.equal('creatorId', userId),
           Query.equal('reelId', reelId)
         ]);
         if (likes.documents.length > 0) {
@@ -410,11 +411,12 @@ class FeedManager {
         likeButton?.classList.add('liked');
         this.currentVideo.likes = (this.currentVideo.likes || 0) + 1;
 
-        // Create in DB
+        // Create in DB (FIXED: Use correct field names)
         await db.create(APPWRITE_CONFIG.COLLECTIONS.LIKES, {
-          userId: userId,
+          likeId: ID.unique(),
           reelId: reelId,
-          likedAt: new Date().toISOString()
+          creatorId: userId,
+          createdAt: new Date().toISOString()
         });
       }
 
