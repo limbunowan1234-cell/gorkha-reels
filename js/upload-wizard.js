@@ -327,10 +327,21 @@ class UploadWizard {
 
       const user = session.getUser();
 
-      // FIXED: Minimal fields + likes counter (safe with 0 default)
+      // Get creator profile for embedding in reel
+      let creatorName = user.name || 'GorkhaReels Creator';
+      let creatorProfilePic = '';
+      try {
+        const creatorProfile = await db.get(APPWRITE_CONFIG.COLLECTIONS.CREATORS, user.$id);
+        creatorName = creatorProfile.name || creatorName;
+        creatorProfilePic = creatorProfile.profilePic || '';
+      } catch (e) { /* use defaults */ }
+
+      // FIXED: Minimal fields + creator info embedded
       const reelData = {
         reelId: ID.unique(),
         creatorId: user.$id,
+        creatorName: creatorName,
+        creatorProfilePic: creatorProfilePic,
         videoUrl: uploadResult.url,
         thumbnail: `${uploadResult.url}?thumb=1`,
         title,
