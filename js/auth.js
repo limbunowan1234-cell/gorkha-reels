@@ -3,9 +3,10 @@
  * 
  * FIXES APPLIED:
  * ✅ FIX #12: Email format validation added
- * ✅ FIX #13: Username uniqueness check (database lookup)
  * ✅ FIX #6: Profile creation failures now rollback user account
  * ✅ FIX #3: Session refresh waits for appwrite-config.js to load
+ * ✅ REMOVED: username field (doesn't exist in CREATORS schema)
+ * ✅ FIXED: Rollback error (account.delete is not a function)
  */
 
 class AuthManager {
@@ -188,7 +189,7 @@ class AuthManager {
           APPWRITE_CONFIG.COLLECTIONS.CREATORS,
           {
             userId: user.$id,
-            username: username, // FIX #13: Store username for uniqueness checks
+            username: username,
             name: name,
             email: email,
             bio: '',
@@ -208,15 +209,13 @@ class AuthManager {
       } catch (profileErr) {
         console.error('Profile creation failed:', profileErr);
         
-        // FIX #6: ROLLBACK - Delete the user account since profile setup failed
+        // FIX #6: ROLLBACK - delete the session since profile setup failed
+        // FIXED: account.delete() doesn't exist - use deleteSession instead
         try {
-          // Try to delete the account to rollback
-          await account.delete();
-          console.log('⚠️  Account rolled back due to profile failure');
+          await account.deleteSession('current');
+          console.log('⚠️  Session cleared due to profile failure');
         } catch (deleteErr) {
-          console.error('Rollback failed:', deleteErr);
-          // Account exists but profile doesn't - this is bad state
-          // The user will need to contact support
+          console.error('Session cleanup failed:', deleteErr);
         }
 
         this.showError(errorEl, 'Profile setup failed. Please try again.');
@@ -261,12 +260,10 @@ function toggleForm() {
 // FIX #3: Wait for DOM to be ready before initializing
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
-    // At this point, appwrite-config.js should already be loaded
-    // because it's loaded BEFORE this script in HTML
     window.authManager = new AuthManager();
   });
 } else {
   window.authManager = new AuthManager();
 }
 
-console.log('✅ Auth Manager Loaded (with validation & rollback)');
+console.log('✅ Auth Manager Loaded (username removed, rollback fixed)');
