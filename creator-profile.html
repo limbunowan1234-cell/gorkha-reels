@@ -17,7 +17,14 @@
     }
 
     /* Back header */
-    .profile-back-header {
+    /* Fix: Override transparent header */
+    header {
+      background: rgba(10, 10, 10, 0.98) !important;
+      position: sticky !important;
+      backdrop-filter: blur(20px) !important;
+      border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+    }
+    .profile-back-header { {
       display: flex;
       align-items: center;
       gap: 12px;
