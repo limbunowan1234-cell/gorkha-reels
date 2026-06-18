@@ -20,103 +20,224 @@
   <link rel="stylesheet" href="css/styles.css">
   
   <style>
-    .dashboard-header {
-      text-align: center;
-      margin-bottom: 30px;
-      padding-top: 20px;
-    }
-
-    .dashboard-header h1 {
-      font-size: 24px;
-      margin-bottom: 8px;
-      color: var(--text-primary);
-    }
-
-    .quick-actions {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 24px;
-    }
-
-    .quick-actions .btn {
-      margin: 0;
-    }
-
-    .section-divider {
-      height: 1px;
-      background: var(--border-color);
-      margin: 24px 0;
-    }
-
-    .stats-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 24px;
-    }
-
-    .stat-box {
-      background: var(--dark-card);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
+    .dashboard-container {
+      max-width: 600px;
+      margin: 0 auto;
       padding: 16px;
     }
 
-    .stat-icon {
-      font-size: 24px;
-      margin-bottom: 8px;
+    /* ===== PROFILE HEADER (Instagram-style) ===== */
+    .profile-top {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      margin: 8px 0 16px;
     }
 
-    .stat-title {
+    .profile-avatar-lg {
+      width: 86px;
+      height: 86px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--border-light);
+      flex-shrink: 0;
+    }
+
+    .profile-stats-row {
+      display: flex;
+      flex: 1;
+      justify-content: space-around;
+    }
+
+    .stat-cell {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .stat-num {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .stat-lbl {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    /* Name + Bio */
+    .profile-identity {
+      margin-bottom: 16px;
+    }
+
+    .profile-name-lg {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 2px;
+    }
+
+    .profile-bio {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+
+    /* Action buttons */
+    .profile-actions {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+
+    .action-btn-secondary, .action-btn-primary {
+      flex: 1;
+      padding: 9px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: opacity 0.15s;
+    }
+
+    .action-btn-secondary {
+      background: var(--dark-secondary);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+    }
+
+    .action-btn-primary {
+      background: var(--primary-red);
+      color: #fff;
+    }
+
+    .action-btn-secondary:active, .action-btn-primary:active {
+      opacity: 0.7;
+    }
+
+    /* ===== EARNINGS STRIP (compact) ===== */
+    .earnings-strip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: linear-gradient(135deg, #1a1a1a 0%, #241a08 100%);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 24px;
+    }
+
+    .earnings-left {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .earnings-label {
       font-size: 12px;
       color: var(--text-secondary);
-      margin-bottom: 4px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
 
-    .stat-value {
-      font-size: 20px;
-      font-weight: bold;
-      color: var(--primary-red);
-    }
-
-    .earnings-breakdown {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-top: 12px;
-    }
-
-    .earning-source {
-      background: var(--dark-bg);
-      border-radius: 8px;
-      padding: 12px;
-      text-align: center;
-    }
-
-    .earning-source-title {
-      font-size: 11px;
-      color: var(--text-secondary);
-      margin-bottom: 4px;
-    }
-
-    .earning-source-value {
-      font-size: 16px;
-      font-weight: bold;
+    .earnings-amount {
+      font-size: 22px;
+      font-weight: 700;
       color: var(--accent-gold);
     }
 
-    .reels-section-title {
-      font-size: 16px;
-      font-weight: bold;
-      color: var(--text-primary);
-      margin-bottom: 16px;
+    .withdraw-btn {
+      background: var(--accent-gold);
+      color: #1a1a1a;
+      border: none;
+      border-radius: 8px;
+      padding: 9px 18px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .withdraw-btn:active { opacity: 0.8; }
+
+    /* ===== VIDEOS GRID ===== */
+    .videos-header {
       display: flex;
       align-items: center;
-      gap: 8px;
+      justify-content: space-between;
+      margin-bottom: 14px;
     }
+
+    .videos-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    #my-reels-container {
+      margin-bottom: 28px;
+    }
+
+    /* ===== SETTINGS LIST ===== */
+    .settings-section {
+      margin-bottom: 24px;
+    }
+
+    .settings-header {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 10px;
+      padding-left: 4px;
+    }
+
+    .settings-list {
+      background: var(--dark-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .settings-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      width: 100%;
+      padding: 15px 16px;
+      background: none;
+      border: none;
+      border-bottom: 1px solid var(--border-color);
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .settings-row:last-child { border-bottom: none; }
+    .settings-row:active { background: var(--dark-secondary); }
+
+    .settings-icon {
+      font-size: 18px;
+      width: 24px;
+      text-align: center;
+    }
+
+    .settings-text {
+      flex: 1;
+      font-size: 15px;
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    .settings-arrow {
+      font-size: 22px;
+      color: var(--text-tertiary);
+      line-height: 1;
+    }
+
+    .settings-row-danger .settings-text { color: #ef4444; }
 
     .empty-state {
       text-align: center;
@@ -127,29 +248,6 @@
     .empty-state-icon {
       font-size: 48px;
       margin-bottom: 16px;
-    }
-
-    .profile-edit-section {
-      background: var(--dark-card);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 24px;
-    }
-
-    .profile-edit-button {
-      width: 100%;
-      margin-bottom: 8px;
-    }
-
-    @media (max-width: 480px) {
-      .stats-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .profile-stats {
-        grid-template-columns: 1fr 1fr;
-      }
     }
   </style>
 </head>
@@ -165,146 +263,98 @@
 
   <!-- Dashboard Container -->
   <div class="dashboard-container">
-    <!-- Profile Section -->
-    <div class="profile-header">
-      <img id="creator-avatar" src="https://via.placeholder.com/80" alt="Profile" class="profile-avatar">
-      <div class="profile-name" id="creator-name">Loading...</div>
-      <div style="font-size: 13px; color: var(--text-secondary);" id="creator-bio">No bio yet</div>
-      
-      <div class="profile-stats">
-        <div class="stat-item">
-          <div class="stat-number" id="followers-count">0</div>
-          <div class="stat-label">Followers</div>
+
+    <!-- ===== PROFILE HEADER (Instagram-style) ===== -->
+    <div class="profile-top">
+      <img id="creator-avatar" src="assets/logo.png" alt="Profile" class="profile-avatar-lg">
+      <div class="profile-stats-row">
+        <div class="stat-cell">
+          <span class="stat-num" id="total-reels">0</span>
+          <span class="stat-lbl">Videos</span>
         </div>
-        <div class="stat-item">
-          <div class="stat-number" id="total-views">0</div>
-          <div class="stat-label">Views</div>
+        <div class="stat-cell">
+          <span class="stat-num" id="followers-count">0</span>
+          <span class="stat-lbl">Followers</span>
         </div>
-        <div class="stat-item">
-          <div class="stat-number" id="total-reels">0</div>
-          <div class="stat-label">Videos</div>
+        <div class="stat-cell">
+          <span class="stat-num" id="total-views">0</span>
+          <span class="stat-lbl">Views</span>
         </div>
       </div>
     </div>
 
-    <!-- Quick Actions -->
-    <div class="quick-actions">
-      <button class="btn btn-primary" id="upload-btn">📹 Upload Video</button>
-      <button class="btn btn-secondary" id="edit-profile-btn">✏️ Edit Profile</button>
+    <!-- Name + Bio -->
+    <div class="profile-identity">
+      <div class="profile-name-lg" id="creator-name">Loading...</div>
+      <div class="profile-bio" id="creator-bio">No bio yet</div>
     </div>
 
-    <!-- Earnings Section -->
-    <div class="section-divider"></div>
-    <div style="margin-bottom: 24px;">
-      <div style="
-        font-size: 14px;
-        color: var(--text-secondary);
-        margin-bottom: 4px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-      ">💰 Total Earnings</div>
-      <div style="font-size: 36px; font-weight: bold; color: var(--accent-gold); margin-bottom: 16px;">
-        <span id="total-earnings">₹ 0.00</span>
-      </div>
-
-      <div class="earnings-breakdown">
-        <div class="earning-source">
-          <div class="earning-source-title">Ad Revenue</div>
-          <div class="earning-source-value" id="ad-revenue">₹ 0.00</div>
-        </div>
-        <div class="earning-source">
-          <div class="earning-source-title">Tips & Tips</div>
-          <div class="earning-source-value" id="tips-earnings">₹ 0.00</div>
-        </div>
-        <div class="earning-source">
-          <div class="earning-source-title">Sponsorship</div>
-          <div class="earning-source-value" id="sponsor-earnings">₹ 0.00</div>
-        </div>
-      </div>
-
-      <button class="btn btn-secondary" style="width: 100%; margin-top: 16px;">
-        🏦 Withdraw Earnings
-      </button>
+    <!-- Action Buttons -->
+    <div class="profile-actions">
+      <button class="action-btn-secondary" id="edit-profile-btn">Edit Profile</button>
+      <button class="action-btn-primary" id="upload-btn">+ Upload</button>
     </div>
 
-    <!-- Performance Stats -->
-    <div class="section-divider"></div>
-    <div style="margin-bottom: 24px;">
-      <div style="
-        font-size: 14px;
-        font-weight: 600;
-        color: var(--text-primary);
-        margin-bottom: 16px;
-      ">📊 Performance</div>
+    <!-- ===== EARNINGS STRIP (compact) ===== -->
+    <div class="earnings-strip">
+      <div class="earnings-left">
+        <span class="earnings-label">Total Earnings</span>
+        <span class="earnings-amount" id="total-earnings">₹ 0.00</span>
+      </div>
+      <button class="withdraw-btn" id="withdraw-btn">Withdraw</button>
+    </div>
 
-      <div class="stats-grid">
-        <div class="stat-box">
-          <div class="stat-icon">👁️</div>
-          <div class="stat-title">Total Views</div>
-          <div class="stat-value" id="total-views-perf">0</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-icon">💬</div>
-          <div class="stat-title">Total Comments</div>
-          <div class="stat-value">0</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-icon">⭐</div>
-          <div class="stat-title">Engagement Rate</div>
-          <div class="stat-value">0%</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-icon">📈</div>
-          <div class="stat-title">Growth</div>
-          <div class="stat-value">+0%</div>
-        </div>
+    <!-- Hidden elements kept for dashboard.js compatibility -->
+    <span id="ad-revenue" style="display:none;">₹ 0.00</span>
+    <span id="tips-earnings" style="display:none;">₹ 0.00</span>
+    <span id="sponsor-earnings" style="display:none;">₹ 0.00</span>
+    <span id="total-views-perf" style="display:none;">0</span>
+
+    <!-- ===== MY VIDEOS (grid - main content) ===== -->
+    <div class="videos-header">
+      <span class="videos-title">📹 My Videos</span>
+    </div>
+    <div id="my-reels-container">
+      <div class="loading">
+        <div class="spinner"></div>
+        <p style="margin-left: 12px;">Loading your videos...</p>
       </div>
     </div>
 
-    <!-- My Videos Section -->
-    <div class="section-divider"></div>
-    <div style="margin-bottom: 24px;">
-      <div class="reels-section-title">
-        📹 My Videos
+    <!-- ===== ACCOUNT (tight settings list) ===== -->
+    <div class="settings-section">
+      <div class="settings-header">Account</div>
+      <div class="settings-list">
+        <button class="settings-row" id="change-password-btn">
+          <span class="settings-icon">🔐</span>
+          <span class="settings-text">Change Password</span>
+          <span class="settings-arrow">›</span>
+        </button>
+        <button class="settings-row" id="bank-details-btn">
+          <span class="settings-icon">🏦</span>
+          <span class="settings-text">Bank Details</span>
+          <span class="settings-arrow">›</span>
+        </button>
+        <button class="settings-row" id="guidelines-btn">
+          <span class="settings-icon">📋</span>
+          <span class="settings-text">Content Guidelines</span>
+          <span class="settings-arrow">›</span>
+        </button>
+        <button class="settings-row" id="support-btn">
+          <span class="settings-icon">📞</span>
+          <span class="settings-text">Support</span>
+          <span class="settings-arrow">›</span>
+        </button>
+        <button class="settings-row settings-row-danger" id="logout-btn">
+          <span class="settings-icon">🚪</span>
+          <span class="settings-text">Logout</span>
+          <span class="settings-arrow">›</span>
+        </button>
       </div>
-      <div id="my-reels-container">
-        <div class="loading">
-          <div class="spinner"></div>
-          <p style="margin-left: 12px;">Loading your videos...</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Account Section -->
-    <div class="section-divider"></div>
-    <div style="margin-bottom: 24px;">
-      <div style="
-        font-size: 14px;
-        font-weight: 600;
-        color: var(--text-primary);
-        margin-bottom: 16px;
-      ">⚙️ Account</div>
-
-      <button class="btn btn-secondary" style="width: 100%; margin-bottom: 8px;">
-        🔐 Change Password
-      </button>
-      <button class="btn btn-secondary" style="width: 100%; margin-bottom: 8px;">
-        🏦 Bank Details
-      </button>
-      <button class="btn btn-secondary" style="width: 100%; margin-bottom: 8px;">
-        📋 Content Guidelines
-      </button>
-      <button class="btn btn-secondary" style="width: 100%; margin-bottom: 20px;">
-        📞 Support
-      </button>
-
-      <button class="btn btn-secondary" style="width: 100%;" id="logout-btn">
-        🚪 Logout
-      </button>
     </div>
 
     <!-- Spacing for bottom nav -->
-    <div style="height: 60px;"></div>
+    <div style="height: 80px;"></div>
   </div>
 
   <!-- Bottom Navigation -->
@@ -317,8 +367,8 @@
       <span>🔥</span>
       <span class="nav-label">Trending</span>
     </button>
-    <button class="nav-item" onclick="window.location.href='./upload.html'">
-      <span>➕</span>
+    <button class="nav-item nav-create" onclick="window.location.href='./upload.html'">
+      <span class="nav-create-btn">+</span>
       <span class="nav-label">Create</span>
     </button>
     <button class="nav-item active">
