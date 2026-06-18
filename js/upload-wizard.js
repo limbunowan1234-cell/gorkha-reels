@@ -327,9 +327,7 @@ class UploadWizard {
 
       const user = session.getUser();
 
-      // FIXED: Removed musicTitle and musicUrl (empty strings causing validation error)
-      // FIXED: Removed hashtags (field validation issue - will debug separately)
-      // Music library coming Q3 2026
+      // FIXED: Minimal fields only - counter fields causing schema mismatch
       const reelData = {
         reelId: ID.unique(),
         creatorId: user.$id,
@@ -340,10 +338,6 @@ class UploadWizard {
         category: category || 'other',
         language: language || 'Nepali',
         uploadedAt: new Date().toISOString(),
-        views: 0,
-        likes: 0,
-        comments: 0,
-        shares: 0,
         isDeleted: false
       };
 
