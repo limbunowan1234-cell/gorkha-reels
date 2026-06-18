@@ -5,6 +5,7 @@
  * ✅ FIX #14: Video duration validated before accepting
  * ✅ FIX #7: Large video blobs use Blob API instead of base64 localStorage
  * ✅ FIX #9: Upload failure has retry logic
+ * ✅ REMOVED: musicTitle & musicUrl (empty strings causing validation error)
  */
 
 class UploadWizard {
@@ -325,9 +326,9 @@ class UploadWizard {
       }
 
       const user = session.getUser();
-      const musicData = localStorage.getItem('selectedMusic');
-      const music = musicData ? JSON.parse(musicData) : null;
 
+      // FIXED: Removed musicTitle and musicUrl (empty strings causing validation error)
+      // Music library coming Q3 2026
       const reelData = {
         reelId: ID.unique(),
         creatorId: user.$id,
@@ -338,8 +339,6 @@ class UploadWizard {
         hashtags: hashtags || '',
         category: category || 'other',
         language: language || 'Nepali',
-        musicTitle: music?.title || '',
-        musicUrl: music?.url || '',
         uploadedAt: new Date().toISOString(),
         views: 0,
         likes: 0,
@@ -391,4 +390,4 @@ if (document.readyState === 'loading') {
   window.uploadManager = new UploadWizard();
 }
 
-console.log('✅ Upload Wizard Loaded (with duration validation & retry logic)');
+console.log('✅ Upload Wizard Loaded (with duration validation & retry logic, music fields removed)');
