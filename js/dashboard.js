@@ -126,35 +126,29 @@ class DashboardManager {
 
     if (this.myReels.length === 0) {
       container.innerHTML = `
-        <div style="text-align:center;padding:40px 20px;color:var(--text-secondary);">
-          <p>No videos uploaded yet</p>
-          <a href="./upload.html" class="btn btn-primary" style="max-width:300px;margin-top:20px;display:inline-block;">📹 Upload Your First Video</a>
+        <div style="text-align:center;padding:40px 20px;color:var(--text-secondary);border:1px dashed var(--border-color);border-radius:12px;">
+          <div style="font-size:40px;margin-bottom:12px;">🎬</div>
+          <p style="margin-bottom:16px;">No videos uploaded yet</p>
+          <a href="./upload.html" class="action-btn-primary" style="display:inline-block;text-decoration:none;padding:10px 24px;border-radius:8px;">+ Upload Your First Video</a>
         </div>
       `;
       return;
     }
 
     container.innerHTML = `
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;">
         ${this.myReels.map(r => this.renderReelCard(r)).join('')}
       </div>
     `;
   }
 
   renderReelCard(reel) {
-    const date = new Date(reel.uploadedAt).toLocaleDateString();
     return `
-      <div style="background:var(--dark-card);border-radius:8px;overflow:hidden;border:1px solid var(--border-color);cursor:pointer;" onclick="window.location.href='./index.html?reel=${reel.$id}'">
-        <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;background:var(--dark-bg);">
-          <img src="${reel.thumbnail || 'assets/logo.png'}" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;" alt="${escapeHtml(reel.title)}">
-          <div style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.7);color:white;padding:4px 8px;border-radius:4px;font-size:12px;">👁️ ${reel.views || 0}</div>
-        </div>
-        <div style="padding:12px;">
-          <p style="font-size:12px;font-weight:600;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(reel.title)}</p>
-          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-secondary);">
-            <span>❤️ ${reel.likes || 0}</span>
-            <span>💬 ${reel.comments || 0}</span>
-            <span>${date}</span>
+      <div style="position:relative;aspect-ratio:9/16;border-radius:6px;overflow:hidden;background:var(--dark-secondary);cursor:pointer;" onclick="window.location.href='./index.html?reel=${reel.$id}'">
+        <img src="${reel.thumbnail || 'assets/logo.png'}" style="width:100%;height:100%;object-fit:cover;" alt="${escapeHtml(reel.title)}">
+        <div style="position:absolute;bottom:0;left:0;right:0;padding:6px 8px;background:linear-gradient(transparent,rgba(0,0,0,0.8));">
+          <div style="display:flex;align-items:center;gap:4px;color:#fff;font-size:12px;font-weight:600;">
+            <span>👁️</span><span>${this.formatNumber(reel.views || 0)}</span>
           </div>
         </div>
       </div>
@@ -169,6 +163,23 @@ class DashboardManager {
       this.openEditProfile();
     });
     document.getElementById('logout-btn')?.addEventListener('click', () => this.logout());
+
+    // New settings buttons
+    document.getElementById('withdraw-btn')?.addEventListener('click', () => {
+      Toast.info('💰 Withdrawals available once you reach ₹500');
+    });
+    document.getElementById('change-password-btn')?.addEventListener('click', () => {
+      Toast.info('🔐 Password change coming soon');
+    });
+    document.getElementById('bank-details-btn')?.addEventListener('click', () => {
+      Toast.info('🏦 Bank details coming soon');
+    });
+    document.getElementById('guidelines-btn')?.addEventListener('click', () => {
+      Toast.info('📋 Content guidelines coming soon');
+    });
+    document.getElementById('support-btn')?.addEventListener('click', () => {
+      Toast.info('📞 Contact: support@gorkhareels.com');
+    });
   }
 
   // ============== EDIT PROFILE FEATURE ==============
