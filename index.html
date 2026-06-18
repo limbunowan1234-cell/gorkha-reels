@@ -60,10 +60,9 @@
       <img src="assets/logo.png" alt="GorkhaReels" style="height: 32px; width: auto;">
       <div class="header-logo">GorkhaReels</div>
     </div>
-    <div class="header-search">
-      <input type="text" id="search-input" placeholder="Search titles, creators...">
-    </div>
+    <div style="flex:1;"></div>
     <div class="header-actions">
+      <button class="header-btn" id="search-btn" title="Search" onclick="window.gorkhaTost ? gorkhaTost() : (typeof Toast !== 'undefined' ? Toast.info('Search coming soon!') : alert('Search coming soon!'))">🔍</button>
       <button class="header-btn" id="notifications-btn" title="Notifications">🔔</button>
       <button class="header-btn" id="menu-btn" title="Menu">⋮</button>
     </div>
