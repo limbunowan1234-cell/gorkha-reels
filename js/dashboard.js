@@ -166,9 +166,98 @@ class DashboardManager {
       window.location.href = './upload.html';
     });
     document.getElementById('edit-profile-btn')?.addEventListener('click', () => {
-      Toast.info('Profile editing coming soon!');
+      this.openEditProfile();
     });
     document.getElementById('logout-btn')?.addEventListener('click', () => this.logout());
+  }
+
+  // ============== EDIT PROFILE FEATURE ==============
+  openEditProfile() {
+    const d = this.creatorData;
+
+    const modal = document.createElement('div');
+    modal.id = 'edit-profile-modal';
+    modal.style.cssText = `
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.7); z-index: 9999;
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px;
+    `;
+
+    modal.innerHTML = `
+      <div style="background: var(--dark-card, #1a1a1a); border-radius: 16px; width: 100%; max-width: 400px; max-height: 85vh; overflow-y: auto;">
+        <div style="padding: 20px; border-bottom: 1px solid var(--border-color, #333); display: flex; justify-content: space-between; align-items: center;">
+          <h3 style="color: var(--text-primary, #fff); margin: 0; font-size: 18px;">✏️ Edit Profile</h3>
+          <button id="close-edit-profile" style="background: none; border: none; color: var(--text-primary, #fff); font-size: 24px; cursor: pointer;">✕</button>
+        </div>
+        <div style="padding: 20px;">
+          <div style="margin-bottom: 16px;">
+            <label style="display: block; color: var(--text-secondary, #888); font-size: 13px; margin-bottom: 6px;">Name</label>
+            <input id="edit-name" type="text" value="${escapeHtml(d.name || '')}" style="width: 100%; background: var(--dark-bg, #000); border: 1px solid var(--border-color, #333); border-radius: 8px; padding: 12px; color: var(--text-primary, #fff); font-size: 14px; box-sizing: border-box;">
+          </div>
+          <div style="margin-bottom: 16px;">
+            <label style="display: block; color: var(--text-secondary, #888); font-size: 13px; margin-bottom: 6px;">Bio</label>
+            <textarea id="edit-bio" rows="3" style="width: 100%; background: var(--dark-bg, #000); border: 1px solid var(--border-color, #333); border-radius: 8px; padding: 12px; color: var(--text-primary, #fff); font-size: 14px; box-sizing: border-box; resize: vertical;">${escapeHtml(d.bio || '')}</textarea>
+          </div>
+          <div style="margin-bottom: 20px;">
+            <label style="display: block; color: var(--text-secondary, #888); font-size: 13px; margin-bottom: 6px;">Profile Picture URL</label>
+            <input id="edit-profilePic" type="text" value="${escapeHtml(d.profilePic || '')}" placeholder="https://..." style="width: 100%; background: var(--dark-bg, #000); border: 1px solid var(--border-color, #333); border-radius: 8px; padding: 12px; color: var(--text-primary, #fff); font-size: 14px; box-sizing: border-box;">
+          </div>
+          <button id="save-profile" style="width: 100%; background: var(--primary-red, #ff3b30); border: none; border-radius: 8px; padding: 14px; color: white; font-weight: 600; font-size: 15px; cursor: pointer;">💾 Save Changes</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    document.getElementById('close-edit-profile').addEventListener('click', () => modal.remove());
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) modal.remove();
+    });
+    document.getElementById('save-profile').addEventListener('click', () => this.saveProfile());
+  }
+
+  async saveProfile() {
+    const name = document.getElementById('edit-name')?.value?.trim();
+    const bio = document.getElementById('edit-bio')?.value?.trim();
+    const profilePic = document.getElementById('edit-profilePic')?.value?.trim();
+
+    if (!name || name.length < 2) {
+      Toast.error('Name must be at least 2 characters');
+      return;
+    }
+
+    const saveBtn = document.getElementById('save-profile');
+    if (saveBtn) {
+      saveBtn.disabled = true;
+      saveBtn.textContent = '⏳ Saving...';
+    }
+
+    try {
+      await db.update(APPWRITE_CONFIG.COLLECTIONS.CREATORS, this.user.$id, {
+        name: name,
+        bio: bio || '',
+        profilePic: profilePic || ''
+      });
+
+      // Update local data
+      this.creatorData.name = name;
+      this.creatorData.bio = bio;
+      this.creatorData.profilePic = profilePic;
+
+      // Refresh display
+      this.displayProfile();
+
+      Toast.success('✅ Profile updated!');
+      document.getElementById('edit-profile-modal')?.remove();
+    } catch (error) {
+      console.error('Save profile failed:', error);
+      Toast.error('Failed to save profile');
+      if (saveBtn) {
+        saveBtn.disabled = false;
+        saveBtn.textContent = '💾 Save Changes';
+      }
+    }
   }
 
   async logout() {
