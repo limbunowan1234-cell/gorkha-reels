@@ -20,6 +20,15 @@
   <link rel="stylesheet" href="css/styles.css">
   
   <style>
+    /* Fix: Override transparent header from styles.css - dashboard needs solid header */
+    header {
+      background: rgba(10, 10, 10, 0.98) !important;
+      position: sticky !important;
+      backdrop-filter: blur(20px) !important;
+      border-bottom: 1px solid var(--border-light) !important;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.4) !important;
+    }
+
     .dashboard-container {
       max-width: 600px;
       margin: 0 auto;
