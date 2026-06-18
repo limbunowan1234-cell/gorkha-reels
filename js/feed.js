@@ -21,18 +21,17 @@ class FeedManager {
     this.hasMore = true;
     this.pageSize = 10;
     this.currentVideo = null;
-    this.likedReels = new Set(); // Will be populated from DB on init
+    this.likedReels = new Set();
     this.isFullscreen = false;
-    this.viewTimers = {}; // FIX #8: Track view timers per reel to debounce
-    this.lastTimestamp = null; // FIX #17: Pagination cursor
+    this.viewTimers = {};
+    this.lastTimestamp = null;
+    this.mode = 'recommended'; // 'recommended' or 'trending'
 
     this.init();
   }
 
   async init() {
     console.log('Initializing Feed...');
-
-    // FIX #3: Check session with Appwrite (ensure globals are available)
     await session.refresh();
 
     if (!session.isLoggedIn()) {
@@ -40,7 +39,7 @@ class FeedManager {
       return;
     }
 
-    await this.loadReels();
+    await this.loadRecommended();
     this.setupEventListeners();
 
     if (this.reels.length === 0) {
@@ -50,10 +49,96 @@ class FeedManager {
     }
   }
 
-  // FIX #17: Use timestamp-based pagination instead of offset
+  // ===== SMART RECOMMENDED FEED =====
+  // Gets user's liked categories → loads similar reels
+  // Falls back to recent reels if user has no likes yet
+  async loadRecommended() {
+    if (this.isLoading) return;
+    this.isLoading = true;
+    this.mode = 'recommended';
+
+    try {
+      let preferredCategories = [];
+
+      // Step 1: Get user's recent likes
+      const userId = session.getUserId();
+      const likes = await db.list(APPWRITE_CONFIG.COLLECTIONS.LIKES, [
+        Query.equal('creatorId', userId),
+        Query.orderDesc('createdAt'),
+        Query.limit(10)
+      ]);
+
+      // Step 2: Fetch liked reels to get their categories
+      if (likes.documents.length > 0) {
+        const likedReelIds = likes.documents.map(l => l.reelId);
+        for (const reelId of likedReelIds.slice(0, 5)) {
+          try {
+            const reel = await db.get(APPWRITE_CONFIG.COLLECTIONS.REELS, reelId);
+            if (reel.category) preferredCategories.push(reel.category);
+          } catch (e) { /* reel might be deleted */ }
+        }
+      }
+
+      // Step 3: Build query based on preferred categories
+      let queries;
+      if (preferredCategories.length > 0) {
+        // Find most liked category
+        const counts = {};
+        preferredCategories.forEach(c => counts[c] = (counts[c] || 0) + 1);
+        const topCategory = Object.keys(counts).sort((a, b) => counts[b] - counts[a])[0];
+
+        console.log(`✅ Recommended based on category: ${topCategory}`);
+        queries = [
+          Query.equal('isDeleted', false),
+          Query.equal('category', topCategory),
+          Query.orderDesc('likes'),
+          Query.limit(20)
+        ];
+      } else {
+        // No likes yet — show recent popular reels
+        console.log('✅ No likes yet — showing recent popular reels');
+        queries = [
+          Query.equal('isDeleted', false),
+          Query.orderDesc('uploadedAt'),
+          Query.limit(20)
+        ];
+      }
+
+      const response = await db.list(APPWRITE_CONFIG.COLLECTIONS.REELS, queries);
+      this.reels = response.documents;
+      this.hasMore = false;
+
+      // Load user likes for heart state
+      await this.loadUserLikes();
+
+      console.log(`✅ Loaded ${this.reels.length} recommended reels`);
+    } catch (error) {
+      console.error('Error loading recommended reels:', error);
+      // Fallback to simple recent feed
+      await this.loadFallbackReels();
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
+  // Simple fallback if recommended fails
+  async loadFallbackReels() {
+    try {
+      const response = await db.list(APPWRITE_CONFIG.COLLECTIONS.REELS, [
+        Query.equal('isDeleted', false),
+        Query.orderDesc('uploadedAt'),
+        Query.limit(20)
+      ]);
+      this.reels = response.documents;
+      await this.loadUserLikes();
+    } catch (error) {
+      console.error('Fallback feed failed:', error);
+    }
+  }
+
+  // Keep loadReels for pagination (next page of current mode)
   async loadReels() {
     if (this.isLoading || !this.hasMore) return;
-
     this.isLoading = true;
     try {
       const queries = [
@@ -61,26 +146,16 @@ class FeedManager {
         Query.orderDesc('uploadedAt'),
         Query.limit(this.pageSize)
       ];
-
-      // If we have a cursor, get videos before this timestamp
       if (this.lastTimestamp) {
         queries.push(Query.lessThan('uploadedAt', this.lastTimestamp));
       }
-
       const response = await db.list(APPWRITE_CONFIG.COLLECTIONS.REELS, queries);
-
       this.reels = [...this.reels, ...response.documents];
       this.hasMore = response.documents.length === this.pageSize;
-
-      // Update cursor for next page
       if (response.documents.length > 0) {
         this.lastTimestamp = response.documents[response.documents.length - 1].uploadedAt;
       }
-
-      // FIX #5: Load user's likes from database
       await this.loadUserLikes();
-
-      console.log(`✅ Loaded ${response.documents.length} reels`);
     } catch (error) {
       console.error('Error loading reels:', error);
     } finally {
@@ -577,26 +652,60 @@ class FeedManager {
   handleNavClick(e) {
     const nav = e.currentTarget.dataset.nav;
     switch (nav) {
-      case 'home': window.location.href = './index.html'; break;
+      case 'home':
+        // Reload recommended feed
+        this.reels = [];
+        this.currentIndex = 0;
+        this.lastTimestamp = null;
+        this.loadRecommended().then(() => {
+          if (this.reels.length) this.displayCurrentVideo();
+          else this.showEmptyState();
+        });
+        Toast.success('✨ Recommended for you');
+        break;
       case 'create': window.location.href = './upload.html'; break;
       case 'profile': window.location.href = './creator-dashboard.html'; break;
       case 'trending': this.loadTrending(); break;
     }
   }
 
+  // ===== TRENDING FEED =====
+  // Scores each reel: views + (likes × 3) + (comments × 2)
+  // Likes/comments weighted higher = genuine engagement beats passive views
   async loadTrending() {
+    this.mode = 'trending';
     try {
+      Toast.info('Loading trending... 🔥');
+
+      // Fetch top 50 by views (then re-sort by combined score)
       const response = await db.list(APPWRITE_CONFIG.COLLECTIONS.REELS, [
         Query.equal('isDeleted', false),
         Query.orderDesc('views'),
-        Query.limit(20)
+        Query.limit(50)
       ]);
-      this.reels = response.documents;
+
+      if (response.documents.length === 0) {
+        this.showEmptyState();
+        return;
+      }
+
+      // Score formula: views + (likes × 3) + (comments × 2)
+      this.reels = response.documents
+        .map(r => ({
+          ...r,
+          _trendScore: (r.views || 0) + ((r.likes || 0) * 3) + ((r.comments || 0) * 2)
+        }))
+        .sort((a, b) => b._trendScore - a._trendScore)
+        .slice(0, 20);
+
       this.currentIndex = 0;
-      if (this.reels.length) this.displayCurrentVideo();
-      else this.showEmptyState();
-      Toast.success('Showing trending 🔥');
+      this.hasMore = false;
+
+      await this.loadUserLikes();
+      this.displayCurrentVideo();
+      Toast.success('Trending now 🔥');
     } catch (e) {
+      console.error('Trending load failed:', e);
       Toast.error('Failed to load trending');
     }
   }
