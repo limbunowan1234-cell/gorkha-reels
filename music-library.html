@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Music Library - GorkhaReels</title>
+  <meta name="description" content="Browse and select royalty-free music for your videos">
+  <meta name="theme-color" content="#121212">
+  
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <link rel="stylesheet" href="css/styles.css">
+  
+  <style>
+    .music-header {
+      text-align: center;
+      padding: 20px;
+      background: var(--glass-bg);
+      border-bottom: 1px solid var(--border-light);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .music-header h1 {
+      font-size: 24px;
+      font-weight: 800;
+      margin: 0 0 8px;
+      color: var(--text-primary);
+    }
+
+    .music-header p {
+      margin: 0;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .music-container {
+      max-width: 520px;
+      margin: 0 auto;
+      padding: 28px;
+      min-height: 100vh;
+      padding-bottom: 100px;
+    }
+
+    .coming-soon {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-secondary);
+    }
+
+    .coming-soon-icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+    }
+
+    .coming-soon h2 {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+    }
+
+    .coming-soon p {
+      font-size: 14px;
+      margin-bottom: 24px;
+      max-width: 300px;
+      margin-left: auto;
+      margin-right: auto;
+      line-height: 1.6;
+    }
+
+    .feature-list {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      padding: 20px;
+      margin: 24px 0;
+      backdrop-filter: blur(10px);
+      text-align: left;
+    }
+
+    .feature-item {
+      display: flex;
+      gap: 12px;
+      padding: 12px 0;
+      font-size: 13px;
+    }
+
+    .feature-item-icon {
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .feature-item-text {
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 12px;
+      flex-direction: column;
+    }
+
+    .btn-skip {
+      background: var(--glass-bg);
+      border: 1.5px solid var(--glass-border);
+      color: var(--text-primary);
+      padding: 14px 28px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      width: 100%;
+    }
+
+    .btn-skip:hover {
+      border-color: var(--accent-gold);
+      color: var(--accent-gold);
+    }
+
+    .notification-banner {
+      background: rgba(251, 191, 36, 0.08);
+      border: 1px solid rgba(251, 191, 36, 0.2);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 24px;
+      color: var(--accent-gold);
+      font-size: 13px;
+    }
+
+    .notification-banner strong {
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div class="music-header">
+    <a href="/" style="display: flex; align-items: center; gap: 12px; text-decoration: none; justify-content: center; margin-bottom: 12px;">
+      <img src="assets/logo.png" alt="GorkhaReels" style="height: 32px; width: auto;">
+    </a>
+    <h1>🎵 Music Library</h1>
+    <p>Curated royalty-free music for your videos</p>
+  </div>
+
+  <!-- Main Content -->
+  <div class="music-container">
+    <div class="coming-soon">
+      <div class="coming-soon-icon">🎶</div>
+      <h2>Coming Soon</h2>
+      <p>
+        We're building an amazing music library with curated royalty-free tracks from independent Nepali artists and global creators.
+      </p>
+
+      <!-- Notification -->
+      <div class="notification-banner">
+        <strong>✨ Beta Launch:</strong> Music library launches in Q3 2026
+      </div>
+
+      <!-- Features Preview -->
+      <div class="feature-list">
+        <div class="feature-item">
+          <div class="feature-item-icon">🎧</div>
+          <div class="feature-item-text">
+            <strong>Curated Collection</strong><br>
+            Handpicked tracks from indie artists
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-item-icon">🆓</div>
+          <div class="feature-item-text">
+            <strong>Royalty-Free</strong><br>
+            No copyright strikes or licensing fees
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-item-icon">🔍</div>
+          <div class="feature-item-text">
+            <strong>Search & Filter</strong><br>
+            Find music by mood, genre, and duration
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-item-icon">💚</div>
+          <div class="feature-item-text">
+            <strong>Support Artists</strong><br>
+            Help independent creators earn
+          </div>
+        </div>
+      </div>
+
+      <!-- Current Options -->
+      <p style="font-size: 12px; color: var(--text-tertiary); margin-bottom: 20px;">
+        For now, you can upload videos without music. You'll be able to add music after publishing.
+      </p>
+
+      <!-- Action Buttons -->
+      <div class="button-group">
+        <button class="btn btn-primary" onclick="skipMusic()" style="width: 100%;">
+          ← Skip Music
+        </button>
+        <button class="btn-skip" onclick="window.location.href='./index.html'">
+          📺 Browse Videos
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function skipMusic() {
+      const params = new URLSearchParams(window.location.search);
+      const returnUrl = params.get('return') || 'upload';
+      window.location.href = './' + returnUrl + '.html';
+    }
+  </script>
+</body>
+</html>
