@@ -365,8 +365,8 @@
 
         try {
           const response = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [
-            Query.equal('followerId', session.getUserId()),
-            Query.equal('creatorId', this.creatorId),
+            Query.equal('followerID', session.getUserId()),
+            Query.equal('CreatorId', this.creatorId),
             Query.limit(1)
           ]);
 
@@ -446,8 +446,8 @@
           if (isFollowing) {
             // UNFOLLOW: delete FOLLOWERS doc + decrement count
             const response = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [
-              Query.equal('followerId', session.getUserId()),
-              Query.equal('creatorId', this.creatorId),
+              Query.equal('followerID', session.getUserId()),
+              Query.equal('CreatorId', this.creatorId),
               Query.limit(1)
             ]);
             if (response.documents.length > 0) {
@@ -463,8 +463,10 @@
           } else {
             // FOLLOW: create FOLLOWERS doc + increment count
             await db.create(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, {
-              followerId: session.getUserId(),
-              creatorId: this.creatorId,
+              followId: ID.unique(),
+              followerID: session.getUserId(),
+              followingId: this.creatorId,
+              CreatorId: this.creatorId,
               createdAt: new Date().toISOString()
             });
             const newCount = (this.creatorData.followers || 0) + 1;
