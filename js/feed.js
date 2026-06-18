@@ -1,6 +1,6 @@
 /**
  * GorkhaReels - Feed Logic (Appwrite Web SDK)
- * Infinite scroll feed with video playback and interactions
+ * Infinite scroll feed with fullscreen video playback
  */
 
 class FeedManager {
@@ -12,6 +12,7 @@ class FeedManager {
     this.pageSize = 10;
     this.currentVideo = null;
     this.likedReels = new Set();
+    this.isFullscreen = false;
 
     this.init();
   }
@@ -57,7 +58,6 @@ class FeedManager {
       console.log(`✅ Loaded ${response.documents.length} reels`);
     } catch (error) {
       console.error('Error loading reels:', error);
-      // Don't toast on empty - just show empty state
     } finally {
       this.isLoading = false;
     }
@@ -67,6 +67,7 @@ class FeedManager {
     document.addEventListener('wheel', (e) => this.handleScroll(e), { passive: true });
     document.addEventListener('touchstart', (e) => this.handleTouchStart(e), { passive: true });
     document.addEventListener('touchend', (e) => this.handleTouchEnd(e), { passive: true });
+    document.addEventListener('keydown', (e) => this.handleKeypress(e));
 
     document.querySelectorAll('.nav-item').forEach(item => {
       item.addEventListener('click', (e) => this.handleNavClick(e));
@@ -74,7 +75,7 @@ class FeedManager {
   }
 
   handleScroll(e) {
-    if (this._scrollLock) return;
+    if (this._scrollLock || this.isFullscreen) return;
     this._scrollLock = true;
     setTimeout(() => { this._scrollLock = false; }, 600);
 
@@ -87,10 +88,21 @@ class FeedManager {
     this.touchStartY = e.changedTouches[0].screenY;
   }
   handleTouchEnd(e) {
+    if (this.isFullscreen) return;
     const diff = this.touchStartY - e.changedTouches[0].screenY;
     if (Math.abs(diff) > 50) {
       if (diff > 0) this.nextVideo();
       else this.previousVideo();
+    }
+  }
+
+  handleKeypress(e) {
+    if (e.key === 'Escape' && this.isFullscreen) {
+      this.exitFullscreen();
+    } else if (e.key === 'ArrowUp' && this.isFullscreen) {
+      this.previousVideo();
+    } else if (e.key === 'ArrowDown' && this.isFullscreen) {
+      this.nextVideo();
     }
   }
 
@@ -99,6 +111,13 @@ class FeedManager {
       this.currentIndex++;
       this.displayCurrentVideo();
       if (this.currentIndex >= this.reels.length - 3) this.loadReels();
+    } else if (this.hasMore) {
+      this.loadReels().then(() => {
+        if (this.reels.length > this.currentIndex + 1) {
+          this.currentIndex++;
+          this.displayCurrentVideo();
+        }
+      });
     }
   }
 
@@ -114,29 +133,69 @@ class FeedManager {
     if (!reel) return;
     this.currentVideo = reel;
 
-    const container = document.getElementById('feed-container');
-    if (!container) return;
-
-    container.innerHTML = this.renderVideoCard(reel);
-    this.setupCardEventListeners();
+    if (this.isFullscreen) {
+      this.displayFullscreenVideo(reel);
+    } else {
+      this.displayNormalVideo(reel);
+    }
 
     const video = document.querySelector('.video-player');
     if (video) {
       video.play().catch(e => console.log('Autoplay blocked:', e));
     }
 
-    // Increment view count (fire and forget)
     this.incrementViews(reel);
   }
 
-  async incrementViews(reel) {
-    try {
-      await db.update(APPWRITE_CONFIG.COLLECTIONS.REELS, reel.$id, {
-        views: (reel.views || 0) + 1
-      });
-    } catch (e) {
-      // Non-critical
-    }
+  displayNormalVideo(reel) {
+    const container = document.getElementById('feed-container');
+    if (!container) return;
+
+    container.innerHTML = this.renderVideoCard(reel);
+    this.setupCardEventListeners();
+  }
+
+  displayFullscreenVideo(reel) {
+    const container = document.getElementById('feed-container');
+    if (!container) return;
+
+    container.innerHTML = `
+      <div class="fullscreen-video-container">
+        <video class="video-player fullscreen-video" src="${reel.videoUrl}" playsinline autoplay muted loop></video>
+        
+        <div class="fullscreen-header">
+          <img src="assets/logo.png" alt="GorkhaReels" class="fullscreen-logo">
+        </div>
+
+        <div class="fullscreen-actions">
+          <button class="fullscreen-action-btn like-btn ${this.likedReels.has(reel.$id) ? 'liked' : ''}" data-reel-id="${reel.$id}" title="Like">
+            <div class="action-icon">❤️</div>
+            <div class="action-count">${reel.likes || 0}</div>
+          </button>
+          
+          <button class="fullscreen-action-btn comment-btn" data-reel-id="${reel.$id}" title="Comment">
+            <div class="action-icon">💬</div>
+            <div class="action-count">${reel.comments || 0}</div>
+          </button>
+          
+          <button class="fullscreen-action-btn share-btn" data-reel-id="${reel.$id}" title="Share">
+            <div class="action-icon">↗️</div>
+            <div class="action-count">${reel.shares || 0}</div>
+          </button>
+
+          <button class="fullscreen-action-btn exit-btn" title="Exit Fullscreen">
+            <div class="action-icon">✕</div>
+          </button>
+        </div>
+
+        <div class="fullscreen-info">
+          <h2>${reel.title}</h2>
+          <p>${reel.description || ''}</p>
+        </div>
+      </div>
+    `;
+
+    this.setupFullscreenEventListeners();
   }
 
   renderVideoCard(reel) {
@@ -152,15 +211,7 @@ class FeedManager {
             <span>•</span>
             <span>${reel.language || 'Nepali'}</span>
           </div>
-          <div class="creator-info">
-            <img src="${reel.creatorPic || 'assets/logo.png'}" alt="Creator" class="creator-avatar">
-            <div class="creator-details">
-              <div class="creator-name">${reel.creatorName || 'Creator'}</div>
-            </div>
-            <button class="follow-btn" data-creator-id="${reel.creatorId}">Follow</button>
-          </div>
           <p class="video-description">${reel.description || ''}</p>
-          <div class="video-hashtags">${this.formatHashtags(reel.hashtags)}</div>
         </div>
         <div class="action-buttons">
           <button class="action-btn like-btn ${isLiked ? 'liked' : ''}" data-reel-id="${reel.$id}" title="Like">
@@ -172,14 +223,12 @@ class FeedManager {
           <button class="action-btn share-btn" data-reel-id="${reel.$id}" title="Share">
             ↗️<span class="action-count">${reel.shares || 0}</span>
           </button>
+          <button class="action-btn fullscreen-btn" data-reel-id="${reel.$id}" title="Fullscreen">
+            ⛶<span class="action-count"></span>
+          </button>
         </div>
       </div>
     `;
-  }
-
-  formatHashtags(hashtags) {
-    if (!hashtags) return '';
-    return hashtags.split(' ').filter(t => t.startsWith('#')).slice(0, 3).join(' ');
   }
 
   setupCardEventListeners() {
@@ -192,8 +241,8 @@ class FeedManager {
     document.querySelector('.share-btn')?.addEventListener('click', (e) => {
       this.shareVideo(e.currentTarget.dataset.reelId);
     });
-    document.querySelector('.follow-btn')?.addEventListener('click', (e) => {
-      this.toggleFollow(e.currentTarget.dataset.creatorId);
+    document.querySelector('.fullscreen-btn')?.addEventListener('click', (e) => {
+      this.enterFullscreen();
     });
 
     const video = document.querySelector('.video-player');
@@ -202,6 +251,61 @@ class FeedManager {
         if (video.paused) video.play();
         else video.pause();
       });
+      video.addEventListener('dblclick', () => this.enterFullscreen());
+    }
+  }
+
+  setupFullscreenEventListeners() {
+    document.querySelector('.like-btn')?.addEventListener('click', (e) => {
+      this.toggleLike(e.currentTarget.dataset.reelId);
+    });
+    document.querySelector('.comment-btn')?.addEventListener('click', () => {
+      Toast.success('Comments coming soon!');
+    });
+    document.querySelector('.share-btn')?.addEventListener('click', (e) => {
+      this.shareVideo(e.currentTarget.dataset.reelId);
+    });
+    document.querySelector('.exit-btn')?.addEventListener('click', () => {
+      this.exitFullscreen();
+    });
+
+    const video = document.querySelector('.video-player');
+    if (video) {
+      video.addEventListener('click', () => {
+        if (video.paused) video.play();
+        else video.pause();
+      });
+    }
+  }
+
+  enterFullscreen() {
+    this.isFullscreen = true;
+    const container = document.getElementById('feed-container');
+    if (container) {
+      container.requestFullscreen().catch(err => {
+        console.log('Fullscreen request failed:', err);
+        this.isFullscreen = true; // Still enable fullscreen UI even if API fails
+        this.displayCurrentVideo();
+      });
+    }
+    this.displayCurrentVideo();
+  }
+
+  exitFullscreen() {
+    this.isFullscreen = false;
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+    }
+    this.displayCurrentVideo();
+  }
+
+  async incrementViews(reel) {
+    try {
+      await db.update(APPWRITE_CONFIG.COLLECTIONS.REELS, reel.$id, {
+        views: (reel.views || 0) + 1
+      });
+    } catch (e) {
+      // Non-critical
     }
   }
 
@@ -226,19 +330,6 @@ class FeedManager {
       });
     } catch (e) {
       console.error('Like update failed:', e);
-    }
-  }
-
-  async toggleFollow(creatorId) {
-    const btn = document.querySelector('.follow-btn');
-    const isFollowing = btn.classList.contains('following');
-    if (isFollowing) {
-      btn.classList.remove('following');
-      btn.textContent = 'Follow';
-    } else {
-      btn.classList.add('following');
-      btn.textContent = 'Following';
-      Toast.success('Followed!');
     }
   }
 
@@ -323,4 +414,4 @@ if (document.readyState === 'loading') {
   window.feedManager = new FeedManager();
 }
 
-console.log('✅ Feed Manager Loaded');
+console.log('✅ Feed Manager Loaded (with Fullscreen)');
