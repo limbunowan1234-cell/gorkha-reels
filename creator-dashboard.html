@@ -1,201 +1,335 @@
-/**
- * GorkhaReels - Creator Dashboard (FIXED)
- * 
- * FIXES APPLIED:
- * ✅ FIX #15: Proper error handling for missing creator profile
- * ✅ COUNT VIDEOS DYNAMICALLY: Total videos counted from REELS collection (Option A)
- * ✅ DISPLAY USER VIDEOS: Show uploaded videos in dashboard
- */
-
-class DashboardManager {
-  constructor() {
-    this.user = null;
-    this.creatorData = null;
-    this.myReels = [];
-    this.init();
-  }
-
-  async init() {
-    await session.refresh();
-    if (!session.isLoggedIn()) {
-      window.location.href = './login.html';
-      return;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Creator Dashboard - GorkhaReels</title>
+  <meta name="description" content="Manage your GorkhaReels profile, track earnings, and grow your audience">
+  <meta name="theme-color" content="#121212">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <link rel="shortcut icon" href="assets/logo.png">
+  
+  <!-- Open Graph -->
+  <meta property="og:title" content="Creator Dashboard - GorkhaReels">
+  <meta property="og:description" content="Manage your creator profile and earnings">
+  <meta property="og:image" content="assets/logo.png">
+  <meta property="og:type" content="website">
+  
+  <link rel="stylesheet" href="css/styles.css">
+  
+  <style>
+    .dashboard-header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding-top: 20px;
     }
-    this.user = session.getUser();
-    await this.loadCreatorData();
-    await this.loadMyReels();
-    this.setupEventListeners();
-  }
 
-  // FIX #15: Better error handling and profile validation
-  async loadCreatorData() {
-    try {
-      this.creatorData = await db.get(APPWRITE_CONFIG.COLLECTIONS.CREATORS, this.user.$id);
-      console.log('✅ Creator profile loaded');
-    } catch (error) {
-      console.warn('Creator profile not found, creating new one:', error.message);
-      
-      // Profile doesn't exist - create a default one
-      try {
-        this.creatorData = {
-          userId: this.user.$id,
-          name: this.user.name || 'Unknown Creator',
-          email: this.user.email,
-          bio: '',
-          profilePic: '',
-          followers: 0,
-          totalViews: 0,
-          totalReels: 0,
-          totalEarnings: 0,
-          username: '',
-          isVerified: false,
-          isActive: true,
-          createdAt: new Date().toISOString()
-        };
+    .dashboard-header h1 {
+      font-size: 24px;
+      margin-bottom: 8px;
+      color: var(--text-primary);
+    }
 
-        // Try to save it to database
-        await db.create(APPWRITE_CONFIG.COLLECTIONS.CREATORS, this.creatorData, this.user.$id);
-        console.log('✅ New creator profile created');
-      } catch (createErr) {
-        console.error('Failed to create profile:', createErr);
-        // Fall back to empty profile - user can complete setup later
-        this.creatorData = {
-          userId: this.user.$id,
-          name: this.user.name || 'Creator',
-          email: this.user.email,
-          bio: 'Complete your profile',
-          profilePic: '',
-          followers: 0,
-          totalViews: 0,
-          totalReels: 0,
-          totalEarnings: 0
-        };
-        Toast.info('📝 Please complete your profile');
+    .quick-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .quick-actions .btn {
+      margin: 0;
+    }
+
+    .section-divider {
+      height: 1px;
+      background: var(--border-color);
+      margin: 24px 0;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .stat-box {
+      background: var(--dark-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .stat-icon {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+
+    .stat-title {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .stat-value {
+      font-size: 20px;
+      font-weight: bold;
+      color: var(--primary-red);
+    }
+
+    .earnings-breakdown {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .earning-source {
+      background: var(--dark-bg);
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+    }
+
+    .earning-source-title {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+    }
+
+    .earning-source-value {
+      font-size: 16px;
+      font-weight: bold;
+      color: var(--accent-gold);
+    }
+
+    .reels-section-title {
+      font-size: 16px;
+      font-weight: bold;
+      color: var(--text-primary);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-secondary);
+    }
+
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+
+    .profile-edit-section {
+      background: var(--dark-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 24px;
+    }
+
+    .profile-edit-button {
+      width: 100%;
+      margin-bottom: 8px;
+    }
+
+    @media (max-width: 480px) {
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .profile-stats {
+        grid-template-columns: 1fr 1fr;
       }
     }
-    
-    this.displayProfile();
-  }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <a href="/" style="display: flex; align-items: center; gap: 12px; text-decoration: none;">
+      <img src="assets/logo.png" alt="GorkhaReels" style="height: 32px; width: auto;">
+      <span class="header-logo">GorkhaReels</span>
+    </a>
+    <div style="flex: 1;"></div>
+  </header>
 
-  displayProfile() {
-    const d = this.creatorData;
-    this.setText('creator-name', d.name || 'Unknown Creator');
-    this.setText('creator-bio', d.bio || 'Complete your profile');
-    this.setText('followers-count', d.followers || 0);
-    this.setText('total-views', this.formatNumber(d.totalViews || 0));
-    
-    // FIXED: Total reels will be set dynamically after loading videos
-    // this.setText('total-reels', d.totalReels || 0);
-
-    const avatar = document.getElementById('creator-avatar');
-    if (avatar) avatar.src = d.profilePic || 'assets/logo.png';
-
-    // Earnings (default 0 for now)
-    this.setText('total-earnings', '₹ 0.00');
-    this.setText('ad-revenue', '₹ 0.00');
-    this.setText('tips-earnings', '₹ 0.00');
-    this.setText('sponsor-earnings', '₹ 0.00');
-    this.setText('total-views-perf', this.formatNumber(d.totalViews || 0));
-  }
-
-  async loadMyReels() {
-    try {
-      const response = await db.list(APPWRITE_CONFIG.COLLECTIONS.REELS, [
-        Query.equal('creatorId', this.user.$id),
-        Query.orderDesc('uploadedAt'),
-        Query.limit(50)
-      ]);
-      this.myReels = response.documents;
+  <!-- Dashboard Container -->
+  <div class="dashboard-container">
+    <!-- Profile Section -->
+    <div class="profile-header">
+      <img id="creator-avatar" src="https://via.placeholder.com/80" alt="Profile" class="profile-avatar">
+      <div class="profile-name" id="creator-name">Loading...</div>
+      <div style="font-size: 13px; color: var(--text-secondary);" id="creator-bio">No bio yet</div>
       
-      // FIXED OPTION A: Count videos dynamically
-      const totalVideos = this.myReels.length;
-      this.setText('total-reels', totalVideos);
-      
-      console.log(`✅ Loaded ${this.myReels.length} reels`);
-      this.displayMyReels();
-    } catch (error) {
-      console.error('Error loading reels:', error);
-      this.setText('total-reels', 0);
-      this.displayMyReels(); // Display empty state
-    }
-  }
-
-  displayMyReels() {
-    const container = document.getElementById('my-reels-container');
-    if (!container) return;
-
-    if (this.myReels.length === 0) {
-      container.innerHTML = `
-        <div style="text-align:center;padding:40px 20px;color:var(--text-secondary);">
-          <p>No videos uploaded yet</p>
-          <a href="./upload.html" class="btn btn-primary" style="max-width:300px;margin-top:20px;display:inline-block;">📹 Upload Your First Video</a>
+      <div class="profile-stats">
+        <div class="stat-item">
+          <div class="stat-number" id="followers-count">0</div>
+          <div class="stat-label">Followers</div>
         </div>
-      `;
-      return;
-    }
-
-    container.innerHTML = `
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-        ${this.myReels.map(r => this.renderReelCard(r)).join('')}
-      </div>
-    `;
-  }
-
-  renderReelCard(reel) {
-    const date = new Date(reel.uploadedAt).toLocaleDateString();
-    return `
-      <div style="background:var(--dark-card);border-radius:8px;overflow:hidden;border:1px solid var(--border-color);cursor:pointer;" onclick="window.location.href='./index.html?reel=${reel.$id}'">
-        <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;background:var(--dark-bg);">
-          <img src="${reel.thumbnail || 'assets/logo.png'}" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;" alt="${escapeHtml(reel.title)}">
-          <div style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.7);color:white;padding:4px 8px;border-radius:4px;font-size:12px;">👁️ ${reel.views || 0}</div>
+        <div class="stat-item">
+          <div class="stat-number" id="total-views">0</div>
+          <div class="stat-label">Views</div>
         </div>
-        <div style="padding:12px;">
-          <p style="font-size:12px;font-weight:600;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(reel.title)}</p>
-          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-secondary);">
-            <span>❤️ ${reel.likes || 0}</span>
-            <span>💬 ${reel.comments || 0}</span>
-            <span>${date}</span>
-          </div>
+        <div class="stat-item">
+          <div class="stat-number" id="total-reels">0</div>
+          <div class="stat-label">Videos</div>
         </div>
       </div>
-    `;
-  }
+    </div>
 
-  setupEventListeners() {
-    document.getElementById('upload-btn')?.addEventListener('click', () => {
-      window.location.href = './upload.html';
-    });
-    document.getElementById('edit-profile-btn')?.addEventListener('click', () => {
-      Toast.info('Profile editing coming soon!');
-    });
-    document.getElementById('logout-btn')?.addEventListener('click', () => this.logout());
-  }
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+      <button class="btn btn-primary" id="upload-btn">📹 Upload Video</button>
+      <button class="btn btn-secondary" id="edit-profile-btn">✏️ Edit Profile</button>
+    </div>
 
-  async logout() {
-    if (confirm('Are you sure you want to logout?')) {
-      await session.logout();
-      window.location.href = './login.html';
-    }
-  }
+    <!-- Earnings Section -->
+    <div class="section-divider"></div>
+    <div style="margin-bottom: 24px;">
+      <div style="
+        font-size: 14px;
+        color: var(--text-secondary);
+        margin-bottom: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      ">💰 Total Earnings</div>
+      <div style="font-size: 36px; font-weight: bold; color: var(--accent-gold); margin-bottom: 16px;">
+        <span id="total-earnings">₹ 0.00</span>
+      </div>
 
-  setText(id, value) {
-    const el = document.getElementById(id);
-    if (el) el.textContent = value;
-  }
+      <div class="earnings-breakdown">
+        <div class="earning-source">
+          <div class="earning-source-title">Ad Revenue</div>
+          <div class="earning-source-value" id="ad-revenue">₹ 0.00</div>
+        </div>
+        <div class="earning-source">
+          <div class="earning-source-title">Tips & Tips</div>
+          <div class="earning-source-value" id="tips-earnings">₹ 0.00</div>
+        </div>
+        <div class="earning-source">
+          <div class="earning-source-title">Sponsorship</div>
+          <div class="earning-source-value" id="sponsor-earnings">₹ 0.00</div>
+        </div>
+      </div>
 
-  formatNumber(num) {
-    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
-    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
-    return num.toString();
-  }
-}
+      <button class="btn btn-secondary" style="width: 100%; margin-top: 16px;">
+        🏦 Withdraw Earnings
+      </button>
+    </div>
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
-    window.dashboardManager = new DashboardManager();
-  });
-} else {
-  window.dashboardManager = new DashboardManager();
-}
+    <!-- Performance Stats -->
+    <div class="section-divider"></div>
+    <div style="margin-bottom: 24px;">
+      <div style="
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 16px;
+      ">📊 Performance</div>
 
-console.log('✅ Dashboard Manager Loaded (with dynamic video counting - Option A)');
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="stat-icon">👁️</div>
+          <div class="stat-title">Total Views</div>
+          <div class="stat-value" id="total-views-perf">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-icon">💬</div>
+          <div class="stat-title">Total Comments</div>
+          <div class="stat-value">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-icon">⭐</div>
+          <div class="stat-title">Engagement Rate</div>
+          <div class="stat-value">0%</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-icon">📈</div>
+          <div class="stat-title">Growth</div>
+          <div class="stat-value">+0%</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- My Videos Section -->
+    <div class="section-divider"></div>
+    <div style="margin-bottom: 24px;">
+      <div class="reels-section-title">
+        📹 My Videos
+      </div>
+      <div id="my-reels-container">
+        <div class="loading">
+          <div class="spinner"></div>
+          <p style="margin-left: 12px;">Loading your videos...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Account Section -->
+    <div class="section-divider"></div>
+    <div style="margin-bottom: 24px;">
+      <div style="
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 16px;
+      ">⚙️ Account</div>
+
+      <button class="btn btn-secondary" style="width: 100%; margin-bottom: 8px;">
+        🔐 Change Password
+      </button>
+      <button class="btn btn-secondary" style="width: 100%; margin-bottom: 8px;">
+        🏦 Bank Details
+      </button>
+      <button class="btn btn-secondary" style="width: 100%; margin-bottom: 8px;">
+        📋 Content Guidelines
+      </button>
+      <button class="btn btn-secondary" style="width: 100%; margin-bottom: 20px;">
+        📞 Support
+      </button>
+
+      <button class="btn btn-secondary" style="width: 100%;" id="logout-btn">
+        🚪 Logout
+      </button>
+    </div>
+
+    <!-- Spacing for bottom nav -->
+    <div style="height: 60px;"></div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <button class="nav-item" onclick="window.location.href='./index.html'">
+      <span>🏠</span>
+      <span class="nav-label">Home</span>
+    </button>
+    <button class="nav-item" onclick="window.location.href='./index.html?trending'">
+      <span>🔥</span>
+      <span class="nav-label">Trending</span>
+    </button>
+    <button class="nav-item" onclick="window.location.href='./upload.html'">
+      <span>➕</span>
+      <span class="nav-label">Create</span>
+    </button>
+    <button class="nav-item active">
+      <span>👤</span>
+      <span class="nav-label">Profile</span>
+    </button>
+  </nav>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
+  <script src="js/appwrite-config.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>
