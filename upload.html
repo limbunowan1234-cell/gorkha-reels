@@ -2,483 +2,315 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Upload Video - GorkhaReels</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>New Reel - GorkhaReels</title>
+  <meta name="theme-color" content="#121212">
   <link rel="icon" type="image/png" href="assets/logo.png">
   <link rel="stylesheet" href="css/styles.css">
   <style>
-    .upload-wizard {
-      max-width: 500px;
-      margin: 0 auto;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
+    /* Fix header for non-feed pages */
+    header { background: rgba(10,10,10,0.98) !important; position: sticky !important; backdrop-filter: blur(20px) !important; border-bottom: 1px solid rgba(255,255,255,0.06) !important; }
 
-    .wizard-header {
-      background: var(--glass-bg);
-      backdrop-filter: blur(10px);
-      border-bottom: 1px solid var(--glass-border);
-      padding: 12px 16px;
+    body { background: #0f0f0f; overflow-x: hidden; }
+
+    /* Upload Header */
+    .upload-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      background: rgba(10,10,10,0.98);
       position: sticky;
       top: 0;
       z-index: 100;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      border-bottom: 1px solid #1a1a1a;
     }
 
-    /* Fix: Override transparent header */
-    header {
-      background: rgba(10, 10, 10, 0.98) !important;
-      position: sticky !important;
-      backdrop-filter: blur(20px) !important;
-      border-bottom: 1px solid rgba(255,255,255,0.06) !important;
-    }
-    .wizard-back-btn { {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 36px;
-      height: 36px;
+    .upload-back {
+      width: 36px; height: 36px;
       border-radius: 50%;
       background: rgba(255,255,255,0.08);
-      border: none;
-      color: var(--text-primary);
-      font-size: 20px;
-      cursor: pointer;
-      flex-shrink: 0;
-      transition: background 0.2s;
+      border: none; color: #fff;
+      font-size: 22px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
     }
 
-    .wizard-back-btn:active { background: rgba(255,255,255,0.16); }
-
-    .wizard-header-center {
-      flex: 1;
-      text-align: center;
+    #upload-header-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: #fff;
     }
 
-    .wizard-logo {
-      height: 24px;
-      margin-bottom: 4px;
-    }
+    .header-spacer { width: 36px; }
 
-    .wizard-title {
-      font-size: 15px;
-      font-weight: 800;
-      color: var(--text-primary);
-      margin: 0;
-    }
-
-    .wizard-progress {
-      font-size: 11px;
-      color: var(--text-tertiary);
-      margin-top: 2px;
-    }
-
-    .wizard-header-spacer {
-      width: 36px;
-      flex-shrink: 0;
-    }
-
-    .wizard-content {
-      flex: 1;
-      padding: 20px;
+    /* ===== STEP 1: PICK VIDEO ===== */
+    #step-pick {
       display: flex;
       flex-direction: column;
-      gap: 20px;
-      overflow-y: auto;
+      align-items: center;
+      justify-content: center;
+      min-height: calc(100vh - 60px);
+      padding: 24px 20px;
+    }
+
+    #dropzone {
+      width: 100%;
+      max-width: 340px;
+      aspect-ratio: 9/16;
+      max-height: 60vh;
+      border: 2px dashed #3f3f3f;
+      border-radius: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      cursor: pointer;
+      background: #1a1a1a;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    #dropzone.drag-over {
+      border-color: var(--primary-red);
+      background: rgba(220,38,38,0.05);
+    }
+
+    #dropzone:active { opacity: 0.8; }
+
+    .dropzone-icon { font-size: 56px; }
+    .dropzone-text { font-size: 18px; font-weight: 700; color: #fff; }
+    .dropzone-sub { font-size: 13px; color: #737373; text-align: center; }
+
+    .select-btn {
+      margin-top: 8px;
+      padding: 12px 32px;
+      background: var(--primary-red);
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    /* ===== STEP 2: DETAILS ===== */
+    #step-details {
+      display: none;
+      flex-direction: column;
+      min-height: calc(100vh - 60px);
       padding-bottom: 100px;
     }
 
-    .step {
-      display: none;
-    }
-
-    .step.active {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
-
-    .step-number {
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--accent-gold);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 8px;
-    }
-
-    .step-title {
-      font-size: 20px;
-      font-weight: 800;
-      color: var(--text-primary);
-      margin: 0;
-    }
-
-    .step-description {
-      font-size: 12px;
-      color: var(--text-secondary);
-      margin: 0;
-    }
-
-    .video-drop-zone {
-      border: 2px dashed var(--border-light);
-      border-radius: 16px;
-      padding: 50px 24px;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.3s;
-      background: var(--glass-bg);
-      backdrop-filter: blur(10px);
-    }
-
-    .video-drop-zone:hover,
-    .video-drop-zone.dragover {
-      border-color: var(--accent-gold);
-      background: rgba(251, 191, 36, 0.08);
-      box-shadow: 0 0 30px rgba(251, 191, 36, 0.2);
-    }
-
-    .video-drop-zone p {
-      color: var(--text-secondary);
-      font-size: 15px;
-      font-weight: 500;
-    }
-
-    .video-preview-box {
-      width: 100%;
-      aspect-ratio: 9 / 16;
-      background: #000;
-      border-radius: 16px;
-      overflow: hidden;
-      border: 2px solid var(--border-light);
+    .details-preview {
       position: relative;
-    }
-
-    .video-preview-box video {
       width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .file-info {
-      background: var(--glass-bg);
-      border: 1px solid var(--glass-border);
-      border-radius: 12px;
-      padding: 12px;
-      font-size: 12px;
-      color: var(--text-secondary);
-      text-align: center;
-    }
-
-    .form-group {
+      background: #000;
       display: flex;
-      flex-direction: column;
-      gap: 8px;
+      justify-content: center;
     }
 
-    .form-group label {
+    #video-preview {
+      width: 100%;
+      max-height: 45vh;
+      object-fit: contain;
+    }
+
+    .change-video-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(0,0,0,0.7);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 8px;
+      color: #fff;
+      padding: 6px 12px;
       font-size: 12px;
-      font-weight: 700;
-      color: var(--text-primary);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
+      cursor: pointer;
     }
 
-    .form-group input,
-    .form-group textarea,
-    .form-group select {
-      padding: 12px;
-      background: var(--glass-bg);
-      border: 1px solid var(--glass-border);
-      border-radius: 10px;
-      color: var(--text-primary);
-      font-family: inherit;
-      font-size: 14px;
-      backdrop-filter: blur(10px);
-      transition: all 0.3s;
-    }
-
-    .form-group input:focus,
-    .form-group textarea:focus,
-    .form-group select:focus {
-      outline: none;
-      border-color: var(--accent-gold);
-      background: rgba(251, 191, 36, 0.05);
-      box-shadow: 0 0 20px rgba(251, 191, 36, 0.2);
-    }
-
-    .music-selection {
-      background: var(--glass-bg);
-      border: 1px solid var(--glass-border);
-      border-radius: 12px;
-      padding: 16px;
-      backdrop-filter: blur(10px);
-    }
-
-    .music-selected {
-      background: rgba(251, 191, 36, 0.05);
-      border: 1.5px solid var(--accent-gold);
-      border-radius: 12px;
-      padding: 14px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .music-info {
+    .details-form {
+      padding: 20px 16px;
       flex: 1;
     }
 
-    .music-title {
+    .form-field {
+      margin-bottom: 18px;
+    }
+
+    .form-label {
+      display: block;
       font-size: 13px;
-      font-weight: 700;
-      color: var(--text-primary);
+      font-weight: 600;
+      color: #a3a3a3;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
     }
 
-    .music-artist {
-      font-size: 11px;
-      color: var(--text-secondary);
-      margin-top: 2px;
+    .form-input, .form-textarea, .form-select {
+      width: 100%;
+      background: #1a1a1a;
+      border: 1px solid #2d2d2d;
+      border-radius: 10px;
+      padding: 13px 14px;
+      color: #fff;
+      font-size: 15px;
+      box-sizing: border-box;
+      transition: border-color 0.2s;
     }
 
-    .music-remove {
-      background: transparent;
-      border: none;
-      color: var(--primary-red);
-      cursor: pointer;
-      font-size: 18px;
-      padding: 4px 8px;
+    .form-input:focus, .form-textarea:focus, .form-select:focus {
+      outline: none;
+      border-color: var(--primary-red);
     }
 
-    .wizard-buttons {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: rgba(15, 15, 15, 0.95);
-      backdrop-filter: blur(20px);
-      border-top: 1px solid var(--border-light);
-      padding: 12px 20px 16px;
-      z-index: 100;
+    .form-textarea { resize: none; }
+
+    .form-select option { background: #1a1a1a; }
+
+    .form-row {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 12px;
     }
 
-    .wizard-buttons.single {
-      grid-template-columns: 1fr;
+    /* Post button - fixed at bottom */
+    .post-btn-container {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 16px;
+      background: linear-gradient(transparent, rgba(0,0,0,0.95) 30%);
+      z-index: 50;
     }
 
-    .btn-wizard {
-      padding: 12px 20px;
+    #post-btn {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, var(--primary-red), #f97316);
       border: none;
-      border-radius: 10px;
-      font-size: 13px;
-      font-weight: 700;
+      border-radius: 12px;
+      color: #fff;
+      font-size: 17px;
+      font-weight: 800;
       cursor: pointer;
-      transition: all 0.3s;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.3px;
+      box-shadow: 0 4px 20px rgba(220,38,38,0.4);
+      transition: opacity 0.2s, transform 0.1s;
     }
 
-    .btn-back {
-      background: var(--glass-bg);
-      border: 1.5px solid var(--glass-border);
-      color: var(--text-primary);
-    }
+    #post-btn:active { transform: scale(0.98); opacity: 0.9; }
+    #post-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    .btn-back:hover {
-      border-color: var(--accent-gold);
-      color: var(--accent-gold);
-    }
-
-    .btn-next {
-      background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
-      color: white;
-      box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
-    }
-
-    .btn-next:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(220, 38, 38, 0.4);
-    }
-
-    .btn-next:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    input[type="file"] {
-      display: none;
-    }
-
-    .step-info {
-      background: rgba(251, 191, 36, 0.05);
-      border: 1px solid rgba(251, 191, 36, 0.2);
-      border-radius: 10px;
-      padding: 12px;
-      font-size: 12px;
-      color: var(--text-secondary);
-      line-height: 1.5;
+    /* Character counter */
+    .char-count {
+      font-size: 11px;
+      color: #737373;
+      text-align: right;
+      margin-top: 4px;
     }
   </style>
 </head>
 <body>
-  <div class="upload-wizard">
-    <!-- Header -->
-    <div class="wizard-header">
-      <button class="wizard-back-btn" onclick="history.length > 1 ? history.back() : window.location.href='./index.html'" title="Go back">‹</button>
-      <div class="wizard-header-center">
-        <img src="assets/logo.png" alt="GorkhaReels" class="wizard-logo">
-        <h1 class="wizard-title" id="wizard-title">Upload Video</h1>
-        <p class="wizard-progress" id="wizard-progress">Step 1 of 4</p>
-      </div>
-      <div class="wizard-header-spacer"></div>
+
+  <!-- Upload Header -->
+  <div class="upload-header">
+    <button class="upload-back" onclick="history.length > 1 ? history.back() : window.location.href='./index.html'">‹</button>
+    <span id="upload-header-title">New Reel</span>
+    <div class="header-spacer"></div>
+  </div>
+
+  <!-- STEP 1: Pick Video -->
+  <div id="step-pick">
+    <div id="dropzone">
+      <div class="dropzone-icon">🎬</div>
+      <div class="dropzone-text">Select a video</div>
+      <div class="dropzone-sub">MP4, WebM, MOV<br>Max 500MB • Max 2 minutes</div>
+      <button class="select-btn" onclick="document.getElementById('video-file-input').click()">
+        📱 Choose from Phone
+      </button>
+    </div>
+    <input type="file" id="video-file-input" accept="video/*" style="display:none;">
+  </div>
+
+  <!-- STEP 2: Details -->
+  <div id="step-details">
+    <!-- Video Preview -->
+    <div class="details-preview">
+      <video id="video-preview" playsinline muted loop autoplay></video>
+      <button class="change-video-btn" id="change-video-btn">✏️ Change</button>
     </div>
 
-    <!-- Content -->
-    <div class="wizard-content">
-      <!-- STEP 1: Select Video -->
-      <div class="step active" id="step-1">
-        <div>
-          <div class="step-number">Step 1</div>
-          <h2 class="step-title">📹 Select Video</h2>
-          <p class="step-description">Choose a video from your device</p>
-        </div>
-
-        <div class="video-drop-zone" id="video-drop-zone" style="cursor: pointer;">
-          <div style="font-size: 48px; margin-bottom: 12px;">🎬</div>
-          <p style="margin: 0; font-weight: 600;">Drag video here or click</p>
-          <p style="margin: 8px 0 0 0; font-size: 12px; color: var(--text-tertiary);">
-            MP4, WebM, MOV • Max 500MB
-          </p>
-        </div>
-        <input type="file" id="video-input" accept="video/*">
-
-        <div id="file-info" style="display: none;"></div>
+    <!-- Form -->
+    <div class="details-form">
+      <div class="form-field">
+        <label class="form-label">Title *</label>
+        <input
+          id="post-title"
+          type="text"
+          class="form-input"
+          placeholder="Give your reel a catchy title..."
+          maxlength="100"
+          oninput="document.getElementById('title-count').textContent = this.value.length + '/100'"
+        >
+        <div class="char-count" id="title-count">0/100</div>
       </div>
 
-      <!-- STEP 2: Edit Video (Optional) -->
-      <div class="step" id="step-2">
-        <div>
-          <div class="step-number">Step 2</div>
-          <h2 class="step-title">✂️ Edit Video</h2>
-          <p class="step-description">Trim or skip this step</p>
-        </div>
-
-        <div class="video-preview-box">
-          <video id="preview-video" playsinline></video>
-        </div>
-
-        <div id="edit-controls" style="display: none; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 12px; padding: 16px; backdrop-filter: blur(10px);">
-          <div class="step-info">
-            ✨ Tip: Trim to max 2 minutes for best results
-          </div>
-          <button type="button" class="btn btn-secondary" onclick="uploadManager.openVideoEditor()" style="width: 100%; margin-top: 12px;">
-            ✂️ Open Editor
-          </button>
-        </div>
+      <div class="form-field">
+        <label class="form-label">Description</label>
+        <textarea
+          id="post-description"
+          class="form-textarea"
+          rows="3"
+          placeholder="What's this reel about? Add hashtags..."
+          maxlength="300"
+          oninput="document.getElementById('desc-count').textContent = this.value.length + '/300'"
+        ></textarea>
+        <div class="char-count" id="desc-count">0/300</div>
       </div>
 
-      <!-- STEP 3: Add Music -->
-      <div class="step" id="step-3">
-        <div>
-          <div class="step-number">Step 3</div>
-          <h2 class="step-title">🎵 Add Music</h2>
-          <p class="step-description">Optional - Make your video more engaging</p>
-        </div>
-
-        <div class="video-preview-box">
-          <video id="step3-video" playsinline></video>
-        </div>
-
-        <div class="music-selection">
-          <div id="no-music" style="text-align: center; color: var(--text-secondary);">
-            <p style="margin: 0; font-size: 12px;">No music selected</p>
-          </div>
-          <div id="music-selected" class="music-selected" style="display: none;">
-            <div class="music-info">
-              <div class="music-title" id="selected-music-title"></div>
-              <div class="music-artist" id="selected-music-artist"></div>
-            </div>
-            <button type="button" class="music-remove" onclick="uploadManager.removeMusicSelection()">✕</button>
-          </div>
-          <button type="button" class="btn btn-secondary" onclick="window.location.href='./music-library.html?return=upload'" style="width: 100%; margin-top: 12px;">
-            🎵 Browse Music Library
-          </button>
-        </div>
-
-        <div class="step-info">
-          💡 Tip: Music makes videos 5x more engaging. You can always skip this.
-        </div>
-      </div>
-
-      <!-- STEP 4: Add Details -->
-      <div class="step" id="step-4">
-        <div>
-          <div class="step-number">Step 4</div>
-          <h2 class="step-title">📝 Add Details</h2>
-          <p class="step-description">Fill in video information</p>
-        </div>
-
-        <div class="form-group">
-          <label>Video Title *</label>
-          <input type="text" id="title" placeholder="e.g., Amazing Football Goal" maxlength="100">
-        </div>
-
-        <div class="form-group">
-          <label>Description</label>
-          <textarea id="description" placeholder="Tell more about your video..." maxlength="500" style="min-height: 100px;"></textarea>
-        </div>
-
-        <div class="form-group">
-          <label>Category</label>
-          <select id="category">
-            <option value="sports">⚽ Sports</option>
-            <option value="entertainment">🎭 Entertainment</option>
-            <option value="music">🎵 Music</option>
-            <option value="dance">💃 Dance</option>
-            <option value="comedy">😂 Comedy</option>
-            <option value="education">📚 Education</option>
-            <option value="vlog">📹 Vlog</option>
-            <option value="other">✨ Other</option>
+      <div class="form-row">
+        <div class="form-field">
+          <label class="form-label">Category</label>
+          <select id="post-category" class="form-select">
+            <option value="entertainment">Entertainment</option>
+            <option value="music">Music</option>
+            <option value="dance">Dance</option>
+            <option value="comedy">Comedy</option>
+            <option value="food">Food</option>
+            <option value="travel">Travel</option>
+            <option value="sports">Sports</option>
+            <option value="education">Education</option>
+            <option value="culture">Gorkha Culture</option>
+            <option value="news">News</option>
+            <option value="other" selected>Other</option>
           </select>
         </div>
-
-        <div class="form-group">
-          <label>Language</label>
-          <select id="language">
-            <option value="Nepali">🇳🇵 Nepali</option>
-            <option value="English">🇬🇧 English</option>
-            <option value="Hindi">🇮🇳 Hindi</option>
-            <option value="Mixed">🌍 Mixed</option>
+        <div class="form-field">
+          <label class="form-label">Language</label>
+          <select id="post-language" class="form-select">
+            <option value="Nepali" selected>Nepali</option>
+            <option value="Hindi">Hindi</option>
+            <option value="English">English</option>
+            <option value="Gorkhali">Gorkhali</option>
+            <option value="Other">Other</option>
           </select>
-        </div>
-
-        <div class="form-group">
-          <label>Hashtags</label>
-          <input type="text" id="hashtags" placeholder="#GorkhaReels #Darjeeling #Creator" maxlength="200">
-        </div>
-
-        <div class="step-info">
-          ✨ Make your video discoverable with relevant tags and categories
         </div>
       </div>
     </div>
+
+    <!-- Post Button (fixed bottom) -->
+    <div class="post-btn-container">
+      <button id="post-btn" onclick="window.uploader && window.uploader.post()">
+        🚀 Post Reel
+      </button>
+    </div>
   </div>
 
-  <!-- Buttons -->
-  <div class="wizard-buttons single" id="wizard-buttons">
-    <button class="btn-wizard btn-back" id="btn-back" style="display: none;" onclick="uploadManager.prevStep()">← Back</button>
-    <button class="btn-wizard btn-next" id="btn-next" onclick="uploadManager.nextStep()">Next →</button>
-  </div>
-
-  <!-- Appwrite SDK -->
+  <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
   <script src="js/appwrite-config.js"></script>
-  <script src="js/upload-wizard.js"></script>
+  <script src="js/upload.js"></script>
 </body>
 </html>
