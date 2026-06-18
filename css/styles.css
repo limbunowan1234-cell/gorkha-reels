@@ -270,7 +270,7 @@ header {
 }
 
 .action-btn.liked {
-  background: linear-gradient(135deg, rgba(220, 38, 38, 0.3) 0%, rgba(153, 27, 27, 0.3) 100%);
+  background: linear-gradient(135deg, rgba(220, 38, 38, 0.3) 0%, rgba(153, 27, 0.3) 100%);
   border-color: var(--primary-red);
 }
 
@@ -290,7 +290,7 @@ header {
   bottom: 0;
   left: 0;
   right: 0;
-  background: rgba(12, 12, 12, 0.85);
+  background: rgba(12, 12, 0.85);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border-top: 1px solid rgba(255, 255, 255, 0.06);
@@ -476,7 +476,7 @@ header {
   background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
   color: white;
   width: 100%;
-  box-shadow: 0 8px 24px rgba(220, 38, 38, 0.3);
+  box-shadow: 0 8px 24px rgba(220, 38, 0.3);
 }
 
 .btn-primary:hover:not(:disabled) {
@@ -806,7 +806,7 @@ header {
 }
 
 .fullscreen-action-btn.liked {
-  background: rgba(220, 38, 38, 0.3);
+  background: rgba(220, 38, 0.3);
   border-color: var(--primary-red);
 }
 
@@ -957,7 +957,7 @@ header {
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 0.12);
   backdrop-filter: blur(20px);
   border: 1.5px solid rgba(255, 255, 255, 0.18);
   color: white;
@@ -1056,5 +1056,23 @@ header {
   }
   .fs-info p {
     font-size: 13px;
+  }
+}
+
+/* ============== FIX FOR SCREEN ENLARGEMENT ============== */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+@media (max-width: 768px) {
+  header {
+    padding: 12px 16px !important;
+    background: rgba(10,10,10,0.98) !important;
+  }
+  .header-logo {
+    font-size: 18px !important;
+    max-height: 36px;
   }
 }
