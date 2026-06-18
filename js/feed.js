@@ -361,13 +361,14 @@ class FeedManager {
     const creator = this.getCreator(reel);
     const creatorName = escapeHtml(creator.name || 'GorkhaReels Creator');
     const creatorPic = creator.profilePic || 'assets/logo.png';
+    const profileUrl = `./creator-profile.html?id=${reel.creatorId}`;
 
     return `
       <div class="video-card">
         <video class="video-player" src="${reel.videoUrl}" loop playsinline preload="metadata"></video>
         <div class="video-overlay">
-          <!-- Creator Info (TikTok style) -->
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+          <!-- Creator Info - clickable to profile -->
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;cursor:pointer;" onclick="window.location.href='${profileUrl}'">
             <img src="${creatorPic}" onerror="this.src='assets/logo.png'" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,0.6);">
             <div>
               <div style="font-size:14px;font-weight:700;color:#fff;">@${creatorName}</div>
