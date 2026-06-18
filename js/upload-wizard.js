@@ -327,7 +327,7 @@ class UploadWizard {
 
       const user = session.getUser();
 
-      // FIXED: Minimal fields only - counter fields causing schema mismatch
+      // FIXED: Minimal fields + likes counter (safe with 0 default)
       const reelData = {
         reelId: ID.unique(),
         creatorId: user.$id,
@@ -338,7 +338,8 @@ class UploadWizard {
         category: category || 'other',
         language: language || 'Nepali',
         uploadedAt: new Date().toISOString(),
-        isDeleted: false
+        isDeleted: false,
+        likes: 0
       };
 
       await db.create(APPWRITE_CONFIG.COLLECTIONS.REELS, reelData);
