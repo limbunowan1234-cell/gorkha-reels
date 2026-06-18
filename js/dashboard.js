@@ -3,6 +3,8 @@
  * 
  * FIXES APPLIED:
  * ✅ FIX #15: Proper error handling for missing creator profile
+ * ✅ COUNT VIDEOS DYNAMICALLY: Total videos counted from REELS collection (Option A)
+ * ✅ DISPLAY USER VIDEOS: Show uploaded videos in dashboard
  */
 
 class DashboardManager {
@@ -81,7 +83,9 @@ class DashboardManager {
     this.setText('creator-bio', d.bio || 'Complete your profile');
     this.setText('followers-count', d.followers || 0);
     this.setText('total-views', this.formatNumber(d.totalViews || 0));
-    this.setText('total-reels', d.totalReels || 0);
+    
+    // FIXED: Total reels will be set dynamically after loading videos
+    // this.setText('total-reels', d.totalReels || 0);
 
     const avatar = document.getElementById('creator-avatar');
     if (avatar) avatar.src = d.profilePic || 'assets/logo.png';
@@ -102,10 +106,16 @@ class DashboardManager {
         Query.limit(50)
       ]);
       this.myReels = response.documents;
+      
+      // FIXED OPTION A: Count videos dynamically
+      const totalVideos = this.myReels.length;
+      this.setText('total-reels', totalVideos);
+      
       console.log(`✅ Loaded ${this.myReels.length} reels`);
       this.displayMyReels();
     } catch (error) {
       console.error('Error loading reels:', error);
+      this.setText('total-reels', 0);
       this.displayMyReels(); // Display empty state
     }
   }
@@ -137,7 +147,7 @@ class DashboardManager {
       <div style="background:var(--dark-card);border-radius:8px;overflow:hidden;border:1px solid var(--border-color);cursor:pointer;" onclick="window.location.href='./index.html?reel=${reel.$id}'">
         <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;background:var(--dark-bg);">
           <img src="${reel.thumbnail || 'assets/logo.png'}" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;" alt="${escapeHtml(reel.title)}">
-          <div style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.7);color:white;padding:4px 8px;border-radius:4px;font-size:12px;">${reel.views || 0} views</div>
+          <div style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.7);color:white;padding:4px 8px;border-radius:4px;font-size:12px;">👁️ ${reel.views || 0}</div>
         </div>
         <div style="padding:12px;">
           <p style="font-size:12px;font-weight:600;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(reel.title)}</p>
@@ -188,4 +198,4 @@ if (document.readyState === 'loading') {
   window.dashboardManager = new DashboardManager();
 }
 
-console.log('✅ Dashboard Manager Loaded (with proper error handling)');
+console.log('✅ Dashboard Manager Loaded (with dynamic video counting - Option A)');
