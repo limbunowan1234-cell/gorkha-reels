@@ -2,13 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Creator Profile - GorkhaReels</title>
   <meta name="theme-color" content="#121212">
   <link rel="icon" type="image/png" href="assets/logo.png">
   <link rel="stylesheet" href="css/styles.css">
   <style>
-    /* Critical fallback - dark theme even if CSS fails to load */
     :root {
       --primary-red: #dc2626;
       --accent-gold: #fbbf24;
@@ -24,26 +23,25 @@
       --glass-border: rgba(255,255,255,0.1);
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { background: #0f0f0f !important; color: #fff !important; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    html, body { background: #0f0f0f!important; color: #fff!important; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    img { max-width: 100%; height: auto; }
   </style>
 
   <style>
-    .profile-page {
+   .profile-page {
       max-width: 600px;
       margin: 0 auto;
       padding: 16px;
       padding-bottom: 80px;
     }
 
-    /* Back header */
-    /* Fix: Override transparent header */
     header {
-      background: rgba(10, 10, 10, 0.98) !important;
-      position: sticky !important;
-      backdrop-filter: blur(20px) !important;
-      border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+      background: rgba(10, 10, 10, 0.98)!important;
+      position: sticky!important;
+      backdrop-filter: blur(20px)!important;
+      border-bottom: 1px solid rgba(255,255,255,0.06)!important;
     }
-    .profile-back-header { {
+   .profile-back-header {
       display: flex;
       align-items: center;
       gap: 12px;
@@ -56,7 +54,7 @@
       border-bottom: 1px solid var(--border-color);
     }
 
-    .back-btn {
+   .back-btn {
       width: 36px;
       height: 36px;
       border-radius: 50%;
@@ -71,24 +69,23 @@
       flex-shrink: 0;
     }
 
-    .back-btn:active { opacity: 0.7; }
+   .back-btn:active { opacity: 0.7; }
 
-    .back-title {
+   .back-title {
       font-size: 17px;
       font-weight: 700;
       color: #fff;
       flex: 1;
     }
 
-    /* Profile top - Instagram style */
-    .pub-profile-top {
+   .pub-profile-top {
       display: flex;
       align-items: center;
       gap: 24px;
       margin: 20px 0 16px;
     }
 
-    .pub-avatar {
+   .pub-avatar {
       width: 86px;
       height: 86px;
       border-radius: 50%;
@@ -97,56 +94,54 @@
       flex-shrink: 0;
     }
 
-    .pub-stats-row {
+   .pub-stats-row {
       display: flex;
       flex: 1;
       justify-content: space-around;
     }
 
-    .pub-stat-cell {
+   .pub-stat-cell {
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 2px;
     }
 
-    .pub-stat-num {
+   .pub-stat-num {
       font-size: 20px;
       font-weight: 700;
       color: #fff;
     }
 
-    .pub-stat-lbl {
+   .pub-stat-lbl {
       font-size: 12px;
       color: var(--text-secondary);
     }
 
-    /* Name + bio */
-    .pub-identity {
+   .pub-identity {
       margin-bottom: 16px;
     }
 
-    .pub-name {
+   .pub-name {
       font-size: 16px;
       font-weight: 700;
       color: #fff;
       margin-bottom: 2px;
     }
 
-    .pub-bio {
+   .pub-bio {
       font-size: 14px;
       color: var(--text-secondary);
       line-height: 1.4;
     }
 
-    /* Follow button */
-    .pub-actions {
+   .pub-actions {
       display: flex;
       gap: 8px;
       margin-bottom: 24px;
     }
 
-    .follow-btn {
+   .follow-btn {
       flex: 1;
       padding: 10px;
       border-radius: 8px;
@@ -159,14 +154,14 @@
       transition: opacity 0.2s;
     }
 
-    .follow-btn:active { opacity: 0.8; }
-    .follow-btn.following {
+   .follow-btn:active { opacity: 0.8; }
+   .follow-btn.following {
       background: var(--dark-secondary);
       border: 1px solid var(--border-color);
       color: var(--text-primary);
     }
 
-    .share-profile-btn {
+   .share-profile-btn {
       width: 44px;
       height: 44px;
       border-radius: 8px;
@@ -180,8 +175,7 @@
       justify-content: center;
     }
 
-    /* Videos grid */
-    .videos-section-title {
+   .videos-section-title {
       font-size: 15px;
       font-weight: 700;
       color: #fff;
@@ -190,13 +184,13 @@
       padding-bottom: 10px;
     }
 
-    .videos-grid {
+   .videos-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 4px;
     }
 
-    .grid-video-card {
+   .grid-video-card {
       position: relative;
       aspect-ratio: 9/16;
       border-radius: 6px;
@@ -205,13 +199,13 @@
       cursor: pointer;
     }
 
-    .grid-video-card img {
+   .grid-video-card img {
       width: 100%;
       height: 100%;
       object-fit: cover;
     }
 
-    .grid-video-views {
+   .grid-video-views {
       position: absolute;
       bottom: 0;
       left: 0;
@@ -226,36 +220,36 @@
       font-weight: 600;
     }
 
-    /* Loading / empty states */
-    .loading-state {
+   .loading-state {
       text-align: center;
       padding: 40px 20px;
       color: var(--text-secondary);
     }
 
-    .error-state {
+   .error-state {
       text-align: center;
       padding: 60px 20px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
   </style>
 </head>
 <body>
 
-  <!-- Back Header -->
   <div class="profile-back-header">
     <button class="back-btn" onclick="history.back()">‹</button>
     <span class="back-title" id="page-title">Creator Profile</span>
   </div>
 
-  <!-- Profile Content -->
   <div class="profile-page" id="profile-content">
     <div class="loading-state">
-      <div class="spinner" style="margin: 0 auto 16px; width:32px;height:32px;border:3px solid #333;border-top-color:#dc2626;border-radius:50%;"></div>
+      <div class="spinner" style="margin: 0 auto 16px; width:32px;height:32px;border:3px solid #333;border-top-color:#dc2626;border-radius:50%;animation:spin 1s linear infinite"></div>
       <p>Loading profile...</p>
     </div>
   </div>
 
-  <!-- Bottom Nav -->
   <nav class="bottom-nav">
     <button class="nav-item" onclick="window.location.href='./index.html'">
       <span>🏠</span>
@@ -275,11 +269,9 @@
     </button>
   </nav>
 
-  <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
   <script src="js/appwrite-config.js"></script>
   <script>
-    // ===== CREATOR PROFILE PAGE =====
     class CreatorProfilePage {
       constructor() {
         this.creatorId = null;
@@ -289,7 +281,6 @@
       }
 
       async init() {
-        // Get creator ID from URL
         const params = new URLSearchParams(window.location.search);
         this.creatorId = params.get('id');
 
@@ -298,7 +289,6 @@
           return;
         }
 
-        // Check if viewing own profile — redirect to dashboard
         await session.refresh();
         if (session.isLoggedIn() && session.getUserId() === this.creatorId) {
           window.location.href = './creator-dashboard.html';
@@ -325,7 +315,6 @@
         const bio = d.bio || '';
         const pic = d.profilePic || 'assets/logo.png';
         const followers = this.formatNumber(d.followers || 0);
-        const views = this.formatNumber(d.totalViews || 0);
 
         document.getElementById('page-title').textContent = name;
         document.title = `${name} - GorkhaReels`;
@@ -336,7 +325,7 @@
             <img src="${pic}" onerror="this.src='assets/logo.png'" class="pub-avatar" alt="${escapeHtml(name)}">
             <div class="pub-stats-row">
               <div class="pub-stat-cell">
-                <span class="pub-stat-num" id="reel-count">...</span>
+                <span class="pub-stat-num" id="reel-count">0</span>
                 <span class="pub-stat-lbl">Videos</span>
               </div>
               <div class="pub-stat-cell">
@@ -344,14 +333,14 @@
                 <span class="pub-stat-lbl">Followers</span>
               </div>
               <div class="pub-stat-cell">
-                <span class="pub-stat-num">${views}</span>
+                <span class="pub-stat-num" id="views-count">0</span>
                 <span class="pub-stat-lbl">Views</span>
               </div>
             </div>
           </div>
           <div class="pub-identity">
             <div class="pub-name">${escapeHtml(name)}</div>
-            ${bio ? `<div class="pub-bio">${escapeHtml(bio)}</div>` : ''}
+            ${bio? `<div class="pub-bio">${escapeHtml(bio)}</div>` : ''}
           </div>
           <div class="pub-actions">
             <button class="follow-btn" id="follow-btn" onclick="window.profilePage.toggleFollow()" disabled>
@@ -367,11 +356,9 @@
           </div>
         `;
 
-        // Check follow status after rendering
         this.checkFollowStatus();
       }
 
-      // Check if current user already follows this creator
       async checkFollowStatus() {
         const btn = document.getElementById('follow-btn');
         if (!btn) return;
@@ -414,9 +401,13 @@
 
           this.reels = response.documents;
 
-          // Update video count
+          const totalViews = this.reels.reduce((sum, r) => sum + (r.views || 0), 0);
+
           const countEl = document.getElementById('reel-count');
           if (countEl) countEl.textContent = this.reels.length;
+
+          const viewsEl = document.getElementById('views-count');
+          if (viewsEl) viewsEl.textContent = this.formatNumber(totalViews);
 
           this.renderVideos();
         } catch (error) {
@@ -439,7 +430,7 @@
 
         grid.innerHTML = this.reels.map(reel => `
           <div class="grid-video-card" onclick="window.location.href='./index.html?reel=${reel.$id}'">
-            <img src="${reel.thumbnail || 'assets/logo.png'}" onerror="this.src='assets/logo.png'" alt="${escapeHtml(reel.title)}">
+            <img src="${reel.thumbnail || 'assets/logo.png'}" onerror="this.src='assets/logo.png'" alt="${escapeHtml(reel.title)}" loading="lazy">
             <div class="grid-video-views">
               <span>👁️</span>
               <span>${this.formatNumber(reel.views || 0)}</span>
@@ -463,7 +454,6 @@
 
         try {
           if (isFollowing) {
-            // UNFOLLOW: delete FOLLOWERS doc + decrement count
             const response = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [
               Query.equal('followerID', session.getUserId()),
               Query.equal('CreatorId', this.creatorId),
@@ -480,7 +470,6 @@
             btn.textContent = '➕ Follow';
             Toast.success('Unfollowed');
           } else {
-            // FOLLOW: create FOLLOWERS doc + increment count
             await db.create(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, {
               followId: ID.unique(),
               followerID: session.getUserId(),
@@ -497,14 +486,12 @@
             Toast.success('Following! 🎉');
           }
 
-          // Update displayed follower count live
           const display = document.getElementById('followers-display');
           if (display) display.textContent = this.formatNumber(this.creatorData.followers);
 
         } catch (error) {
           console.error('Follow failed:', error);
           Toast.error('Failed — try again');
-          // Revert button
           await this.checkFollowStatus();
         } finally {
           btn.disabled = false;
@@ -537,7 +524,6 @@
       }
     }
 
-    // Init
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', () => {
         window.profilePage = new CreatorProfilePage();
