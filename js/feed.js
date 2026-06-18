@@ -1,4 +1,6 @@
-// EMERGENCY FEED - loads videos without checking likes
+/**
+ * GorkhaReels - Production Feed (with DB likes)
+ */
 class FeedManager {
   constructor() {
     this.reels = []; this.currentIndex = 0; this.isLoading = false;
@@ -10,73 +12,133 @@ class FeedManager {
     await session.refresh();
     if (!session.isLoggedIn()) { location.href='./login.html'; return; }
 
-    console.log('Loading videos (likes disabled temporarily)...');
     try {
+      // Load videos
       const response = await db.list(APPWRITE_CONFIG.COLLECTIONS.REELS, [
         Query.equal('isDeleted', false),
         Query.orderDesc('uploadedAt'),
         Query.limit(20)
       ]);
       this.reels = response.documents;
-      console.log(`✅ Loaded ${this.reels.length} videos`);
+
+      // Load user's likes from DB
+      await this.loadUserLikes();
 
       if (this.reels.length > 0) {
         this.displayCurrentVideo();
-        this.setupEventListeners();
-      } else {
-        document.getElementById('feed-container').innerHTML = '<div style="color:white;text-align:center;padding:50px">No videos yet</div>';
+        this.setupSwipe();
       }
     } catch(e) {
-      console.error('FEED ERROR:', e);
-      document.getElementById('feed-container').innerHTML = `<div style="color:red;padding:20px">Error: ${e.message}</div>`;
+      console.error('Init error:', e);
+      Toast.error('Load failed: ' + e.message);
+    }
+  }
+
+  async loadUserLikes() {
+    try {
+      const userId = session.getUserId();
+      const likes = await db.list(APPWRITE_CONFIG.COLLECTIONS.LIKES, [
+        Query.equal('userId', userId),
+        Query.limit(100)
+      ]);
+      this.likedReels = new Set(likes.documents.map(l => l.reelId));
+      console.log(`✅ Loaded ${this.likedReels.size} likes`);
+    } catch(e) {
+      console.warn('Likes load failed (permissions?)', e);
+      this.likedReels = new Set();
     }
   }
 
   displayCurrentVideo() {
     const reel = this.reels[this.currentIndex];
-    if (!reel) return;
     this.currentVideo = reel;
+    const isLiked = this.likedReels.has(reel.$id);
+
     document.getElementById('feed-container').innerHTML = `
       <div class="video-card">
         <video class="video-player" src="${reel.videoUrl}" loop playsinline autoplay muted style="width:100%;height:100vh;object-fit:cover"></video>
-        <div class="action-buttons" style="position:absolute;right:15px;bottom:100px;display:flex;flex-direction:column;gap:20px">
-          <button class="action-btn like-btn" data-reel-id="${reel.$id}" style="background:rgba(0,0,0,0.5);border:none;width:50px;height:50px;border-radius:50%;color:white;font-size:24px">❤️</button>
-          <button class="action-btn" style="background:rgba(0,0,0,0.5);border:none;width:50px;height:50px;border-radius:50%;color:white;font-size:24px">💬</button>
-          <button class="action-btn" style="background:rgba(0,0,0,0.5);border:none;width:50px;height:50px;border-radius:50%;color:white;font-size:24px">↗️</button>
+        <div style="position:absolute;right:15px;bottom:120px;display:flex;flex-direction:column;gap:20px;align-items:center">
+          <button class="like-btn" data-id="${reel.$id}" style="background:${isLiked?'#ff3b30':'rgba(0,0,0,0.6)'};border:none;width:55px;height:55px;border-radius:50%;color:white;font-size:26px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 10px rgba(0,0,0,0.3)">❤️</button>
+          <div style="color:white;font-size:12px;margin-top:-15px">${reel.likes||0}</div>
+
+          <button style="background:rgba(0,0,0,0.6);border:none;width:55px;height:55px;border-radius:50%;color:white;font-size:24px">💬</button>
+          <button style="background:rgba(0,0,0,0.6);border:none;width:55px;height:55px;border-radius:50%;color:white;font-size:24px">↗️</button>
         </div>
-        <div style="position:absolute;bottom:20px;left:15px;color:white">
-          <h3>${reel.title}</h3>
+        <div style="position:absolute;bottom:80px;left:15px;right:80px;color:white">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px" onclick="location.href='./creator-profile.html?id=${reel.creatorId}'">
+            <img src="assets/logo.png" style="width:36px;height:36px;border-radius:50%;border:2px solid white">
+            <span style="font-weight:700">@creator</span>
+          </div>
+          <h3 style="margin:0 0 5px;font-size:16px">${reel.title}</h3>
         </div>
       </div>
     `;
-    document.querySelector('.like-btn').onclick = () => this.tempLike(reel.$id);
+
+    document.querySelector('.like-btn').onclick = () => this.toggleLike(reel.$id);
     document.querySelector('video').play().catch(()=>{});
   }
 
-  async tempLike(reelId) {
-    // Temporary like - just visual, doesn't save to DB yet
+  async toggleLike(reelId) {
+    const userId = session.getUserId();
+    const isLiked = this.likedReels.has(reelId);
     const btn = document.querySelector('.like-btn');
-    btn.style.transform = 'scale(1.3)';
-    setTimeout(()=>btn.style.transform='scale(1)',200);
-    Toast.success('Like saved locally (add userId field to enable DB)');
-    console.log('Would save like for:', reelId, 'user:', session.getUserId());
+
+    try {
+      if (isLiked) {
+        // Unlike
+        this.likedReels.delete(reelId);
+        btn.style.background = 'rgba(0,0,0,0.6)';
+
+        const likes = await db.list(APPWRITE_CONFIG.COLLECTIONS.LIKES, [
+          Query.equal('userId', userId),
+          Query.equal('reelId', reelId),
+          Query.limit(1)
+        ]);
+        if (likes.documents[0]) {
+          await db.remove(APPWRITE_CONFIG.COLLECTIONS.LIKES, likes.documents[0].$id);
+        }
+        Toast.success('Unliked');
+      } else {
+        // Like - THIS NOW WORKS
+        this.likedReels.add(reelId);
+        btn.style.background = '#ff3b30';
+        btn.style.transform = 'scale(1.2)';
+        setTimeout(()=>btn.style.transform='scale(1)',200);
+
+        await db.create(
+          APPWRITE_CONFIG.COLLECTIONS.LIKES,
+          {
+            likeId: ID.unique(),
+            userId: userId, // ← Now exists in your DB
+            reelId: reelId,
+            creatorId: this.currentVideo.creatorId,
+            createdAt: new Date().toISOString()
+          }
+        );
+        Toast.success('❤️ Liked!');
+      }
+    } catch(e) {
+      console.error('Like error:', e);
+      Toast.error('Like failed: ' + e.message);
+      // Revert visual
+      if (isLiked) this.likedReels.add(reelId); else this.likedReels.delete(reelId);
+    }
   }
 
-  setupEventListeners() {
+  setupSwipe() {
     let startY = 0;
-    document.addEventListener('touchstart', e => startY = e.touches[0].clientY);
+    document.addEventListener('touchstart', e => startY = e.touches[0].clientY, {passive:true});
     document.addEventListener('touchend', e => {
       const diff = startY - e.changedTouches[0].clientY;
-      if (Math.abs(diff) > 100) {
+      if (Math.abs(diff) > 80) {
         if (diff > 0 && this.currentIndex < this.reels.length-1) {
           this.currentIndex++; this.displayCurrentVideo();
         } else if (diff < 0 && this.currentIndex > 0) {
           this.currentIndex--; this.displayCurrentVideo();
         }
       }
-    });
+    }, {passive:true});
   }
 }
 
 window.feedManager = new FeedManager();
-console.log('✅ Emergency Feed Loaded');
