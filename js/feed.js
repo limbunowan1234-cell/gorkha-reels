@@ -755,61 +755,98 @@ class FeedManager {
       </div>`;
 
     try {
-      // Fetch reels and filter client-side by title
-      const response = await db.list(APPWRITE_CONFIG.COLLECTIONS.REELS, [
-        Query.equal('isDeleted', false),
-        Query.orderDesc('uploadedAt'),
-        Query.limit(100)
+      const q = query.toLowerCase();
+
+      // Search videos AND creators in parallel
+      const [reelsResponse, creatorsResponse] = await Promise.all([
+        db.list(APPWRITE_CONFIG.COLLECTIONS.REELS, [
+          Query.equal('isDeleted', false),
+          Query.orderDesc('uploadedAt'),
+          Query.limit(100)
+        ]),
+        db.list(APPWRITE_CONFIG.COLLECTIONS.CREATORS, [
+          Query.equal('isActive', true),
+          Query.limit(50)
+        ])
       ]);
 
-      const q = query.toLowerCase();
-      const matched = response.documents.filter(r =>
+      // Filter videos
+      const matchedReels = reelsResponse.documents.filter(r =>
         r.title?.toLowerCase().includes(q) ||
         r.description?.toLowerCase().includes(q) ||
         r.category?.toLowerCase().includes(q)
       );
 
-      if (matched.length === 0) {
+      // Filter creators
+      const matchedCreators = creatorsResponse.documents.filter(c =>
+        c.name?.toLowerCase().includes(q) ||
+        c.bio?.toLowerCase().includes(q)
+      );
+
+      if (matchedReels.length === 0 && matchedCreators.length === 0) {
         results.innerHTML = `
           <div style="text-align:center;color:#737373;padding:60px 20px;">
             <div style="font-size:40px;margin-bottom:12px;">😕</div>
-            <p>No videos found for "<strong style="color:#fff;">${escapeHtml(query)}</strong>"</p>
+            <p>No results for "<strong style="color:#fff;">${escapeHtml(query)}</strong>"</p>
           </div>`;
         return;
       }
 
-      results.innerHTML = `
-        <p style="color:#a3a3a3;font-size:13px;margin-bottom:14px;">${matched.length} result${matched.length > 1 ? 's' : ''} for "<strong style="color:#fff;">${escapeHtml(query)}</strong>"</p>
-        <div style="display:flex;flex-direction:column;gap:12px;">
-          ${matched.map(r => `
-            <div onclick="window.feedManager.playFromSearch('${r.$id}')" style="
-              display:flex;gap:12px;align-items:center;
-              background:#1a1a1a;border-radius:12px;
-              padding:10px;cursor:pointer;border:1px solid #2d2d2d;
-            ">
-              <div style="position:relative;width:64px;height:80px;flex-shrink:0;border-radius:8px;overflow:hidden;background:#242424;">
-                <img src="${r.thumbnail || 'assets/logo.png'}" style="width:100%;height:100%;object-fit:cover;">
-              </div>
-              <div style="flex:1;min-width:0;">
-                <p style="color:#fff;font-weight:600;font-size:14px;margin:0 0 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(r.title)}</p>
-                <p style="color:#a3a3a3;font-size:12px;margin:0 0 6px;">${escapeHtml(r.category || 'General')}</p>
-                <div style="display:flex;gap:12px;font-size:12px;color:#737373;">
-                  <span>👁️ ${r.views || 0}</span>
-                  <span>❤️ ${r.likes || 0}</span>
-                  <span>💬 ${r.comments || 0}</span>
-                </div>
-              </div>
-              <span style="color:#737373;font-size:20px;">›</span>
+      let html = '';
+
+      // ===== CREATORS SECTION =====
+      if (matchedCreators.length > 0) {
+        html += `<p style="color:var(--accent-gold,#fbbf24);font-size:13px;font-weight:700;margin-bottom:10px;">👤 CREATORS</p>`;
+        html += `<div style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px;">`;
+        html += matchedCreators.map(c => `
+          <div onclick="window.location.href='./creator-profile.html?id=${c.userId}'" style="
+            display:flex;align-items:center;gap:12px;
+            background:#1a1a1a;border-radius:12px;
+            padding:12px;cursor:pointer;border:1px solid #2d2d2d;
+          ">
+            <img src="${c.profilePic || 'assets/logo.png'}" onerror="this.src='assets/logo.png'" style="width:48px;height:48px;border-radius:50%;object-fit:cover;flex-shrink:0;">
+            <div style="flex:1;min-width:0;">
+              <p style="color:#fff;font-weight:700;font-size:14px;margin:0 0 2px;">${escapeHtml(c.name || 'Creator')}</p>
+              <p style="color:#a3a3a3;font-size:12px;margin:0;">${c.totalReels || 0} videos • ${c.followers || 0} followers</p>
             </div>
-          `).join('')}
-        </div>`;
+            <span style="color:#737373;font-size:20px;">›</span>
+          </div>
+        `).join('');
+        html += `</div>`;
+      }
+
+      // ===== VIDEOS SECTION =====
+      if (matchedReels.length > 0) {
+        html += `<p style="color:var(--accent-gold,#fbbf24);font-size:13px;font-weight:700;margin-bottom:10px;">🎬 VIDEOS (${matchedReels.length})</p>`;
+        html += `<div style="display:flex;flex-direction:column;gap:10px;">`;
+        html += matchedReels.map(r => `
+          <div onclick="window.feedManager.playFromSearch('${r.$id}')" style="
+            display:flex;gap:12px;align-items:center;
+            background:#1a1a1a;border-radius:12px;
+            padding:10px;cursor:pointer;border:1px solid #2d2d2d;
+          ">
+            <div style="position:relative;width:56px;height:72px;flex-shrink:0;border-radius:8px;overflow:hidden;background:#242424;">
+              <img src="${r.thumbnail || 'assets/logo.png'}" onerror="this.src='assets/logo.png'" style="width:100%;height:100%;object-fit:cover;">
+            </div>
+            <div style="flex:1;min-width:0;">
+              <p style="color:#fff;font-weight:600;font-size:14px;margin:0 0 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(r.title)}</p>
+              <p style="color:#a3a3a3;font-size:12px;margin:0 0 4px;">${escapeHtml(r.category || 'General')}</p>
+              <div style="display:flex;gap:10px;font-size:12px;color:#737373;">
+                <span>👁️ ${r.views || 0}</span>
+                <span>❤️ ${r.likes || 0}</span>
+              </div>
+            </div>
+            <span style="color:#737373;font-size:20px;">›</span>
+          </div>
+        `).join('');
+        html += `</div>`;
+      }
+
+      results.innerHTML = html;
 
     } catch (error) {
       console.error('Search failed:', error);
-      results.innerHTML = `
-        <div style="text-align:center;color:#737373;padding:40px;">
-          <p>Search failed. Try again.</p>
-        </div>`;
+      results.innerHTML = `<div style="text-align:center;color:#737373;padding:40px;"><p>Search failed. Try again.</p></div>`;
     }
   }
 
