@@ -51,6 +51,10 @@
       scroll-snap-align: start;
       scroll-snap-stop: always;
     }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body>
@@ -62,7 +66,7 @@
     </div>
     <div style="flex:1;"></div>
     <div class="header-actions">
-      <button class="header-btn" id="search-btn" title="Search" onclick="window.gorkhaTost ? gorkhaTost() : (typeof Toast !== 'undefined' ? Toast.info('Search coming soon!') : alert('Search coming soon!'))">🔍</button>
+      <button class="header-btn" id="search-btn" title="Search" onclick="window.feedManager && window.feedManager.openSearch()">🔍</button>
       <button class="header-btn" id="notifications-btn" title="Notifications">🔔</button>
       <button class="header-btn" id="menu-btn" title="Menu">⋮</button>
     </div>
@@ -98,6 +102,78 @@
   </nav>
 
   <!-- Scripts -->
+
+  <!-- Search Overlay -->
+  <div id="search-overlay" style="
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.95);
+    z-index: 9999;
+    flex-direction: column;
+    padding: 0;
+  ">
+    <!-- Search Header -->
+    <div style="
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid #2d2d2d;
+      background: #0f0f0f;
+    ">
+      <div style="
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex: 1;
+        background: #1a1a1a;
+        border: 1px solid #3f3f3f;
+        border-radius: 12px;
+        padding: 10px 14px;
+      ">
+        <span style="font-size:18px;">🔍</span>
+        <input
+          id="search-input-field"
+          type="text"
+          placeholder="Search videos, titles..."
+          autocomplete="off"
+          style="
+            flex: 1;
+            background: none;
+            border: none;
+            outline: none;
+            color: #fff;
+            font-size: 15px;
+          "
+        >
+        <button id="search-clear-btn" onclick="document.getElementById('search-input-field').value=''; window.feedManager && window.feedManager.handleSearchInput('')" style="background:none;border:none;color:#737373;font-size:16px;cursor:pointer;display:none;">✕</button>
+      </div>
+      <button onclick="window.feedManager && window.feedManager.closeSearch()" style="
+        background: none;
+        border: none;
+        color: #a3a3a3;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        padding: 8px 4px;
+        white-space: nowrap;
+      ">Cancel</button>
+    </div>
+
+    <!-- Search Results -->
+    <div id="search-results" style="
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+    ">
+      <div style="text-align:center;color:#737373;padding:60px 20px;">
+        <div style="font-size:40px;margin-bottom:12px;">🎬</div>
+        <p>Search for videos by title</p>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
   <script src="js/appwrite-config.js"></script>
   <script src="js/feed.js"></script>
