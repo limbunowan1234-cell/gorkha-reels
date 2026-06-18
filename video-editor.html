@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Video Editor - GorkhaReels</title>
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .editor-container {
+      max-width: 500px;
+      margin: 0 auto;
+      padding: 20px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      padding-bottom: 120px;
+    }
+
+    .editor-preview {
+      width: 100%;
+      aspect-ratio: 9 / 16;
+      background: #000;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 2px solid var(--border-light);
+      position: relative;
+    }
+
+    .editor-preview video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .controls-group {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      padding: 16px;
+      backdrop-filter: blur(10px);
+    }
+
+    .control-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 6px;
+      background: var(--border-light);
+      border-radius: 3px;
+      outline: none;
+      -webkit-appearance: none;
+      margin: 12px 0;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      background: linear-gradient(135deg, #dc2626 0%, #fbbf24 100%);
+      cursor: pointer;
+      border-radius: 50%;
+      box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+    }
+
+    .time-display {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 8px;
+    }
+
+    .button-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .btn-small {
+      padding: 12px;
+      font-size: 13px;
+      font-weight: 700;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-transform: uppercase;
+    }
+
+    .btn-preview {
+      background: var(--glass-bg);
+      border: 1.5px solid var(--glass-border);
+      color: var(--text-primary);
+    }
+
+    .btn-preview:hover {
+      border-color: var(--accent-gold);
+      color: var(--accent-gold);
+    }
+
+    .btn-proceed {
+      background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+      color: white;
+      box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
+    }
+
+    .btn-proceed:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(220, 38, 38, 0.4);
+    }
+
+    .btn-proceed:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .editor-info {
+      background: rgba(251, 191, 36, 0.05);
+      border: 1px solid rgba(251, 191, 36, 0.2);
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .status-text {
+      font-size: 12px;
+      text-align: center;
+      margin-top: 12px;
+    }
+
+    .success { color: #10b981; font-weight: 600; }
+    .warning { color: var(--accent-gold); font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="editor-container">
+    <header style="text-align: center; padding: 20px 0;">
+      <img src="assets/logo.png" alt="GorkhaReels" style="height: 32px; margin-bottom: 12px;">
+      <h1 style="font-size: 20px; font-weight: 800; margin: 0;">✂️ Video Editor</h1>
+      <p style="font-size: 12px; color: var(--text-secondary); margin: 8px 0 0 0;">Trim your video</p>
+    </header>
+
+    <div class="editor-preview">
+      <video id="video-preview" playsinline controls></video>
+    </div>
+
+    <div class="controls-group">
+      <div class="control-label">⏱️ Trim Duration (Max 2 min)</div>
+      <label style="font-size: 11px; color: var(--text-tertiary);">Start Time</label>
+      <input type="range" id="start-slider" min="0" max="100" value="0">
+      <div class="time-display">
+        <span id="start-time">0:00</span>
+        <span id="total-duration">0:00</span>
+      </div>
+
+      <label style="font-size: 11px; color: var(--text-tertiary); margin-top: 16px; display: block;">End Time</label>
+      <input type="range" id="end-slider" min="0" max="100" value="100">
+      <div class="time-display">
+        <span id="end-time">0:00</span>
+        <span id="trimmed-duration" class="warning">0:00</span>
+      </div>
+    </div>
+
+    <div class="editor-info">
+      ✨ Slide to trim your video. Maximum 2 minutes allowed.
+    </div>
+
+    <div class="status-text" id="status-text"></div>
+
+    <div class="button-group">
+      <button class="btn-small btn-preview" id="preview-btn">▶️ Preview</button>
+      <button class="btn-small btn-proceed" id="proceed-btn" disabled>✓ Done</button>
+    </div>
+
+    <button class="btn btn-secondary" onclick="window.history.back()" style="width: 100%;">← Back</button>
+  </div>
+
+  <script>
+    class VideoEditor {
+      constructor() {
+        this.video = document.getElementById('video-preview');
+        this.startSlider = document.getElementById('start-slider');
+        this.endSlider = document.getElementById('end-slider');
+        this.previewBtn = document.getElementById('preview-btn');
+        this.proceedBtn = document.getElementById('proceed-btn');
+        this.statusText = document.getElementById('status-text');
+        this.videoDuration = 0;
+        this.init();
+      }
+
+      init() {
+        const videoData = localStorage.getItem('videoData');
+        if (!videoData) {
+          console.log('No video data in localStorage');
+          alert('No video found. Please select a video first.');
+          window.location.href = './upload.html';
+          return;
+        }
+
+        try {
+          const binaryString = atob(videoData);
+          const bytes = new Uint8Array(binaryString.length);
+          for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+          }
+          const blob = new Blob([bytes], { type: 'video/mp4' });
+          const url = URL.createObjectURL(blob);
+          this.video.src = url;
+
+          this.video.onloadedmetadata = () => {
+            this.videoDuration = this.video.duration;
+            console.log('Video loaded:', this.videoDuration);
+            this.updateTimeDisplays();
+            this.setupEventListeners();
+            this.checkDuration();
+          };
+        } catch (e) {
+          console.error('Error:', e);
+          alert('Error loading video: ' + e.message);
+          window.location.href = './upload.html';
+        }
+      }
+
+      setupEventListeners() {
+        this.startSlider.addEventListener('input', () => this.handleSliderChange());
+        this.endSlider.addEventListener('input', () => this.handleSliderChange());
+        this.previewBtn.addEventListener('click', () => this.previewTrim());
+        this.proceedBtn.addEventListener('click', () => this.proceedWithEdit());
+      }
+
+      handleSliderChange() {
+        const start = parseFloat(this.startSlider.value);
+        const end = parseFloat(this.endSlider.value);
+
+        if (start > end) {
+          this.startSlider.value = end;
+        }
+
+        this.updateTimeDisplays();
+        this.checkDuration();
+      }
+
+      updateTimeDisplays() {
+        const start = (parseFloat(this.startSlider.value) / 100) * this.videoDuration;
+        const end = (parseFloat(this.endSlider.value) / 100) * this.videoDuration;
+        const trimmed = end - start;
+
+        document.getElementById('start-time').textContent = this.formatTime(start);
+        document.getElementById('end-time').textContent = this.formatTime(end);
+        document.getElementById('total-duration').textContent = this.formatTime(this.videoDuration);
+        document.getElementById('trimmed-duration').textContent = this.formatTime(trimmed);
+      }
+
+      checkDuration() {
+        const start = (parseFloat(this.startSlider.value) / 100) * this.videoDuration;
+        const end = (parseFloat(this.endSlider.value) / 100) * this.videoDuration;
+        const trimmed = end - start;
+
+        if (trimmed > 120) {
+          this.statusText.innerHTML = '⚠️ <span class="warning">Video exceeds 2 min</span>';
+          this.proceedBtn.disabled = true;
+        } else if (trimmed < 3) {
+          this.statusText.innerHTML = '⚠️ <span class="warning">Video must be 3+ sec</span>';
+          this.proceedBtn.disabled = true;
+        } else {
+          this.statusText.innerHTML = `✓ <span class="success">${this.formatTime(trimmed)} - Ready!</span>`;
+          this.proceedBtn.disabled = false;
+        }
+      }
+
+      formatTime(seconds) {
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+      }
+
+      previewTrim() {
+        const start = (parseFloat(this.startSlider.value) / 100) * this.videoDuration;
+        this.video.currentTime = start;
+        this.video.play();
+      }
+
+      proceedWithEdit() {
+        const start = (parseFloat(this.startSlider.value) / 100) * this.videoDuration;
+        const end = (parseFloat(this.endSlider.value) / 100) * this.videoDuration;
+
+        localStorage.setItem('videoEdits', JSON.stringify({
+          startTime: start,
+          endTime: end
+        }));
+
+        window.location.href = './upload.html';
+      }
+    }
+
+    new VideoEditor();
+  </script>
+</body>
+</html>
