@@ -308,13 +308,11 @@
         const followers = this.formatNumber(d.followers || 0);
         const views = this.formatNumber(d.totalViews || 0);
 
-        // Update page title
         document.getElementById('page-title').textContent = name;
         document.title = `${name} - GorkhaReels`;
 
         const content = document.getElementById('profile-content');
         content.innerHTML = `
-          <!-- Top stats row (Instagram style) -->
           <div class="pub-profile-top">
             <img src="${pic}" onerror="this.src='assets/logo.png'" class="pub-avatar" alt="${escapeHtml(name)}">
             <div class="pub-stats-row">
@@ -323,7 +321,7 @@
                 <span class="pub-stat-lbl">Videos</span>
               </div>
               <div class="pub-stat-cell">
-                <span class="pub-stat-num">${followers}</span>
+                <span class="pub-stat-num" id="followers-display">${followers}</span>
                 <span class="pub-stat-lbl">Followers</span>
               </div>
               <div class="pub-stat-cell">
@@ -332,31 +330,58 @@
               </div>
             </div>
           </div>
-
-          <!-- Name + Bio -->
           <div class="pub-identity">
             <div class="pub-name">${escapeHtml(name)}</div>
             ${bio ? `<div class="pub-bio">${escapeHtml(bio)}</div>` : ''}
           </div>
-
-          <!-- Action buttons -->
           <div class="pub-actions">
-            <button class="follow-btn" id="follow-btn" onclick="window.profilePage.toggleFollow()">
-              ➕ Follow
+            <button class="follow-btn" id="follow-btn" onclick="window.profilePage.toggleFollow()" disabled>
+              ⏳ Loading...
             </button>
-            <button class="share-profile-btn" onclick="window.profilePage.shareProfile()" title="Share">
-              ↗️
-            </button>
+            <button class="share-profile-btn" onclick="window.profilePage.shareProfile()" title="Share">↗️</button>
           </div>
-
-          <!-- Videos -->
           <div class="videos-section-title">🎬 Videos</div>
           <div class="videos-grid" id="videos-grid">
-            <div class="loading-state" style="grid-column: 1/-1;">
-              <p style="color: var(--text-secondary)">Loading videos...</p>
+            <div class="loading-state" style="grid-column:1/-1;">
+              <p style="color:var(--text-secondary)">Loading videos...</p>
             </div>
           </div>
         `;
+
+        // Check follow status after rendering
+        this.checkFollowStatus();
+      }
+
+      // Check if current user already follows this creator
+      async checkFollowStatus() {
+        const btn = document.getElementById('follow-btn');
+        if (!btn) return;
+
+        if (!session.isLoggedIn()) {
+          btn.textContent = '➕ Follow';
+          btn.disabled = false;
+          return;
+        }
+
+        try {
+          const response = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [
+            Query.equal('followerId', session.getUserId()),
+            Query.equal('creatorId', this.creatorId),
+            Query.limit(1)
+          ]);
+
+          if (response.documents.length > 0) {
+            btn.classList.add('following');
+            btn.textContent = '✓ Following';
+          } else {
+            btn.classList.remove('following');
+            btn.textContent = '➕ Follow';
+          }
+          btn.disabled = false;
+        } catch (e) {
+          btn.textContent = '➕ Follow';
+          btn.disabled = false;
+        }
       }
 
       async loadReels() {
@@ -404,20 +429,65 @@
         `).join('');
       }
 
-      toggleFollow() {
+      async toggleFollow() {
+        if (!session.isLoggedIn()) {
+          window.location.href = './login.html';
+          return;
+        }
+
         const btn = document.getElementById('follow-btn');
         if (!btn) return;
 
-        if (btn.classList.contains('following')) {
-          btn.classList.remove('following');
-          btn.textContent = '➕ Follow';
-          Toast.success('Unfollowed');
-        } else {
-          btn.classList.add('following');
-          btn.textContent = '✓ Following';
-          Toast.success('Following! 🎉');
+        const isFollowing = btn.classList.contains('following');
+        btn.disabled = true;
+        btn.textContent = '⏳...';
+
+        try {
+          if (isFollowing) {
+            // UNFOLLOW: delete FOLLOWERS doc + decrement count
+            const response = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [
+              Query.equal('followerId', session.getUserId()),
+              Query.equal('creatorId', this.creatorId),
+              Query.limit(1)
+            ]);
+            if (response.documents.length > 0) {
+              await db.remove(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, response.documents[0].$id);
+            }
+            const newCount = Math.max(0, (this.creatorData.followers || 1) - 1);
+            await db.update(APPWRITE_CONFIG.COLLECTIONS.CREATORS, this.creatorId, { followers: newCount });
+            this.creatorData.followers = newCount;
+
+            btn.classList.remove('following');
+            btn.textContent = '➕ Follow';
+            Toast.success('Unfollowed');
+          } else {
+            // FOLLOW: create FOLLOWERS doc + increment count
+            await db.create(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, {
+              followerId: session.getUserId(),
+              creatorId: this.creatorId,
+              createdAt: new Date().toISOString()
+            });
+            const newCount = (this.creatorData.followers || 0) + 1;
+            await db.update(APPWRITE_CONFIG.COLLECTIONS.CREATORS, this.creatorId, { followers: newCount });
+            this.creatorData.followers = newCount;
+
+            btn.classList.add('following');
+            btn.textContent = '✓ Following';
+            Toast.success('Following! 🎉');
+          }
+
+          // Update displayed follower count live
+          const display = document.getElementById('followers-display');
+          if (display) display.textContent = this.formatNumber(this.creatorData.followers);
+
+        } catch (error) {
+          console.error('Follow failed:', error);
+          Toast.error('Failed — try again');
+          // Revert button
+          await this.checkFollowStatus();
+        } finally {
+          btn.disabled = false;
         }
-        // Following feature coming soon — just UI for now
       }
 
       shareProfile() {
