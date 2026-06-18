@@ -1,139 +1,75 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Creator Profile - GorkhaReels</title>
-  <meta name="theme-color" content="#121212">
-  <link rel="icon" type="image/png" href="assets/logo.png">
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Creator Profile</title>
   <link rel="stylesheet" href="css/styles.css">
-  <style>
-    :root { --primary-red: #dc2626; --accent-gold: #fbbf24; --dark-bg: #0f0f0f; --dark-card: #1a1a1a; --dark-secondary: #242424; --text-primary: #ffffff; --text-secondary: #a3a3a3; --text-tertiary: #737373; --border-color: #2d2d2d; --border-light: #3f3f3f; --glass-bg: rgba(255,255,255,0.05); --glass-border: rgba(255,255,255,0.1); }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { background: #0f0f0f!important; color: #fff!important; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
-    img { max-width: 100%; height: auto; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .profile-page { max-width: 600px; margin: 0 auto; padding: 16px; padding-bottom: 80px; }
-    .profile-back-header { display: flex; align-items: center; gap: 12px; padding: 14px 16px; position: sticky; top: 0; background: rgba(0,0,0,0.9); backdrop-filter: blur(20px); z-index: 100; border-bottom: 1px solid var(--border-color); }
-    .back-btn { width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.08); border: none; color: #fff; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .back-btn:active { opacity: 0.7; }
-    .back-title { font-size: 17px; font-weight: 700; color: #fff; flex: 1; }
-    .pub-profile-top { display: flex; align-items: center; gap: 24px; margin: 20px 0 16px; }
-    .pub-avatar { width: 86px; height: 86px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border-light); flex-shrink: 0; }
-    .pub-stats-row { display: flex; flex: 1; justify-content: space-around; }
-    .pub-stat-cell { display: flex; flex-direction: column; align-items: center; gap: 2px; }
-    .pub-stat-num { font-size: 20px; font-weight: 700; color: #fff; }
-    .pub-stat-lbl { font-size: 12px; color: var(--text-secondary); }
-    .pub-identity { margin-bottom: 16px; }
-    .pub-name { font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 2px; }
-    .pub-bio { font-size: 14px; color: var(--text-secondary); line-height: 1.4; }
-    .pub-actions { display: flex; gap: 8px; margin-bottom: 24px; }
-    .follow-btn { flex: 1; padding: 10px; border-radius: 8px; border: none; background: var(--primary-red); color: #fff; font-size: 14px; font-weight: 700; cursor: pointer; transition: opacity 0.2s; }
-    .follow-btn:active { opacity: 0.8; }
-    .follow-btn.following { background: var(--dark-secondary); border: 1px solid var(--border-color); color: var(--text-primary); }
-    .share-profile-btn { width: 44px; height: 44px; border-radius: 8px; background: var(--dark-secondary); border: 1px solid var(--border-color); color: #fff; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-    .videos-section-title { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
-    .videos-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
-    .grid-video-card { position: relative; aspect-ratio: 9/16; border-radius: 6px; overflow: hidden; background: var(--dark-secondary); cursor: pointer; }
-    .grid-video-card img { width: 100%; height: 100%; object-fit: cover; }
-    .grid-video-views { position: absolute; bottom: 0; left: 0; right: 0; padding: 6px 8px; background: linear-gradient(transparent, rgba(0,0,0,0.8)); display: flex; align-items: center; gap: 4px; color: #fff; font-size: 12px; font-weight: 600; }
-    .loading-state { text-align: center; padding: 40px 20px; color: var(--text-secondary); }
-    .error-state { text-align: center; padding: 60px 20px; }
-  </style>
 </head>
 <body>
-  <div class="profile-back-header">
-    <button class="back-btn" onclick="history.back()">‹</button>
-    <span class="back-title" id="page-title">Creator Profile</span>
-  </div>
-  <div class="profile-page" id="profile-content">
-    <div class="loading-state">
-      <div class="spinner" style="margin: 0 auto 16px; width:32px;height:32px;border:3px solid #333;border-top-color:#dc2626;border-radius:50%;animation:spin 1s linear infinite"></div>
-      <p>Loading profile...</p>
-    </div>
-  </div>
-  <nav class="bottom-nav">
-    <button class="nav-item" onclick="window.location.href='./index.html'"><span>🏠</span><span class="nav-label">Home</span></button>
-    <button class="nav-item" onclick="window.location.href='./index.html?trending'"><span>🔥</span><span class="nav-label">Trending</span></button>
-    <button class="nav-item nav-create" onclick="window.location.href='./upload.html'"><span class="nav-create-btn">+</span><span class="nav-label">Create</span></button>
-    <button class="nav-item" onclick="window.location.href='./creator-dashboard.html'"><span>👤</span><span class="nav-label">Profile</span></button>
-  </nav>
-  <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
-  <script src="js/appwrite-config.js"></script>
-  <script>
-    class CreatorProfilePage {
-      constructor() { this.creatorId = null; this.creatorData = null; this.reels = []; this.init(); }
-      async init() {
-        const params = new URLSearchParams(window.location.search);
-        this.creatorId = params.get('id');
-        if (!this.creatorId) { this.showError('No creator specified'); return; }
-        await session.refresh();
-        if (session.isLoggedIn() && session.getUserId() === this.creatorId) { window.location.href = './creator-dashboard.html'; return; }
-        await this.loadCreator(); await this.loadReels(); await this.loadFollowerCount();
-      }
-      async loadCreator() {
-        try { this.creatorData = await db.get(APPWRITE_CONFIG.COLLECTIONS.CREATORS, this.creatorId); this.renderProfile(); }
-        catch (error) { console.error('Creator not found:', error); this.showError('Creator not found'); }
-      }
-      renderProfile() {
-        const d = this.creatorData; const name = d.name || 'GorkhaReels Creator'; const bio = d.bio || ''; const pic = d.profilePic || 'assets/logo.png';
-        document.getElementById('page-title').textContent = name; document.title = `${name} - GorkhaReels`;
-        document.getElementById('profile-content').innerHTML = `<div class="pub-profile-top"><img src="${pic}" onerror="this.src='assets/logo.png'" class="pub-avatar" alt="${escapeHtml(name)}"><div class="pub-stats-row"><div class="pub-stat-cell"><span class="pub-stat-num" id="reel-count">0</span><span class="pub-stat-lbl">Videos</span></div><div class="pub-stat-cell"><span class="pub-stat-num" id="followers-display">0</span><span class="pub-stat-lbl">Followers</span></div><div class="pub-stat-cell"><span class="pub-stat-num" id="views-count">0</span><span class="pub-stat-lbl">Views</span></div></div></div><div class="pub-identity"><div class="pub-name">${escapeHtml(name)}</div>${bio?`<div class="pub-bio">${escapeHtml(bio)}</div>`:''}</div><div class="pub-actions"><button class="follow-btn" id="follow-btn" onclick="window.profilePage.toggleFollow()" disabled>⏳ Loading...</button><button class="share-profile-btn" onclick="window.profilePage.shareProfile()" title="Share">↗️</button></div><div class="videos-section-title">🎬 Videos</div><div class="videos-grid" id="videos-grid"><div class="loading-state" style="grid-column:1/-1;"><p style="color:var(--text-secondary)">Loading videos...</p></div></div>`;
-        this.checkFollowStatus();
-      }
-      async loadFollowerCount() {
-        try { const res = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [Query.equal('CreatorId', this.creatorId)]); document.getElementById('followers-display').textContent = this.formatNumber(res.total); }
-        catch(e) { console.log('Follower count failed', e); }
-      }
-      async checkFollowStatus() {
-        const btn = document.getElementById('follow-btn'); if (!btn) return;
-        if (!session.isLoggedIn()) { btn.textContent = '➕ Follow'; btn.disabled = false; return; }
-        try {
-          const response = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [Query.equal('followerID', session.getUserId()), Query.equal('CreatorId', this.creatorId), Query.limit(1)]);
-          if (response.documents.length > 0) { btn.classList.add('following'); btn.textContent = '✓ Following'; } else { btn.classList.remove('following'); btn.textContent = '➕ Follow'; }
-          btn.disabled = false;
-        } catch (e) { btn.textContent = '➕ Follow'; btn.disabled = false; }
-      }
-      async loadReels() {
-        try {
-          const response = await db.list(APPWRITE_CONFIG.COLLECTIONS.REELS, [Query.equal('creatorId', this.creatorId), Query.equal('isDeleted', false), Query.orderDesc('uploadedAt'), Query.limit(50)]);
-          this.reels = response.documents; const totalViews = this.reels.reduce((sum, r) => sum + (r.views || 0), 0);
-          document.getElementById('reel-count').textContent = this.reels.length; document.getElementById('views-count').textContent = this.formatNumber(totalViews); this.renderVideos();
-        } catch (error) { console.error('Error loading reels:', error); }
-      }
-      renderVideos() {
-        const grid = document.getElementById('videos-grid'); if (!grid) return;
-        if (this.reels.length === 0) { grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px 20px;color:var(--text-secondary);"><div style="font-size:36px;margin-bottom:12px;">🎬</div><p>No videos yet</p></div>`; return; }
-        grid.innerHTML = this.reels.map(reel => `<div class="grid-video-card" onclick="window.location.href='./index.html?reel=${reel.$id}'"><img src="${reel.thumbnail || 'assets/logo.png'}" onerror="this.src='assets/logo.png'" alt="${escapeHtml(reel.title)}" loading="lazy"><div class="grid-video-views"><span>👁️</span><span>${this.formatNumber(reel.views || 0)}</span></div></div>`).join('');
-      }
-      async toggleFollow() {
-        if (!session.isLoggedIn()) { window.location.href = './login.html'; return; }
-        const btn = document.getElementById('follow-btn'); if (!btn) return;
-        const isFollowing = btn.classList.contains('following'); btn.disabled = true; btn.textContent = '⏳...';
-        try {
-          if (isFollowing) {
-            const response = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [Query.equal('followerID', session.getUserId()), Query.equal('CreatorId', this.creatorId), Query.limit(1)]);
-            if (response.documents.length > 0) { await db.remove(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, response.documents[0].$id); }
-            btn.classList.remove('following'); btn.textContent = '➕ Follow'; Toast.success('Unfollowed');
-          } else {
-            // FIXED: Added followId (required by your schema)
-            await db.create(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, { 
-              followId: ID.unique(),
-              followerID: session.getUserId(), 
-              CreatorId: this.creatorId, 
-              createdAt: new Date().toISOString() 
-            }, null, [Permission.read(Role.any()), Permission.delete(Role.user(session.getUserId()))]);
-            btn.classList.add('following'); btn.textContent = '✓ Following'; Toast.success('Following! 🎉');
-          }
-          await this.loadFollowerCount();
-        } catch (error) { console.error('Follow failed:', error); Toast.error('Failed — check permissions'); await this.checkFollowStatus(); }
-        finally { btn.disabled = false; }
-      }
-      shareProfile() { const url = `${window.location.origin}${window.location.pathname}?id=${this.creatorId}`; if (navigator.share) { navigator.share({ title: this.creatorData?.name, url }).catch(() => {}); } else { navigator.clipboard.writeText(url); Toast.success('Profile link copied! 🔗'); } }
-      showError(msg) { document.getElementById('profile-content').innerHTML = `<div class="error-state"><div style="font-size:48px;margin-bottom:16px;">😕</div><h3 style="color:#fff;margin-bottom:8px;">${msg}</h3><button onclick="history.back()" style="margin-top:20px;padding:10px 24px;background:var(--primary-red);border:none;border-radius:8px;color:#fff;cursor:pointer;">Go Back</button></div>`; }
-      formatNumber(num) { if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M'; if (num >= 1000) return (num / 1000).toFixed(1) + 'K'; return String(num); }
+<header><button onclick="history.back()">←</button><div id="profile-name">Loading...</div></header>
+<div id="profile-container" style="padding:20px;text-align:center">
+  <img id="profile-pic" src="assets/logo.png" style="width:100px;height:100px;border-radius:50%">
+  <h2 id="creator-name"></h2>
+  <div><span id="videos-count">0</span> Videos • <span id="followers-count">0</span> Followers</div>
+  <button id="follow-btn" style="margin-top:15px;padding:12px 30px;background:#ff3b30;color:white;border:none;border-radius:25px;font-weight:700">Follow</button>
+  <div id="videos-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
+<script src="js/appwrite-config.js"></script>
+<script>
+class ProfileManager {
+  constructor(){ this.creatorId = new URLSearchParams(location.search).get('id'); this.init(); }
+  async init(){ await session.refresh(); this.loadProfile(); document.getElementById('follow-btn').onclick=()=>this.toggleFollow(); }
+
+  async loadProfile(){
+    const creator = await db.get(APPWRITE_CONFIG.COLLECTIONS.CREATORS, this.creatorId);
+    document.getElementById('creator-name').textContent = creator.name;
+    document.getElementById('profile-pic').src = creator.profilePic || 'assets/logo.png';
+    document.getElementById('videos-count').textContent = creator.totalReels || 0;
+
+    const followers = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [Query.equal('followingId', this.creatorId)]);
+    document.getElementById('followers-count').textContent = followers.total;
+
+    if(session.isLoggedIn()){
+      const myFollow = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [
+        Query.equal('followerID', session.getUserId()),
+        Query.equal('followingId', this.creatorId)
+      ]);
+      document.getElementById('follow-btn').textContent = myFollow.total>0? 'Following' : 'Follow';
     }
-    if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', () => { window.profilePage = new CreatorProfilePage(); }); } else { window.profilePage = new CreatorProfilePage(); }
-  </script>
+  }
+
+  // FIXED FOLLOW WITH followingId
+  async toggleFollow(){
+    if(!session.isLoggedIn()){ location.href='./login.html'; return; }
+    const btn = document.getElementById('follow-btn');
+    const isFollowing = btn.textContent === 'Following';
+    const userId = session.getUserId();
+
+    try {
+      if(isFollowing){
+        const follows = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [
+          Query.equal('followerID', userId),
+          Query.equal('followingId', this.creatorId)
+        ]);
+        if(follows.documents.length) await db.remove(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, follows.documents[0].$id);
+        btn.textContent = 'Follow'; btn.style.background = '#ff3b30';
+      } else {
+        await db.create(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, {
+          followId: ID.unique(),
+          followerID: userId,
+          followingId: this.creatorId, // REQUIRED - THIS WAS MISSING
+          CreatorId: this.creatorId,
+          createdAt: new Date().toISOString()
+        }, null, [Permission.read(Role.any()), Permission.delete(Role.user(userId))]);
+        btn.textContent = 'Following'; btn.style.background = '#333';
+      }
+      this.loadProfile(); // refresh count
+    } catch(e){ console.error(e); alert('Follow failed: '+e.message); }
+  }
+}
+new ProfileManager();
+</script>
 </body>
 </html>
