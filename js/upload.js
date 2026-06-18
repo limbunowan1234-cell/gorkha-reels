@@ -137,14 +137,7 @@ class UploadManager {
         category: category || 'other',
         language: language || 'Nepali',
         uploadedAt: new Date().toISOString(),
-        views: 0,
-        likes: 0,
-        comments: 0,
-        shares: 0,
-        duration: 0,
-        isMonetised: false,
-        isDeleted: false,
-        adRevenue: 0
+        isDeleted: false
       };
 
       await db.create(APPWRITE_CONFIG.COLLECTIONS.REELS, reelData);
