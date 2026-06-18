@@ -19,20 +19,45 @@
       background: var(--glass-bg);
       backdrop-filter: blur(10px);
       border-bottom: 1px solid var(--glass-border);
-      padding: 16px 20px;
+      padding: 12px 16px;
       position: sticky;
       top: 0;
       z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .wizard-back-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.08);
+      border: none;
+      color: var(--text-primary);
+      font-size: 20px;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background 0.2s;
+    }
+
+    .wizard-back-btn:active { background: rgba(255,255,255,0.16); }
+
+    .wizard-header-center {
+      flex: 1;
       text-align: center;
     }
 
     .wizard-logo {
-      height: 28px;
-      margin-bottom: 8px;
+      height: 24px;
+      margin-bottom: 4px;
     }
 
     .wizard-title {
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 800;
       color: var(--text-primary);
       margin: 0;
@@ -41,7 +66,12 @@
     .wizard-progress {
       font-size: 11px;
       color: var(--text-tertiary);
-      margin-top: 4px;
+      margin-top: 2px;
+    }
+
+    .wizard-header-spacer {
+      width: 36px;
+      flex-shrink: 0;
     }
 
     .wizard-content {
@@ -293,9 +323,13 @@
   <div class="upload-wizard">
     <!-- Header -->
     <div class="wizard-header">
-      <img src="assets/logo.png" alt="GorkhaReels" class="wizard-logo">
-      <h1 class="wizard-title" id="wizard-title">Upload Video</h1>
-      <p class="wizard-progress" id="wizard-progress">Step 1 of 4</p>
+      <button class="wizard-back-btn" onclick="history.length > 1 ? history.back() : window.location.href='./index.html'" title="Go back">‹</button>
+      <div class="wizard-header-center">
+        <img src="assets/logo.png" alt="GorkhaReels" class="wizard-logo">
+        <h1 class="wizard-title" id="wizard-title">Upload Video</h1>
+        <p class="wizard-progress" id="wizard-progress">Step 1 of 4</p>
+      </div>
+      <div class="wizard-header-spacer"></div>
     </div>
 
     <!-- Content -->
