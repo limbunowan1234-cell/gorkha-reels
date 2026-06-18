@@ -129,7 +129,7 @@ class DashboardManager {
         <div style="text-align:center;padding:40px 20px;color:var(--text-secondary);border:1px dashed var(--border-color);border-radius:12px;">
           <div style="font-size:40px;margin-bottom:12px;">🎬</div>
           <p style="margin-bottom:16px;">No videos uploaded yet</p>
-          <a href="./upload.html" class="action-btn-primary" style="display:inline-block;text-decoration:none;padding:10px 24px;border-radius:8px;">+ Upload Your First Video</a>
+          <a href="./upload.html" style="display:inline-block;text-decoration:none;padding:10px 24px;border-radius:8px;background:var(--primary-red);color:#fff;font-weight:700;">+ Upload Your First Video</a>
         </div>
       `;
       return;
@@ -145,7 +145,15 @@ class DashboardManager {
   renderReelCard(reel) {
     return `
       <div style="position:relative;aspect-ratio:9/16;border-radius:6px;overflow:hidden;background:var(--dark-secondary);cursor:pointer;" onclick="window.location.href='./index.html?reel=${reel.$id}'">
-        <img src="${reel.thumbnail || 'assets/logo.png'}" style="width:100%;height:100%;object-fit:cover;" alt="${escapeHtml(reel.title)}">
+        <video
+          src="${reel.videoUrl}#t=0.5"
+          style="width:100%;height:100%;object-fit:cover;"
+          preload="metadata"
+          muted
+          playsinline
+          onloadeddata="this.style.opacity=1"
+          style="opacity:0;transition:opacity 0.3s;"
+        ></video>
         <div style="position:absolute;bottom:0;left:0;right:0;padding:6px 8px;background:linear-gradient(transparent,rgba(0,0,0,0.8));">
           <div style="display:flex;align-items:center;gap:4px;color:#fff;font-size:12px;font-weight:600;">
             <span>👁️</span><span>${this.formatNumber(reel.views || 0)}</span>
@@ -169,17 +177,231 @@ class DashboardManager {
       Toast.info('💰 Withdrawals available once you reach ₹500');
     });
     document.getElementById('change-password-btn')?.addEventListener('click', () => {
-      Toast.info('🔐 Password change coming soon');
+      this.openChangePassword();
     });
     document.getElementById('bank-details-btn')?.addEventListener('click', () => {
-      Toast.info('🏦 Bank details coming soon');
+      this.openBankDetails();
     });
     document.getElementById('guidelines-btn')?.addEventListener('click', () => {
-      Toast.info('📋 Content guidelines coming soon');
+      this.openContentGuidelines();
     });
     document.getElementById('support-btn')?.addEventListener('click', () => {
-      Toast.info('📞 Contact: support@gorkhareels.com');
+      this.openSupport();
     });
+  }
+
+  // ============== CHANGE PASSWORD ==============
+  openChangePassword() {
+    const modal = document.createElement('div');
+    modal.id = 'change-password-modal';
+    modal.style.cssText = `position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;`;
+    modal.innerHTML = `
+      <div style="background:var(--dark-card,#1a1a1a);border-radius:16px;width:100%;max-width:400px;">
+        <div style="padding:20px;border-bottom:1px solid var(--border-color,#333);display:flex;justify-content:space-between;align-items:center;">
+          <h3 style="color:#fff;margin:0;font-size:18px;">🔐 Change Password</h3>
+          <button onclick="document.getElementById('change-password-modal').remove()" style="background:none;border:none;color:#fff;font-size:24px;cursor:pointer;">✕</button>
+        </div>
+        <div style="padding:20px;">
+          <div style="margin-bottom:16px;">
+            <label style="display:block;color:var(--text-secondary,#888);font-size:13px;margin-bottom:6px;">Current Password</label>
+            <input id="current-password" type="password" placeholder="Enter current password" style="width:100%;background:var(--dark-bg,#000);border:1px solid var(--border-color,#333);border-radius:8px;padding:12px;color:#fff;font-size:14px;box-sizing:border-box;">
+          </div>
+          <div style="margin-bottom:16px;">
+            <label style="display:block;color:var(--text-secondary,#888);font-size:13px;margin-bottom:6px;">New Password</label>
+            <input id="new-password" type="password" placeholder="Min 8 characters" style="width:100%;background:var(--dark-bg,#000);border:1px solid var(--border-color,#333);border-radius:8px;padding:12px;color:#fff;font-size:14px;box-sizing:border-box;">
+          </div>
+          <div style="margin-bottom:20px;">
+            <label style="display:block;color:var(--text-secondary,#888);font-size:13px;margin-bottom:6px;">Confirm New Password</label>
+            <input id="confirm-password" type="password" placeholder="Repeat new password" style="width:100%;background:var(--dark-bg,#000);border:1px solid var(--border-color,#333);border-radius:8px;padding:12px;color:#fff;font-size:14px;box-sizing:border-box;">
+          </div>
+          <button id="save-password-btn" onclick="window.dashboardManager.savePassword()" style="width:100%;background:var(--primary-red,#dc2626);border:none;border-radius:8px;padding:14px;color:#fff;font-weight:700;font-size:15px;cursor:pointer;">🔐 Update Password</button>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+  }
+
+  async savePassword() {
+    const current = document.getElementById('current-password')?.value?.trim();
+    const newPass = document.getElementById('new-password')?.value?.trim();
+    const confirm = document.getElementById('confirm-password')?.value?.trim();
+    const btn = document.getElementById('save-password-btn');
+
+    if (!current || !newPass || !confirm) { Toast.error('Fill all fields'); return; }
+    if (newPass.length < 8) { Toast.error('New password must be 8+ characters'); return; }
+    if (newPass !== confirm) { Toast.error('Passwords do not match'); return; }
+
+    btn.disabled = true;
+    btn.textContent = '⏳ Updating...';
+
+    try {
+      await account.updatePassword(newPass, current);
+      Toast.success('✅ Password updated!');
+      document.getElementById('change-password-modal')?.remove();
+    } catch (error) {
+      console.error('Password update failed:', error);
+      if (error.message?.includes('Invalid credentials')) {
+        Toast.error('Current password is incorrect');
+      } else {
+        Toast.error('Failed to update password');
+      }
+      btn.disabled = false;
+      btn.textContent = '🔐 Update Password';
+    }
+  }
+
+  // ============== BANK DETAILS ==============
+  openBankDetails() {
+    const d = this.creatorData;
+    const modal = document.createElement('div');
+    modal.id = 'bank-details-modal';
+    modal.style.cssText = `position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;`;
+    modal.innerHTML = `
+      <div style="background:var(--dark-card,#1a1a1a);border-radius:16px;width:100%;max-width:400px;max-height:85vh;overflow-y:auto;">
+        <div style="padding:20px;border-bottom:1px solid var(--border-color,#333);display:flex;justify-content:space-between;align-items:center;">
+          <h3 style="color:#fff;margin:0;font-size:18px;">🏦 Bank Details</h3>
+          <button onclick="document.getElementById('bank-details-modal').remove()" style="background:none;border:none;color:#fff;font-size:24px;cursor:pointer;">✕</button>
+        </div>
+        <div style="padding:20px;">
+          <p style="color:var(--text-secondary,#888);font-size:13px;margin-bottom:20px;">Your earnings will be transferred to this account.</p>
+          <div style="margin-bottom:16px;">
+            <label style="display:block;color:var(--text-secondary,#888);font-size:13px;margin-bottom:6px;">Account Holder Name</label>
+            <input id="bank-name" type="text" value="${escapeHtml(d.bankAccountName || '')}" placeholder="Full name as on bank account" style="width:100%;background:var(--dark-bg,#000);border:1px solid var(--border-color,#333);border-radius:8px;padding:12px;color:#fff;font-size:14px;box-sizing:border-box;">
+          </div>
+          <div style="margin-bottom:16px;">
+            <label style="display:block;color:var(--text-secondary,#888);font-size:13px;margin-bottom:6px;">Account Number</label>
+            <input id="bank-account" type="text" value="${escapeHtml(d.bankAccountNumber || '')}" placeholder="Your bank account number" style="width:100%;background:var(--dark-bg,#000);border:1px solid var(--border-color,#333);border-radius:8px;padding:12px;color:#fff;font-size:14px;box-sizing:border-box;">
+          </div>
+          <div style="margin-bottom:16px;">
+            <label style="display:block;color:var(--text-secondary,#888);font-size:13px;margin-bottom:6px;">IFSC Code</label>
+            <input id="bank-ifsc" type="text" value="${escapeHtml(d.bankIfscCode || '')}" placeholder="e.g. SBIN0001234" style="width:100%;background:var(--dark-bg,#000);border:1px solid var(--border-color,#333);border-radius:8px;padding:12px;color:#fff;font-size:14px;box-sizing:border-box;">
+          </div>
+          <div style="margin-bottom:20px;">
+            <label style="display:block;color:var(--text-secondary,#888);font-size:13px;margin-bottom:6px;">UPI ID (optional)</label>
+            <input id="bank-upi" type="text" value="${escapeHtml(d.bankUpild || '')}" placeholder="yourname@upi" style="width:100%;background:var(--dark-bg,#000);border:1px solid var(--border-color,#333);border-radius:8px;padding:12px;color:#fff;font-size:14px;box-sizing:border-box;">
+          </div>
+          <button id="save-bank-btn" onclick="window.dashboardManager.saveBankDetails()" style="width:100%;background:var(--primary-red,#dc2626);border:none;border-radius:8px;padding:14px;color:#fff;font-weight:700;font-size:15px;cursor:pointer;">💾 Save Bank Details</button>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+  }
+
+  async saveBankDetails() {
+    const name = document.getElementById('bank-name')?.value?.trim();
+    const account = document.getElementById('bank-account')?.value?.trim();
+    const ifsc = document.getElementById('bank-ifsc')?.value?.trim();
+    const upi = document.getElementById('bank-upi')?.value?.trim();
+    const btn = document.getElementById('save-bank-btn');
+
+    if (!name || !account || !ifsc) { Toast.error('Fill required fields'); return; }
+
+    btn.disabled = true;
+    btn.textContent = '⏳ Saving...';
+
+    try {
+      await db.update(APPWRITE_CONFIG.COLLECTIONS.CREATORS, this.user.$id, {
+        bankAccountName: name,
+        bankAccountNumber: account,
+        bankIfscCode: ifsc,
+        bankUpild: upi || ''
+      });
+      this.creatorData.bankAccountName = name;
+      this.creatorData.bankAccountNumber = account;
+      this.creatorData.bankIfscCode = ifsc;
+      this.creatorData.bankUpild = upi;
+      Toast.success('✅ Bank details saved!');
+      document.getElementById('bank-details-modal')?.remove();
+    } catch (error) {
+      console.error('Bank save failed:', error);
+      Toast.error('Failed to save bank details');
+      btn.disabled = false;
+      btn.textContent = '💾 Save Bank Details';
+    }
+  }
+
+  // ============== CONTENT GUIDELINES ==============
+  openContentGuidelines() {
+    const modal = document.createElement('div');
+    modal.id = 'guidelines-modal';
+    modal.style.cssText = `position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;`;
+    modal.innerHTML = `
+      <div style="background:var(--dark-card,#1a1a1a);border-radius:16px;width:100%;max-width:400px;max-height:85vh;overflow-y:auto;">
+        <div style="padding:20px;border-bottom:1px solid var(--border-color,#333);display:flex;justify-content:space-between;align-items:center;">
+          <h3 style="color:#fff;margin:0;font-size:18px;">📋 Content Guidelines</h3>
+          <button onclick="document.getElementById('guidelines-modal').remove()" style="background:none;border:none;color:#fff;font-size:24px;cursor:pointer;">✕</button>
+        </div>
+        <div style="padding:20px;color:var(--text-secondary,#aaa);font-size:14px;line-height:1.7;">
+          <p style="color:#fff;font-weight:700;margin-bottom:12px;">Welcome to GorkhaReels! 🎬</p>
+          <p style="margin-bottom:16px;">To keep our community safe and vibrant, please follow these guidelines:</p>
+
+          <p style="color:var(--accent-gold,#fbbf24);font-weight:600;margin-bottom:8px;">✅ What's Allowed</p>
+          <ul style="padding-left:16px;margin-bottom:20px;">
+            <li>Gorkha/Nepali culture, music, dance</li>
+            <li>Entertainment, comedy, storytelling</li>
+            <li>Educational and informational content</li>
+            <li>Sports, fitness, travel</li>
+            <li>Food, lifestyle, vlogs</li>
+          </ul>
+
+          <p style="color:#ef4444;font-weight:600;margin-bottom:8px;">❌ Not Allowed</p>
+          <ul style="padding-left:16px;margin-bottom:20px;">
+            <li>Hate speech or discrimination</li>
+            <li>Violence or graphic content</li>
+            <li>Adult/explicit content</li>
+            <li>Misinformation or fake news</li>
+            <li>Copyright-infringing content</li>
+            <li>Spam or misleading content</li>
+          </ul>
+
+          <p style="color:var(--text-secondary,#888);font-size:12px;">Violations may result in content removal or account suspension. For questions, contact support.</p>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+  }
+
+  // ============== SUPPORT ==============
+  openSupport() {
+    const modal = document.createElement('div');
+    modal.id = 'support-modal';
+    modal.style.cssText = `position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;`;
+    modal.innerHTML = `
+      <div style="background:var(--dark-card,#1a1a1a);border-radius:16px;width:100%;max-width:400px;">
+        <div style="padding:20px;border-bottom:1px solid var(--border-color,#333);display:flex;justify-content:space-between;align-items:center;">
+          <h3 style="color:#fff;margin:0;font-size:18px;">📞 Support</h3>
+          <button onclick="document.getElementById('support-modal').remove()" style="background:none;border:none;color:#fff;font-size:24px;cursor:pointer;">✕</button>
+        </div>
+        <div style="padding:20px;">
+          <p style="color:var(--text-secondary,#888);font-size:14px;margin-bottom:24px;">Need help? We're here for you!</p>
+          
+          <a href="mailto:support@gorkhareels.com" style="display:flex;align-items:center;gap:14px;padding:16px;background:var(--dark-bg,#000);border-radius:12px;text-decoration:none;margin-bottom:12px;">
+            <span style="font-size:24px;">📧</span>
+            <div>
+              <div style="color:#fff;font-weight:600;font-size:14px;">Email Support</div>
+              <div style="color:var(--text-secondary,#888);font-size:12px;">support@gorkhareels.com</div>
+            </div>
+          </a>
+
+          <a href="https://t.me/gorkhareels" target="_blank" style="display:flex;align-items:center;gap:14px;padding:16px;background:var(--dark-bg,#000);border-radius:12px;text-decoration:none;margin-bottom:12px;">
+            <span style="font-size:24px;">💬</span>
+            <div>
+              <div style="color:#fff;font-weight:600;font-size:14px;">Telegram</div>
+              <div style="color:var(--text-secondary,#888);font-size:12px;">@gorkhareels</div>
+            </div>
+          </a>
+
+          <div style="display:flex;align-items:center;gap:14px;padding:16px;background:var(--dark-bg,#000);border-radius:12px;">
+            <span style="font-size:24px;">⏰</span>
+            <div>
+              <div style="color:#fff;font-weight:600;font-size:14px;">Response Time</div>
+              <div style="color:var(--text-secondary,#888);font-size:12px;">Usually within 24 hours</div>
+            </div>
+          </div>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
   }
 
   // ============== EDIT PROFILE FEATURE ==============
