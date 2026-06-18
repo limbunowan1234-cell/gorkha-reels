@@ -10,6 +10,7 @@
  * ✅ FIX #22: Descriptions escaped to prevent XSS
  * ✅ FIX #9: Fullscreen exit with proper error handling
  * ✅ FIX #20: Connection status indicator
+ * ✅ SYNTAX FIX: Missing parenthesis in setupEventListeners
  */
 
 class FeedManager {
@@ -113,7 +114,7 @@ class FeedManager {
     document.addEventListener('keydown', (e) => this.handleKeypress(e));
 
     document.querySelectorAll('.nav-item').forEach(item => {
-      item.addEventListener('click', (e) => this.handleNavClick(e);
+      item.addEventListener('click', (e) => this.handleNavClick(e));
     });
   }
 
@@ -518,4 +519,4 @@ if (document.readyState === 'loading') {
   window.feedManager = new FeedManager();
 }
 
-console.log('✅ Feed Manager Loaded (with persistence, debounce, autoplay fix)');
+console.log('✅ Feed Manager Loaded (with persistence, debounce, autoplay fix, syntax fixed)');
