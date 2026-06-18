@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" href="assets/logo.png">
   <link rel="stylesheet" href="css/styles.css">
   <style>
-    :root { --primary-red: #dc2626; --accent-gold: #fbbf24; --dark-bg: #0f0f0f; --dark-card: #1a1a1a; --dark-secondary: #242424; --text-primary: #ffffff; --text-secondary: #a3a3; --text-tertiary: #737373; --border-color: #2d2d2d; --border-light: #3f3f3f; --glass-bg: rgba(255,255,255,0.05); --glass-border: rgba(255,255,255,0.1); }
+    :root { --primary-red: #dc2626; --accent-gold: #fbbf24; --dark-bg: #0f0f0f; --dark-card: #1a1a1a; --dark-secondary: #242424; --text-primary: #ffffff; --text-secondary: #a3a3a3; --text-tertiary: #737373; --border-color: #2d2d2d; --border-light: #3f3f3f; --glass-bg: rgba(255,255,255,0.05); --glass-border: rgba(255,255,255,0.1); }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { background: #0f0f0f!important; color: #fff!important; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
     img { max-width: 100%; height: auto; }
@@ -78,7 +78,7 @@
       renderProfile() {
         const d = this.creatorData; const name = d.name || 'GorkhaReels Creator'; const bio = d.bio || ''; const pic = d.profilePic || 'assets/logo.png';
         document.getElementById('page-title').textContent = name; document.title = `${name} - GorkhaReels`;
-        document.getElementById('profile-content').innerHTML = `<div class="pub-profile-top"><img src="${pic}" onerror="this.src='assets/logo.png'" class="pub-avatar" alt="${escapeHtml(name)}"><div class="pub-stats-row"><div class="pub-stat-cell"><span class="pub-stat-num" id="reel-count">0</span><span class="pub-stat-lbl">Videos</span></div><div class="pub-stat-cell"><span class="pub-stat-num" id="followers-display">0</span><span class="pub-stat-lbl">Followers</span></div><div class="pub-stat-cell"><span class="pub-stat-num" id="views-count">0</span><span class="pub-stat-lbl">Views</span></div></div></div><div class="pub-identity"><div class="pub-name">${escapeHtml(name)}</div>${bio?`<div class="pub-bio">${escapeHtml(bio)}</div>`:''}</div><div class="pub-actions"><button class="follow-btn" id="follow-btn" onclick="window.profilePage.toggleFollow()" disabled>⏳ Loading...</button><button class="share-profile-btn" onclick="window.profilePage.shareProfile()" title="Share">↗️</button></div><div class="videos-section-title">🎬 Videos</div><div class="videos-grid" id="videos-grid"><div class="loading-state" style="grid-column:1/-1;"><p style="color:var(--text-secondary)">Loading videos...</p></div>`;
+        document.getElementById('profile-content').innerHTML = `<div class="pub-profile-top"><img src="${pic}" onerror="this.src='assets/logo.png'" class="pub-avatar" alt="${escapeHtml(name)}"><div class="pub-stats-row"><div class="pub-stat-cell"><span class="pub-stat-num" id="reel-count">0</span><span class="pub-stat-lbl">Videos</span></div><div class="pub-stat-cell"><span class="pub-stat-num" id="followers-display">0</span><span class="pub-stat-lbl">Followers</span></div><div class="pub-stat-cell"><span class="pub-stat-num" id="views-count">0</span><span class="pub-stat-lbl">Views</span></div></div></div><div class="pub-identity"><div class="pub-name">${escapeHtml(name)}</div>${bio?`<div class="pub-bio">${escapeHtml(bio)}</div>`:''}</div><div class="pub-actions"><button class="follow-btn" id="follow-btn" onclick="window.profilePage.toggleFollow()" disabled>⏳ Loading...</button><button class="share-profile-btn" onclick="window.profilePage.shareProfile()" title="Share">↗️</button></div><div class="videos-section-title">🎬 Videos</div><div class="videos-grid" id="videos-grid"><div class="loading-state" style="grid-column:1/-1;"><p style="color:var(--text-secondary)">Loading videos...</p></div></div>`;
         this.checkFollowStatus();
       }
       async loadFollowerCount() {
@@ -116,7 +116,13 @@
             if (response.documents.length > 0) { await db.remove(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, response.documents[0].$id); }
             btn.classList.remove('following'); btn.textContent = '➕ Follow'; Toast.success('Unfollowed');
           } else {
-            await db.create(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, { followerID: session.getUserId(), CreatorId: this.creatorId, createdAt: new Date().toISOString() }, null, [Permission.read(Role.any()), Permission.delete(Role.user(session.getUserId()))]);
+            // FIXED: Added followId (required by your schema)
+            await db.create(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, { 
+              followId: ID.unique(),
+              followerID: session.getUserId(), 
+              CreatorId: this.creatorId, 
+              createdAt: new Date().toISOString() 
+            }, null, [Permission.read(Role.any()), Permission.delete(Role.user(session.getUserId()))]);
             btn.classList.add('following'); btn.textContent = '✓ Following'; Toast.success('Following! 🎉');
           }
           await this.loadFollowerCount();
