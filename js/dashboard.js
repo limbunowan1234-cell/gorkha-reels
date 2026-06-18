@@ -200,8 +200,13 @@ class DashboardManager {
             <textarea id="edit-bio" rows="3" style="width: 100%; background: var(--dark-bg, #000); border: 1px solid var(--border-color, #333); border-radius: 8px; padding: 12px; color: var(--text-primary, #fff); font-size: 14px; box-sizing: border-box; resize: vertical;">${escapeHtml(d.bio || '')}</textarea>
           </div>
           <div style="margin-bottom: 20px;">
-            <label style="display: block; color: var(--text-secondary, #888); font-size: 13px; margin-bottom: 6px;">Profile Picture URL</label>
-            <input id="edit-profilePic" type="text" value="${escapeHtml(d.profilePic || '')}" placeholder="https://..." style="width: 100%; background: var(--dark-bg, #000); border: 1px solid var(--border-color, #333); border-radius: 8px; padding: 12px; color: var(--text-primary, #fff); font-size: 14px; box-sizing: border-box;">
+            <label style="display: block; color: var(--text-secondary, #888); font-size: 13px; margin-bottom: 6px;">Profile Picture</label>
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <img id="profile-pic-preview" src="${d.profilePic || 'assets/logo.png'}" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border-color, #333);">
+              <button id="pick-profile-pic" style="flex: 1; background: var(--dark-bg, #000); border: 1px solid var(--border-color, #333); border-radius: 8px; padding: 12px; color: var(--text-primary, #fff); font-size: 14px; cursor: pointer;">📷 Choose Photo</button>
+            </div>
+            <input id="profile-pic-file" type="file" accept="image/*" style="display: none;">
+            <input id="edit-profilePic" type="hidden" value="${escapeHtml(d.profilePic || '')}">
           </div>
           <button id="save-profile" style="width: 100%; background: var(--primary-red, #ff3b30); border: none; border-radius: 8px; padding: 14px; color: white; font-weight: 600; font-size: 15px; cursor: pointer;">💾 Save Changes</button>
         </div>
@@ -215,6 +220,59 @@ class DashboardManager {
       if (e.target === modal) modal.remove();
     });
     document.getElementById('save-profile').addEventListener('click', () => this.saveProfile());
+
+    // Profile picture upload
+    const fileInput = document.getElementById('profile-pic-file');
+    document.getElementById('pick-profile-pic').addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', (e) => this.uploadProfilePic(e));
+  }
+
+  async uploadProfilePic(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate it's an image
+    if (!file.type.startsWith('image/')) {
+      Toast.error('Please select an image file');
+      return;
+    }
+
+    // Max 5MB
+    if (file.size > 5 * 1024 * 1024) {
+      Toast.error('Image must be under 5MB');
+      return;
+    }
+
+    const pickBtn = document.getElementById('pick-profile-pic');
+    const preview = document.getElementById('profile-pic-preview');
+
+    if (pickBtn) {
+      pickBtn.disabled = true;
+      pickBtn.textContent = '⏳ Uploading...';
+    }
+
+    try {
+      // Generate unique filename
+      const ext = file.name.split('.').pop();
+      const fileName = `profile_${this.user.$id}_${Date.now()}.${ext}`;
+
+      // Upload to Bunny CDN
+      const result = await bunny.uploadVideo(file, fileName);
+
+      // Update hidden input and preview
+      document.getElementById('edit-profilePic').value = result.url;
+      if (preview) preview.src = result.url;
+
+      Toast.success('✅ Photo uploaded!');
+    } catch (error) {
+      console.error('Profile pic upload failed:', error);
+      Toast.error('Upload failed, try again');
+    } finally {
+      if (pickBtn) {
+        pickBtn.disabled = false;
+        pickBtn.textContent = '📷 Choose Photo';
+      }
+    }
   }
 
   async saveProfile() {
