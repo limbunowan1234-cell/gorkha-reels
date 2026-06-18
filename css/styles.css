@@ -1,7 +1,6 @@
 /* ================================
 GORKHA REELS - PREMIUM DARK THEME
 Professional Enterprise Design
-Updated with all bug fixes
 ================================ */
 
 * {
@@ -93,18 +92,6 @@ header {
 
 .header-search input::placeholder {
   color: var(--text-tertiary);
-}
-
-/* ✨ NEW: Search icon pseudo-element */
-.header-search::after {
-  content: '🔍';
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--text-tertiary);
-  pointer-events: none;
-  font-size: 14px;
 }
 
 .header-actions {
@@ -320,50 +307,103 @@ header {
   text-align: center;
 }
 
-/* ============== BOTTOM NAV ============== */
+/* ============== BOTTOM NAV (REDESIGNED) ============== */
 .bottom-nav {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  background: rgba(15, 15, 15, 0.95);
-  backdrop-filter: blur(20px);
-  border-top: 1px solid var(--border-light);
+  background: rgba(12, 12, 12, 0.85);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
   display: flex;
   justify-content: space-around;
   align-items: center;
-  padding: 12px 0 16px 0;
+  padding: 10px 8px calc(10px + env(safe-area-inset-bottom, 6px));
   z-index: 50;
-  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.4);
 }
 
 .nav-item {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
+  gap: 4px;
+  padding: 8px 0;
   border: none;
   background: none;
   color: var(--text-tertiary);
   cursor: pointer;
-  font-size: 24px;
-  transition: all 0.3s;
+  font-size: 22px;
+  transition: color 0.25s ease, transform 0.2s ease;
   flex: 1;
   text-align: center;
+  border-radius: 14px;
 }
 
-.nav-item:hover,
+/* Active tab: gold icon + glowing dot indicator */
 .nav-item.active {
   color: var(--accent-gold);
-  transform: scale(1.1);
+}
+
+.nav-item.active::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 28px;
+  height: 3px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--primary-red), var(--accent-gold));
+  box-shadow: 0 0 12px rgba(251, 191, 36, 0.6);
+}
+
+.nav-item:active {
+  transform: scale(0.88);
+}
+
+.nav-item:not(.active):hover {
+  color: var(--text-secondary);
 }
 
 .nav-label {
   font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+/* Standout center CREATE button (TikTok-style) */
+.nav-item.nav-create {
+  flex: 0 0 auto;
+}
+
+.nav-item.nav-create .nav-create-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 34px;
+  margin-bottom: 2px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--primary-red), #f97316);
+  color: #fff;
+  font-size: 24px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  line-height: 1;
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.45);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.nav-item.nav-create:active .nav-create-btn {
+  transform: scale(0.9);
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.4);
+}
+
+.nav-item.nav-create .nav-label {
+  color: var(--text-secondary);
 }
 
 /* ============== UPLOAD FORM ============== */
@@ -640,10 +680,51 @@ header {
   to { transform: rotate(360deg); }
 }
 
-/* ============== TOAST NOTIFICATIONS (FIXED) ============== */
+/* ============== RESPONSIVE ============== */
+@media (min-width: 768px) {
+  header {
+    padding: 18px 32px;
+  }
+  .upload-container,
+  .dashboard-container {
+    max-width: 620px;
+    padding: 32px;
+  }
+  .video-card {
+    max-width: 420px;
+    height: 100vh;
+    margin: 0 auto;
+  }
+  .action-buttons {
+    right: 28px;
+    bottom: 160px;
+  }
+}
+
+@media (max-width: 360px) {
+  .video-title {
+    font-size: 20px;
+  }
+  .action-buttons {
+    right: 10px;
+    bottom: 110px;
+    gap: 16px;
+  }
+  .action-btn {
+    width: 50px;
+    height: 50px;
+    font-size: 22px;
+  }
+  .upload-container,
+  .dashboard-container {
+    padding: 18px;
+  }
+}
+
+/* ============== TOAST NOTIFICATIONS ============== */
 .toast {
   position: fixed;
-  bottom: 70px; /* FIXED: Moved above bottom nav (was 120px) */
+  bottom: 120px;
   left: 16px;
   right: 16px;
   background: var(--glass-bg);
@@ -665,11 +746,6 @@ header {
 
 .toast.error {
   border-left-color: var(--primary-red);
-}
-
-/* ✨ NEW: Info toast variant */
-.toast.info {
-  border-left-color: var(--accent-gold);
 }
 
 @keyframes slideUp {
@@ -764,6 +840,13 @@ header {
   margin-bottom: 3px;
 }
 
+.action-count {
+  font-size: 11px;
+  font-weight: 700;
+  min-width: 24px;
+  text-align: center;
+}
+
 .exit-btn {
   background: rgba(220, 38, 38, 0.25) !important;
   border-color: var(--primary-red) !important;
@@ -803,47 +886,6 @@ header {
   overflow: hidden;
 }
 
-/* ============== RESPONSIVE ============== */
-@media (min-width: 768px) {
-  header {
-    padding: 18px 32px;
-  }
-  .upload-container,
-  .dashboard-container {
-    max-width: 620px;
-    padding: 32px;
-  }
-  .video-card {
-    max-width: 420px;
-    height: 100vh;
-    margin: 0 auto;
-  }
-  .action-buttons {
-    right: 28px;
-    bottom: 160px;
-  }
-}
-
-@media (max-width: 360px) {
-  .video-title {
-    font-size: 20px;
-  }
-  .action-buttons {
-    right: 10px;
-    bottom: 110px;
-    gap: 16px;
-  }
-  .action-btn {
-    width: 50px;
-    height: 50px;
-    font-size: 22px;
-  }
-  .upload-container,
-  .dashboard-container {
-    padding: 18px;
-  }
-}
-
 /* Mobile fullscreen adjustments */
 @media (max-width: 768px) {
   .fullscreen-actions {
@@ -876,6 +918,168 @@ header {
     font-size: 18px;
   }
   .fullscreen-info p {
+    font-size: 13px;
+  }
+}
+
+/* ============== CLEAN FULLSCREEN OVERLAY (NEW) ============== */
+.fullscreen-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background: #000;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+.fs-video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+}
+
+.fs-header {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 10001;
+}
+
+.fs-logo {
+  height: 40px;
+  width: auto;
+  opacity: 0.85;
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.8));
+}
+
+.fs-actions {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  z-index: 10001;
+}
+
+.fs-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(20px);
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.fs-btn:hover {
+  background: rgba(251, 191, 36, 0.2);
+  border-color: var(--accent-gold);
+  transform: scale(1.15) translateY(-4px);
+  box-shadow: 0 12px 40px rgba(251, 191, 36, 0.3);
+}
+
+.fs-like.liked {
+  background: rgba(220, 38, 38, 0.3);
+  border-color: var(--primary-red);
+}
+
+.fs-exit {
+  background: rgba(220, 38, 38, 0.25) !important;
+  border-color: var(--primary-red) !important;
+  margin-top: 20px;
+}
+
+.fs-exit:hover {
+  background: rgba(220, 38, 38, 0.4) !important;
+}
+
+.fs-info {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.97) 0%, rgba(0,0,0,0.8) 60%, transparent 100%);
+  padding: 50px 24px 30px;
+  color: white;
+  z-index: 10000;
+}
+
+.fs-info h2 {
+  margin: 0 0 10px 0;
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.5px;
+}
+
+.fs-info p {
+  margin: 0;
+  font-size: 14px;
+  opacity: 0.85;
+  line-height: 1.5;
+  max-height: 80px;
+  overflow: hidden;
+}
+
+/* Mobile fullscreen */
+@media (max-width: 768px) {
+  .fs-actions {
+    width: 100%;
+    flex-direction: row;
+    right: auto;
+    top: auto;
+    bottom: 90px;
+    left: 0;
+    transform: none;
+    padding: 0 12px;
+    gap: 10px;
+    justify-content: center;
+  }
+  .fs-btn {
+    width: 52px;
+    height: 52px;
+    font-size: 20px;
+  }
+  .fs-header {
+    top: 12px;
+    left: 12px;
+  }
+  .fs-logo {
+    height: 32px;
+  }
+  .fs-info {
+    padding: 40px 16px 20px;
+  }
+  .fs-info h2 {
+    font-size: 18px;
+  }
+  .fs-info p {
     font-size: 13px;
   }
 }
