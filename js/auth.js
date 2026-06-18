@@ -114,17 +114,17 @@ class AuthManager {
 
   /**
    * Handle SIGNUP using Appwrite Account API (FIXED)
+   * Username is auto-generated - no need to ask user
    */
   async handleSignup() {
     const name = document.getElementById('signup-name')?.value?.trim();
     const email = document.getElementById('signup-email')?.value?.trim();
-    const username = document.getElementById('signup-username')?.value?.trim();
     const password = document.getElementById('signup-password')?.value?.trim();
     const errorEl = document.getElementById('signup-error');
     const signupBtn = document.getElementById('signup-btn');
 
     // Validation
-    if (!name || !email || !username || !password) {
+    if (!name || !email || !password) {
       this.showError(errorEl, 'Please fill in all fields');
       return;
     }
@@ -137,18 +137,13 @@ class AuthManager {
       this.showError(errorEl, 'Please enter a valid email address');
       return;
     }
-    if (username.length < 3) {
-      this.showError(errorEl, 'Username must be at least 3 characters');
-      return;
-    }
-    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
-      this.showError(errorEl, 'Username: letters, numbers, underscore only');
-      return;
-    }
     if (password.length < 8) {
       this.showError(errorEl, 'Password must be at least 8 characters');
       return;
     }
+
+    // Auto-generate username from name + random suffix
+    const username = this.generateUsername(name);
 
     try {
       signupBtn.disabled = true;
@@ -241,6 +236,13 @@ class AuthManager {
   // FIX #12: Email validation helper
   isValidEmail(email) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
+
+  // Auto-generate username from name (e.g. "Adhar Limbu" → "adharlimbu_4821")
+  generateUsername(name) {
+    const base = name.toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 15);
+    const suffix = Math.floor(1000 + Math.random() * 9000); // 4-digit random
+    return `${base || 'user'}_${suffix}`;
   }
 
   showError(element, message) {
