@@ -1,5 +1,10 @@
 /**
- * GorkhaReels - Upload Wizard (Multi-Step)
+ * GorkhaReels - Upload Wizard (Multi-Step) (FIXED)
+ * 
+ * FIXES APPLIED:
+ * ✅ FIX #14: Video duration validated before accepting
+ * ✅ FIX #7: Large video blobs use Blob API instead of base64 localStorage
+ * ✅ FIX #9: Upload failure has retry logic
  */
 
 class UploadWizard {
@@ -8,6 +13,8 @@ class UploadWizard {
     this.totalSteps = 4;
     this.selectedFile = null;
     this.videoMetadata = null;
+    this.uploadRetries = 0;
+    this.maxRetries = 3;
 
     this.init();
   }
@@ -54,14 +61,15 @@ class UploadWizard {
     }
   }
 
+  // FIX #14: Validate video duration BEFORE accepting
+  // FIX #7: Use Blob API instead of localStorage for large files
   handleVideoSelect(e) {
     const file = e.target.files[0];
     if (!file) return;
 
     if (!this.validateVideoFormat(file)) return;
 
-    this.selectedFile = file;
-
+    // FIX #14: Check duration EARLY
     const video = document.createElement('video');
     video.preload = 'metadata';
 
@@ -69,15 +77,25 @@ class UploadWizard {
       const duration = video.duration;
       const aspectRatio = video.videoWidth / video.videoHeight;
 
+      // FIX #14: Reject videos over 2 minutes (120 seconds)
+      if (duration > 120) {
+        const mins = Math.floor(duration / 60);
+        const secs = Math.floor(duration % 60);
+        Toast.error(`⏱️ Video is ${mins}:${secs} - Max 2 minutes allowed`);
+        this.selectedFile = null;
+        return;
+      }
+
+      // Duration is valid, proceed
+      this.selectedFile = file;
       this.videoMetadata = { duration, aspectRatio };
 
-      // Show preview in step 1
-      const reader = new FileReader();
-      reader.onload = (evt) => {
-        document.getElementById('preview-video').src = evt.target.result;
-        document.getElementById('step3-video').src = evt.target.result;
-      };
-      reader.readAsDataURL(file);
+      // FIX #7: Store video in a more efficient way (in memory via Blob URL)
+      // Don't use localStorage or btoa - just keep the File object
+      const blobUrl = URL.createObjectURL(file);
+      
+      document.getElementById('preview-video').src = blobUrl;
+      document.getElementById('step3-video').src = blobUrl;
 
       // Show file info
       const fileInfo = document.getElementById('file-info');
@@ -87,16 +105,16 @@ class UploadWizard {
 
       fileInfo.innerHTML = `
         <div style="text-align: center;">
-          <p style="margin: 0; font-weight: 600; color: var(--text-primary);">${file.name}</p>
+          <p style="margin: 0; font-weight: 600; color: var(--text-primary);">${this.sanitizeFileName(file.name)}</p>
           <p style="margin: 4px 0 0 0; font-size: 11px;">
-            ${sizeMB}MB • ${mins}:${secs.toString().padStart(2,'0')}
+            ${sizeMB}MB • ${mins}:${secs.toString().padStart(2,'0')} ✓
           </p>
         </div>
       `;
       fileInfo.style.display = 'block';
 
-      // Show edit controls in step 2
-      if (duration > 120 || aspectRatio > 0.65 || aspectRatio < 0.4) {
+      // Show edit controls if needed
+      if (aspectRatio > 0.65 || aspectRatio < 0.4) {
         document.getElementById('edit-controls').style.display = 'block';
       }
 
@@ -104,7 +122,7 @@ class UploadWizard {
     };
 
     video.onerror = () => {
-      Toast.error('❌ Invalid video');
+      Toast.error('❌ Invalid video file');
       this.selectedFile = null;
     };
 
@@ -116,12 +134,12 @@ class UploadWizard {
     const allowed = ['video/mp4', 'video/webm', 'video/quicktime', 'video/mpeg'];
 
     if (!allowed.includes(file.type)) {
-      Toast.error('📹 Use MP4, WebM, or MOV');
+      Toast.error('📹 Use MP4, WebM, or MOV format');
       return false;
     }
 
     if (file.size > maxSize) {
-      Toast.error('📦 Max 500MB');
+      Toast.error('📦 Max 500MB file size');
       return false;
     }
 
@@ -134,14 +152,11 @@ class UploadWizard {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const videoData = btoa(String.fromCharCode(...new Uint8Array(e.target.result)));
-      localStorage.setItem('videoData', videoData);
-      localStorage.setItem('wizardStep', '2');
-      window.location.href = './video-editor.html';
-    };
-    reader.readAsArrayBuffer(this.selectedFile);
+    // FIX #7: Store video as blob URL instead of base64
+    const blobUrl = URL.createObjectURL(this.selectedFile);
+    sessionStorage.setItem('videoBlobUrl', blobUrl);
+    sessionStorage.setItem('wizardStep', '2');
+    window.location.href = './video-editor.html';
   }
 
   checkReturnFromMusic() {
@@ -261,6 +276,7 @@ class UploadWizard {
     }
   }
 
+  // FIX #9: Upload with retry logic
   async submitForm() {
     const title = document.getElementById('title').value.trim();
     const description = document.getElementById('description').value.trim();
@@ -278,8 +294,35 @@ class UploadWizard {
     btnNext.textContent = '⏳ Uploading...';
 
     try {
-      const fileName = `${Date.now()}_${this.sanitizeFileName(this.selectedFile.name)}`;
-      const uploadResult = await bunny.uploadVideo(this.selectedFile, fileName);
+      // FIX #9: Generate unique filename to avoid collisions
+      const fileName = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}_${this.sanitizeFileName(this.selectedFile.name)}`;
+      
+      // Upload with retry logic
+      let uploadResult = null;
+      this.uploadRetries = 0;
+
+      while (this.uploadRetries < this.maxRetries && !uploadResult) {
+        try {
+          uploadResult = await bunny.uploadVideo(this.selectedFile, fileName);
+          break; // Success, exit retry loop
+        } catch (uploadErr) {
+          this.uploadRetries++;
+          console.warn(`Upload attempt ${this.uploadRetries} failed:`, uploadErr);
+          
+          if (this.uploadRetries < this.maxRetries) {
+            // Show retry message
+            btnNext.textContent = `⏳ Retrying (${this.uploadRetries}/${this.maxRetries})...`;
+            // Wait 2 seconds before retrying
+            await new Promise(resolve => setTimeout(resolve, 2000));
+          } else {
+            throw uploadErr; // All retries failed
+          }
+        }
+      }
+
+      if (!uploadResult) {
+        throw new Error('Upload failed after ' + this.maxRetries + ' retries');
+      }
 
       const user = session.getUser();
       const musicData = localStorage.getItem('selectedMusic');
@@ -292,23 +335,26 @@ class UploadWizard {
         thumbnail: `${uploadResult.url}?thumb=1`,
         title,
         description: description || '',
-        hastags: hashtags || '',
+        hashtags: hashtags || '',
         category: category || 'other',
         language: language || 'Nepali',
         musicTitle: music?.title || '',
         musicUrl: music?.url || '',
         uploadedAt: new Date().toISOString(),
+        views: 0,
+        likes: 0,
+        comments: 0,
+        shares: 0,
         isDeleted: false
       };
 
       await db.create(APPWRITE_CONFIG.COLLECTIONS.REELS, reelData);
 
-      Toast.success('🎉 Video uploaded!');
+      Toast.success('🎉 Video uploaded successfully!');
 
       // Clear storage
-      localStorage.removeItem('videoData');
-      localStorage.removeItem('videoEdits');
       localStorage.removeItem('selectedMusic');
+      sessionStorage.removeItem('videoBlobUrl');
 
       setTimeout(() => {
         window.location.href = './creator-dashboard.html';
@@ -319,6 +365,11 @@ class UploadWizard {
       Toast.error(`❌ Upload failed: ${error.message}`);
       btnNext.disabled = false;
       btnNext.textContent = '🚀 Upload';
+      
+      // FIX #9: Offer retry
+      if (this.uploadRetries < this.maxRetries) {
+        Toast.info('Click Upload to retry');
+      }
     }
   }
 
@@ -340,4 +391,4 @@ if (document.readyState === 'loading') {
   window.uploadManager = new UploadWizard();
 }
 
-console.log('✅ Upload Wizard Loaded');
+console.log('✅ Upload Wizard Loaded (with duration validation & retry logic)');
