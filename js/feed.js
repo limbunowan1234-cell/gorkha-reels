@@ -290,8 +290,8 @@ class FeedManager {
     document.querySelector('.like-btn')?.addEventListener('click', (e) => {
       this.toggleLike(e.currentTarget.dataset.reelId);
     });
-    document.querySelector('.comment-btn')?.addEventListener('click', () => {
-      Toast.info('Comments coming soon!');
+    document.querySelector('.comment-btn')?.addEventListener('click', (e) => {
+      this.openComments(e.currentTarget.dataset.reelId);
     });
     document.querySelector('.share-btn')?.addEventListener('click', (e) => {
       this.shareVideo(e.currentTarget.dataset.reelId);
@@ -314,8 +314,8 @@ class FeedManager {
     document.querySelector('.like-btn')?.addEventListener('click', (e) => {
       this.toggleLike(e.currentTarget.dataset.reelId);
     });
-    document.querySelector('.comment-btn')?.addEventListener('click', () => {
-      Toast.info('Comments coming soon!');
+    document.querySelector('.comment-btn')?.addEventListener('click', (e) => {
+      this.openComments(e.currentTarget.dataset.reelId);
     });
     document.querySelector('.share-btn')?.addEventListener('click', (e) => {
       this.shareVideo(e.currentTarget.dataset.reelId);
@@ -422,7 +422,7 @@ class FeedManager {
 
       likeButton && (likeButton.querySelector('.action-count').textContent = this.currentVideo.likes);
 
-      // Update reel count
+      // Update reel count (lowercase 'likes' to match schema)
       await db.update(APPWRITE_CONFIG.COLLECTIONS.REELS, reelId, {
         likes: this.currentVideo.likes
       });
@@ -437,6 +437,126 @@ class FeedManager {
         this.likedReels.delete(reelId);
         likeButton?.classList.remove('liked');
       }
+    }
+  }
+
+  // ============== COMMENTS FEATURE ==============
+  async openComments(reelId) {
+    if (!session.isLoggedIn()) {
+      window.location.href = './login.html';
+      return;
+    }
+
+    // Create modal overlay
+    const modal = document.createElement('div');
+    modal.id = 'comments-modal';
+    modal.style.cssText = `
+      position: fixed; bottom: 0; left: 0; right: 0; top: 0;
+      background: rgba(0,0,0,0.6); z-index: 9999;
+      display: flex; flex-direction: column; justify-content: flex-end;
+    `;
+
+    modal.innerHTML = `
+      <div style="background: var(--dark-card, #1a1a1a); border-radius: 20px 20px 0 0; max-height: 70vh; display: flex; flex-direction: column; animation: slideUp 0.3s ease-out;">
+        <div style="padding: 16px; border-bottom: 1px solid var(--border-color, #333); display: flex; justify-content: space-between; align-items: center;">
+          <h3 style="color: var(--text-primary, #fff); margin: 0; font-size: 18px;">💬 Comments</h3>
+          <button id="close-comments" style="background: none; border: none; color: var(--text-primary, #fff); font-size: 24px; cursor: pointer;">✕</button>
+        </div>
+        <div id="comments-list" style="flex: 1; overflow-y: auto; padding: 16px;">
+          <div style="text-align: center; color: var(--text-secondary, #888); padding: 20px;">Loading comments...</div>
+        </div>
+        <div style="padding: 16px; border-top: 1px solid var(--border-color, #333); display: flex; gap: 8px;">
+          <input id="comment-input" type="text" placeholder="Add a comment..." style="flex: 1; background: var(--dark-bg, #000); border: 1px solid var(--border-color, #333); border-radius: 20px; padding: 10px 16px; color: var(--text-primary, #fff); font-size: 14px;">
+          <button id="post-comment" style="background: var(--primary-red, #ff3b30); border: none; border-radius: 20px; padding: 10px 20px; color: white; font-weight: 600; cursor: pointer;">Post</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // Event listeners
+    document.getElementById('close-comments').addEventListener('click', () => modal.remove());
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) modal.remove();
+    });
+
+    document.getElementById('post-comment').addEventListener('click', () => {
+      this.postComment(reelId);
+    });
+    document.getElementById('comment-input').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') this.postComment(reelId);
+    });
+
+    // Load existing comments
+    await this.loadComments(reelId);
+  }
+
+  async loadComments(reelId) {
+    const list = document.getElementById('comments-list');
+    if (!list) return;
+
+    try {
+      const response = await db.list(APPWRITE_CONFIG.COLLECTIONS.COMMENTS, [
+        Query.equal('reelId', reelId),
+        Query.equal('isDeleted', false),
+        Query.orderDesc('createdAt'),
+        Query.limit(100)
+      ]);
+
+      if (response.documents.length === 0) {
+        list.innerHTML = `<div style="text-align: center; color: var(--text-secondary, #888); padding: 20px;">No comments yet. Be the first! 💬</div>`;
+        return;
+      }
+
+      list.innerHTML = response.documents.map(c => `
+        <div style="display: flex; gap: 10px; margin-bottom: 16px;">
+          <img src="${c.creatorProfilePic || 'assets/logo.png'}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">
+          <div style="flex: 1;">
+            <p style="color: var(--text-primary, #fff); margin: 0; font-size: 13px; font-weight: 600;">${escapeHtml(c.creatorName || 'User')}</p>
+            <p style="color: var(--text-secondary, #ccc); margin: 4px 0 0 0; font-size: 14px;">${escapeHtml(c.text)}</p>
+          </div>
+        </div>
+      `).join('');
+    } catch (error) {
+      console.error('Error loading comments:', error);
+      list.innerHTML = `<div style="text-align: center; color: var(--text-secondary, #888); padding: 20px;">Could not load comments</div>`;
+    }
+  }
+
+  async postComment(reelId) {
+    const input = document.getElementById('comment-input');
+    if (!input) return;
+
+    const text = input.value.trim();
+    if (!text) {
+      Toast.error('Comment cannot be empty');
+      return;
+    }
+
+    const user = session.getUser();
+
+    try {
+      await db.create(APPWRITE_CONFIG.COLLECTIONS.COMMENTS, {
+        commentId: ID.unique(),
+        reelId: reelId,
+        creatorId: user.$id,
+        text: text,
+        creatorName: user.name || 'User',
+        creatorProfilePic: '',
+        likes: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        isDeleted: false
+      });
+
+      input.value = '';
+      Toast.success('Comment posted! 💬');
+
+      // Reload comments
+      await this.loadComments(reelId);
+    } catch (error) {
+      console.error('Post comment failed:', error);
+      Toast.error('Failed to post comment');
     }
   }
 
