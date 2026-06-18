@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="description" content="GorkhaReels - Short-form video platform for Gorkha creators and community. Watch, create, and share videos from the Gorkha community.">
   <meta name="theme-color" content="#121212">
   <meta name="keywords" content="gorkha, reels, videos, short-form, gorkha community, darjeeling, nepali">
@@ -46,6 +46,15 @@
       scroll-snap-align: start;
     }
 
+    /* Prevent pinch zoom on feed */
+    html, body {
+      touch-action: pan-y;
+      overscroll-behavior: none;
+    }
+    .video-card, .feed-container, #feed-container {
+      touch-action: pan-y;
+    }
+
     /* Video scroll snap */
     .video-card {
       scroll-snap-align: start;
@@ -55,7 +64,16 @@
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
-  </style>
+  
+    /* Prevent pinch zoom on feed */
+    html, body {
+      touch-action: pan-y;
+      overscroll-behavior: none;
+    }
+    .video-card, #feed-container {
+      touch-action: pan-y;
+    }
+</style>
 </head>
 <body>
   <!-- Header -->
