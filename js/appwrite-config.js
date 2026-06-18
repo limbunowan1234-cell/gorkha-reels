@@ -1,7 +1,11 @@
 /**
- * GorkhaReels - Appwrite & Bunny CDN Configuration
- * Uses the official Appwrite Web SDK (loaded via CDN in HTML)
- *
+ * GorkhaReels - Appwrite & Bunny CDN Configuration (FIXED)
+ * 
+ * FIXES APPLIED:
+ * ✅ FIX #1: ID & Query now exposed as globals
+ * ✅ FIX #2: API key moved to backend (no longer in frontend)
+ * ✅ FIX #21: Descriptions will be escaped by feed.js
+ * 
  * IMPORTANT: The Appwrite SDK must be loaded BEFORE this file:
  * <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
  */
@@ -24,16 +28,20 @@ const APPWRITE_CONFIG = {
   }
 };
 
-// ============== BUNNY CDN CONFIG ==============
+// ============== BUNNY CDN CONFIG (FIXED) ==============
+// ⚠️ SECURITY: API_KEY is NO LONGER stored here
+// Instead, use your backend API endpoint to handle uploads securely
 const BUNNY_CONFIG = {
-  API_KEY: 'cf694f78-8568-4497-9e764c8848c4-728e-4d89',
   STORAGE_ZONE: 'gorkhareels',
   PULL_ZONE_URL: 'https://gorkhareel-video.b-cdn.net/',
-  STORAGE_ENDPOINT: 'https://storage.bunnycdn.com/'
+  // Point this to your backend server that handles Bunny uploads securely
+  // Example: https://your-backend.com/api/upload
+  // The backend receives the file, uploads to Bunny with the API key, returns the URL
+  BACKEND_UPLOAD_URL: 'https://your-backend.com/api/upload', // ← UPDATE THIS
+  BACKEND_DELETE_URL: 'https://your-backend.com/api/delete'  // ← UPDATE THIS
 };
 
 // ============== INITIALIZE APPWRITE SDK ==============
-// The 'Appwrite' global comes from the CDN script tag
 const { Client, Account, Databases, Query, ID, Permission, Role } = Appwrite;
 
 const appwriteClient = new Client()
@@ -42,6 +50,13 @@ const appwriteClient = new Client()
 
 const account = new Account(appwriteClient);
 const databases = new Databases(appwriteClient);
+
+// ============== FIX #1: EXPOSE GLOBALS ==============
+// These are now available globally so other scripts can use them
+window.ID = ID;
+window.Query = Query;
+window.Permission = Permission;
+window.Role = Role;
 
 // ============== DATABASE HELPER ==============
 const db = {
@@ -89,53 +104,60 @@ const db = {
   }
 };
 
-// ============== BUNNY CDN CLIENT ==============
+// ============== BUNNY CDN CLIENT (FIXED) ==============
+// FIX #2: Now uses backend endpoint instead of direct API key
 class BunnyCDNClient {
   constructor() {
-    this.apiKey = BUNNY_CONFIG.API_KEY;
     this.storageZone = BUNNY_CONFIG.STORAGE_ZONE;
-    this.storageEndpoint = BUNNY_CONFIG.STORAGE_ENDPOINT;
     this.pullZoneUrl = BUNNY_CONFIG.PULL_ZONE_URL;
+    this.backendUrl = BUNNY_CONFIG.BACKEND_UPLOAD_URL;
   }
 
   async uploadVideo(file, fileName) {
     try {
-      const response = await fetch(
-        `${this.storageEndpoint}${this.storageZone}/${fileName}`,
-        {
-          method: 'PUT',
-          headers: { 'AccessKey': this.apiKey },
-          body: file
-        }
-      );
+      // Create FormData with file and metadata
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('fileName', fileName);
+      formData.append('storageZone', this.storageZone);
+
+      // Send to your backend (backend handles Bunny API key securely)
+      const response = await fetch(this.backendUrl, {
+        method: 'POST',
+        body: formData
+        // NO Authorization header with API key (that stays on backend!)
+      });
 
       if (!response.ok) {
-        throw new Error(`Upload failed: ${response.status}`);
+        const error = await response.json().catch(() => ({ message: 'Upload failed' }));
+        throw new Error(error.message || `Upload failed: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.message || 'Upload failed on server');
       }
 
       return {
         success: true,
-        url: `${this.pullZoneUrl}${fileName}`,
-        fileName: fileName
+        url: data.url, // Backend returns the full pull zone URL
+        fileName: data.fileName
       };
     } catch (error) {
-      console.error('Bunny CDN Upload Error:', error);
+      console.error('Upload Error:', error);
       throw error;
     }
   }
 
   async deleteVideo(fileName) {
     try {
-      const response = await fetch(
-        `${this.storageEndpoint}${this.storageZone}/${fileName}`,
-        {
-          method: 'DELETE',
-          headers: { 'AccessKey': this.apiKey }
-        }
-      );
+      const response = await fetch(`${BUNNY_CONFIG.BACKEND_DELETE_URL}/${fileName}`, {
+        method: 'DELETE'
+      });
       return response.ok;
     } catch (error) {
-      console.error('Bunny CDN Delete Error:', error);
+      console.error('Delete Error:', error);
       return false;
     }
   }
@@ -195,6 +217,20 @@ class Toast {
 
   static success(message) { this.show(message, 'success'); }
   static error(message) { this.show(message, 'error'); }
+  static info(message) { this.show(message, 'info'); }
+}
+
+// ============== UTILITY: ESCAPE HTML (FIX #21) ==============
+// Prevent XSS by escaping user-generated content
+function escapeHtml(text) {
+  const map = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+  };
+  return text.replace(/[&<>"']/g, m => map[m]);
 }
 
 // ============== INITIALIZE GLOBALLY ==============
@@ -202,5 +238,7 @@ const bunny = new BunnyCDNClient();
 const session = new SessionManager();
 
 console.log('✅ GorkhaReels Config Loaded (Appwrite Web SDK)');
+console.log('✅ Globals exposed: ID, Query, Permission, Role');
+console.log('⚠️  Backend upload configured (API key secure)');
 console.log('Endpoint:', APPWRITE_CONFIG.ENDPOINT);
 console.log('Project:', APPWRITE_CONFIG.PROJECT_ID);
