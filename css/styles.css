@@ -1,6 +1,7 @@
 /* ================================
 GORKHA REELS - PREMIUM DARK THEME
 Professional Enterprise Design
+Updated with all bug fixes
 ================================ */
 
 * {
@@ -92,6 +93,18 @@ header {
 
 .header-search input::placeholder {
   color: var(--text-tertiary);
+}
+
+/* ✨ NEW: Search icon pseudo-element */
+.header-search::after {
+  content: '🔍';
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-tertiary);
+  pointer-events: none;
+  font-size: 14px;
 }
 
 .header-actions {
@@ -627,10 +640,10 @@ header {
   to { transform: rotate(360deg); }
 }
 
-/* ============== TOAST NOTIFICATIONS ============== */
+/* ============== TOAST NOTIFICATIONS (FIXED) ============== */
 .toast {
   position: fixed;
-  bottom: 120px;
+  bottom: 70px; /* FIXED: Moved above bottom nav (was 120px) */
   left: 16px;
   right: 16px;
   background: var(--glass-bg);
@@ -652,6 +665,11 @@ header {
 
 .toast.error {
   border-left-color: var(--primary-red);
+}
+
+/* ✨ NEW: Info toast variant */
+.toast.info {
+  border-left-color: var(--accent-gold);
 }
 
 @keyframes slideUp {
