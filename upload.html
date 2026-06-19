@@ -7,6 +7,17 @@
   <meta name="theme-color" content="#121212">
   <link rel="icon" type="image/png" href="assets/logo.png">
   <link rel="stylesheet" href="css/styles.css">
+  
+  <!-- ERUDA BLOCKER - Disable Eruda before it loads -->
+  <script>
+    // Prevent Eruda from initializing or hooking into events
+    window._erudaDisabled = true;
+    if (window.eruda) {
+      console.log('Eruda detected, disabling...');
+      window.eruda = null;
+    }
+  </script>
+  
   <style>
     body { background: #0f0f0f; overflow-x: hidden; }
 
@@ -263,6 +274,7 @@
     </div>
   </div>
 
+  <!-- Load config and upload script -->
   <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
   <script src="js/appwrite-config.js"></script>
   <script src="js/upload.js"></script>
