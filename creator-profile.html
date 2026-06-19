@@ -38,6 +38,10 @@
         <div class="stat-label">Videos</div>
       </div>
       <div class="stat">
+        <div class="stat-number" id="following-count">0</div>
+        <div class="stat-label">Following</div>
+      </div>
+      <div class="stat">
         <div class="stat-number" id="followers-count">0</div>
         <div class="stat-label">Followers</div>
       </div>
@@ -92,6 +96,12 @@
             Query.equal('followingId', this.creatorId)
           ]);
           document.getElementById('followers-count').textContent = followers.total;
+
+          // Load FOLLOWING count (creators this user follows)
+          const following = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [
+            Query.equal('followerId', this.creatorId)
+          ]);
+          document.getElementById('following-count').textContent = following.total;
 
           // Load videos first to calculate total views
           await this.loadVideos();
