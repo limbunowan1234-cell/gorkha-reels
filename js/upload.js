@@ -170,8 +170,8 @@ class SimpleUpload {
       this.selectedFile = file;
       this.blobUrl = URL.createObjectURL(file);
       
-      // ✅ SEND TO EDITOR (professional editing)
-      this.sendToEditor();
+      // ✅ GO DIRECTLY TO DETAILS (no editor)
+      this.showDetailsStep();
     };
     
     video.onerror = () => {
@@ -182,47 +182,26 @@ class SimpleUpload {
     video.src = URL.createObjectURL(file);
   }
 
-  // ===== SEND TO EDITOR =====
-  sendToEditor() {
+  // ===== SKIP EDITOR, GO TO DETAILS =====
+  showDetailsStep() {
     try {
-      console.log('📤 Sending video to editor...');
+      const stepPick = document.getElementById('step-pick');
+      const stepDetails = document.getElementById('step-details');
+      const videoPreview = document.getElementById('video-preview');
+      const headerTitle = document.getElementById('upload-header-title');
+      const changeBtn = document.getElementById('change-video-btn');
+
+      stepPick.style.display = 'none';
+      stepDetails.style.display = 'flex';
+      if (headerTitle) headerTitle.textContent = 'Add Details';
       
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          // Convert to base64 in chunks (prevents stack overflow)
-          const arr = new Uint8Array(e.target.result);
-          const chunkSize = 32768; // 32KB chunks
-          let binary = '';
-          
-          for (let i = 0; i < arr.length; i += chunkSize) {
-            binary += String.fromCharCode.apply(null, arr.subarray(i, i + chunkSize));
-          }
-          
-          const videoData = btoa(binary);
-          console.log('✅ Video encoded:', videoData.length, 'bytes');
-          
-          localStorage.setItem('editorVideoData', videoData);
-          localStorage.setItem('uploadWizardStep', '2');
-          
-          console.log('✅ Video ready for editor');
-          window.location.href = './video-editor.html';
-        } catch(encodeErr) {
-          console.error('❌ Encoding error:', encodeErr.message);
-          Toast.error('File too large for editor');
-          this.showDetailsStep();
-        }
-      };
-      reader.onerror = () => {
-        console.error('❌ FileReader error');
-        Toast.error('Failed to read video file');
-        this.showDetailsStep();
-      };
-      reader.readAsArrayBuffer(this.selectedFile);
+      videoPreview.src = this.blobUrl;
+      
+      changeBtn.onclick = () => this.showPickStep();
+
+      console.log('✅ Details step shown');
     } catch(err) {
-      console.error('❌ Editor send error:', err);
-      Toast.error(`Error: ${err.message}`);
-      this.showDetailsStep(); // Fallback if editor not available
+      console.error('❌ showDetailsStep error:', err);
     }
   }
 
@@ -269,26 +248,6 @@ class SimpleUpload {
 
       console.log('🚀 Starting upload...');
 
-      // ✅ CHECK IF VIDEO WAS EDITED
-      const isEdited = localStorage.getItem('videoEdits');
-      let uploadFile = this.selectedFile;
-      let actualDuration = this.videoDuration;
-      let videoEdits = null;
-
-      if (isEdited) {
-        console.log('🎬 Video was edited in editor');
-        videoEdits = JSON.parse(isEdited);
-        
-        // If trimmed, use trimmed duration
-        if (videoEdits.trim) {
-          actualDuration = Math.floor(videoEdits.trim.end - videoEdits.trim.start);
-          console.log('✂️ Trimmed duration:', actualDuration);
-        }
-        
-        // Clear edit data
-        localStorage.removeItem('videoEdits');
-      }
-
       // Upload to Bunny CDN
       const fileName = `${session.getUserId()}_${Date.now()}_${this.selectedFile.name}`;
       console.log('📤 Uploading to Bunny:', fileName);
@@ -322,7 +281,7 @@ class SimpleUpload {
         shares: 0,
         
         // === VIDEO PROPERTIES ===
-        duration: actualDuration, // ✅ Correct duration (trimmed or original)
+        duration: this.videoDuration,
         
         // === CREATOR INFO ===
         creatorName: session.currentUser?.name || 'Anonymous',
@@ -332,17 +291,12 @@ class SimpleUpload {
         isMonetised: false,
         adRevenue: 0,
         
-        // === EDITS METADATA ===
-        hasEdits: !!videoEdits,
-        videoEdits: videoEdits ? JSON.stringify(videoEdits) : '',
-        
         // === SYSTEM FLAGS ===
         uploadedAt: new Date().toISOString(),
         isDeleted: false
       };
 
       console.log('💾 Saving to Appwrite with reelId:', reelId);
-      console.log('📋 Video edits:', videoEdits ? 'Yes' : 'No');
       
       const result = await db.create(APPWRITE_CONFIG.COLLECTIONS.REELS, reelData, reelId);
       console.log('✅ Saved successfully:', result.$id);
