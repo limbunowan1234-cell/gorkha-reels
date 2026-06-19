@@ -2,51 +2,72 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Trending</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trending - GorkhaReels</title>
   <link rel="icon" type="image/png" href="assets/logo.png">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #0f0f0f; color: #fff; font-family: system-ui; padding-bottom: 70px; }
+    body { background: #0f0f0f; color: #fff; font-family: system-ui; }
 
-    /* Header */
     header {
-      display: flex;
-      align-items: center;
-      padding: 10px 16px;
-      background: #0f0f0f;
-      border-bottom: 1px solid #1a1a1a;
-      gap: 12px;
       position: sticky;
       top: 0;
-      z-index: 50;
+      background: #1a1a1a;
+      padding: 12px 16px;
+      border-bottom: 1px solid #2d2d2d;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
-    .logo { height: 36px; width: auto; cursor: pointer; }
-    .header-title { font-size: 14px; font-weight: 700; color: #fbbf24; flex: 1; }
-    .header-btn { background: none; border: none; color: #a3a3a3; font-size: 18px; cursor: pointer; padding: 4px 8px; }
-
-    /* Feed */
-    .feed {
-      max-width: 600px;
-      margin: 0 auto;
-      padding: 8px;
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
 
-    /* Grid */
+    .logo {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+    }
+
+    .header-title {
+      font-size: 16px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .header-right {
+      display: flex;
+      gap: 12px;
+    }
+
+    .icon-btn {
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      color: #fff;
+    }
+
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
       gap: 8px;
+      padding: 12px;
+      margin-bottom: 80px;
     }
 
-    /* Thumbnail */
     .thumbnail {
       position: relative;
-      aspect-ratio: 9 / 16;
-      background: #1a1a1a;
+      aspect-ratio: 9/16;
       border-radius: 8px;
       overflow: hidden;
+      background: #1a1a1a;
       cursor: pointer;
       transition: transform 0.2s;
     }
@@ -66,20 +87,19 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 40px;
-      height: 40px;
-      background: rgba(220, 38, 38, 0.8);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-      opacity: 0;
-      transition: opacity 0.2s;
+      font-size: 36px;
+      opacity: 0.8;
     }
 
-    .thumbnail:hover .play-icon {
-      opacity: 1;
+    .trending-badge {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      background: linear-gradient(135deg, #dc2626, #991b1b);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 700;
     }
 
     .thumbnail-overlay {
@@ -87,166 +107,134 @@
       bottom: 0;
       left: 0;
       right: 0;
-      background: linear-gradient(transparent, rgba(0,0,0,0.8));
-      padding: 12px 8px;
-      font-size: 11px;
+      background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+      padding: 12px 8px 8px;
     }
 
     .thumbnail-title {
+      font-size: 11px;
       font-weight: 600;
-      margin-bottom: 2px;
+      white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      white-space: nowrap;
     }
 
     .thumbnail-stats {
       font-size: 9px;
-      color: #999;
+      color: #ccc;
+      margin-top: 2px;
     }
 
-    /* Badge */
-    .trending-badge {
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      background: #dc2626;
-      color: #fff;
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-size: 9px;
-      font-weight: 600;
-    }
-
-    /* Bottom Nav */
-    .bottom-nav {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 60px;
-      background: #0f0f0f;
-      border-top: 1px solid #1a1a1a;
-      display: flex;
-      justify-content: space-around;
-      z-index: 40;
-    }
-
-    .nav-item {
-      background: none;
-      border: none;
-      color: #a3a3a3;
-      font-size: 20px;
-      cursor: pointer;
-      padding: 8px;
-    }
-
-    .nav-create {
-      width: 50px;
-      height: 50px;
-      background: #dc2626;
-      border-radius: 50%;
-      color: #fff;
-      font-size: 24px;
-      margin-bottom: 8px;
-    }
-
-    /* Menu */
-    .menu-dropdown {
-      display: none;
-      position: fixed;
-      top: 50px;
-      right: 12px;
-      background: #1a1a1a;
-      border: 1px solid #2d2d2d;
-      border-radius: 8px;
-      min-width: 160px;
-      z-index: 100;
-    }
-
-    .menu-item {
-      width: 100%;
-      padding: 10px 12px;
-      background: none;
-      border: none;
-      color: #fff;
-      text-align: left;
-      font-size: 12px;
-      cursor: pointer;
-      border-bottom: 1px solid #2d2d2d;
-    }
-
-    .menu-item:last-child { border-bottom: none; }
-    .menu-item:active { background: #2d2d2d; }
-
-    /* Loading */
     .loading {
-      text-align: center;
-      padding: 40px 20px;
-      color: #999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 400px;
+      gap: 12px;
     }
 
     .spinner {
-      display: inline-block;
-      width: 20px;
-      height: 20px;
-      border: 2px solid #333;
+      width: 40px;
+      height: 40px;
+      border: 3px solid #2d2d2d;
       border-top-color: #dc2626;
       border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      margin-bottom: 10px;
+      animation: spin 1s linear infinite;
     }
 
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
+
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #1a1a1a;
+      border-top: 1px solid #2d2d2d;
+      display: flex;
+      justify-content: space-around;
+      padding: 8px 0;
+      z-index: 100;
+    }
+
+    .nav-item {
+      background: none;
+      border: none;
+      color: #999;
+      cursor: pointer;
+      padding: 8px 12px;
+      font-size: 20px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .nav-item.active {
+      color: #dc2626;
+    }
+
+    .nav-label {
+      font-size: 10px;
+    }
+
+    @media (max-width: 600px) {
+      .grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      }
+    }
   </style>
 </head>
 <body>
-  <!-- Header -->
   <header>
-    <img src="assets/logo.png" alt="Logo" class="logo" onclick="location.href='./index.html'">
-    <div class="header-title">🔥 TRENDING</div>
-    <button class="header-btn" onclick="location.href='./search-videos.html'">🔍</button>
-    <button class="header-btn" onclick="location.href='./creator-dashboard.html'">👤</button>
-    <button class="header-btn" onclick="toggleMenu()">⋮</button>
+    <div class="header-left">
+      <img class="logo" src="assets/logo.png" alt="Logo">
+      <div class="header-title">🔥 TRENDING</div>
+    </div>
+    <div class="header-right">
+      <button class="icon-btn" onclick="window.location='search-videos.html'">🔍</button>
+      <button class="icon-btn" onclick="window.location='creator-dashboard.html'">👤</button>
+      <button class="icon-btn" onclick="alert('Menu coming soon')">⋮</button>
+    </div>
   </header>
 
-  <!-- Menu -->
-  <div id="menu" class="menu-dropdown">
-    <button class="menu-item" onclick="location.href='./upload.html'">🎬 Upload</button>
-    <button class="menu-item" onclick="location.href='./creator-dashboard.html'">👤 Profile</button>
-    <button class="menu-item" onclick="location.href='./search-videos.html'">🔍 Search</button>
-    <button class="menu-item" onclick="logout()">🚪 Logout</button>
-  </div>
-
-  <!-- Feed -->
-  <div class="feed">
-    <div class="grid" id="grid">
-      <div class="loading">
-        <div class="spinner"></div>
-        <p>Loading trending...</p>
-      </div>
+  <div class="grid" id="grid">
+    <div class="loading">
+      <div class="spinner"></div>
+      <p>Loading trending videos...</p>
     </div>
   </div>
 
-  <!-- Bottom Nav -->
   <nav class="bottom-nav">
-    <button class="nav-item" onclick="location.href='./index.html'">🏠</button>
-    <button class="nav-item nav-create" onclick="location.href='./upload.html'">+</button>
-    <button class="nav-item" onclick="location.href='./trending.html'" style="color: #dc2626;">🔥</button>
+    <button class="nav-item" onclick="window.location='index.html'">
+      <span>🏠</span>
+      <span class="nav-label">Home</span>
+    </button>
+    <button class="nav-item" onclick="window.location='upload.html'">
+      <span>➕</span>
+      <span class="nav-label">Create</span>
+    </button>
+    <button class="nav-item active" onclick="window.location='trending.html'">
+      <span>🔥</span>
+      <span class="nav-label">Trending</span>
+    </button>
   </nav>
 
   <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
   <script src="js/appwrite-config.js"></script>
-  <script src="js/thumbnail-generator.js"></script>
+  <script src="js/thumbnail-utils.js"></script>
   <script>
     async function init() {
       try {
         await session.refresh();
-        loadTrending();
+        await loadTrending();
       } catch (err) {
         console.error('Init error:', err);
+        showError('Error loading trending');
       }
     }
 
@@ -254,22 +242,26 @@
       try {
         const reels = await db.list(
           APPWRITE_CONFIG.COLLECTIONS.REELS,
-          [Query.orderDesc('views'), Query.limit(100)]
+          [Query.orderDesc('views'), Query.limit(50)]
         );
 
+        if (!reels.documents.length) {
+          document.getElementById('grid').innerHTML = '<div class="loading"><p>No trending videos</p></div>';
+          return;
+        }
+
         let html = '';
+        
         for (let index = 0; index < reels.documents.length; index++) {
           const reel = reels.documents[index];
           const rank = index + 1;
+          const thumbnail = await generateThumbnailFromVideo(reel.videoUrl);
           
-          // Generate thumbnail from video
-          const thumbnail = await loadVideoThumbnail(reel.videoUrl, 'assets/placeholder.svg');
-
           html += `
             <div class="thumbnail" onclick="openVideo('${reel.$id}')">
-              <img src="${thumbnail}" alt="Thumbnail" style="object-fit: cover;">
+              <img src="${thumbnail}" alt="Video">
               <div class="trending-badge">#${rank}</div>
-              <div class="play-icon">▶</div>
+              <div class="play-icon">▶️</div>
               <div class="thumbnail-overlay">
                 <div class="thumbnail-title">${reel.title}</div>
                 <div class="thumbnail-stats">${reel.views || 0} views</div>
@@ -278,41 +270,26 @@
           `;
         }
 
-        document.getElementById('grid').innerHTML = html || '<div class="loading"><p>No trending videos</p></div>';
+        document.getElementById('grid').innerHTML = html;
       } catch (err) {
         console.error('Load error:', err);
-        document.getElementById('grid').innerHTML = '<div class="loading"><p>Error loading trending</p></div>';
+        showError('Error loading trending');
       }
     }
 
     function openVideo(reelId) {
-      window.location.href = `./video-modal.html?id=${reelId}`;
+      window.location = `video-modal.html?id=${reelId}`;
     }
 
-    function toggleMenu() {
-      const menu = document.getElementById('menu');
-      menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+    function showError(msg) {
+      document.getElementById('grid').innerHTML = `<div class="loading"><p>${msg}</p></div>`;
     }
 
-    async function logout() {
-      if (confirm('Logout?')) {
-        try {
-          await session.logout();
-          window.location.href = './login.html';
-        } catch (err) {
-          alert('Logout failed');
-        }
-      }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
     }
-
-    document.addEventListener('click', (e) => {
-      const menu = document.getElementById('menu');
-      if (!menu.contains(e.target) && !e.target.matches('.header-btn')) {
-        menu.style.display = 'none';
-      }
-    });
-
-    init();
   </script>
 </body>
 </html>
