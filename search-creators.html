@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Search and discover Gorkha creators on GorkhaReels">
+  <title>Search Creators - GorkhaReels</title>
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #0f0f0f;
+      color: #fff;
+      font-family: system-ui, -apple-system, sans-serif;
+      padding-bottom: 100px;
+    }
+
+    .search-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: #0f0f0f;
+      border-bottom: 1px solid #2d2d2d;
+      padding: 12px 16px;
+    }
+
+    .search-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #1a1a1a;
+      border: 1px solid #3f3f3f;
+      border-radius: 12px;
+      padding: 10px 14px;
+      margin-bottom: 8px;
+    }
+
+    .search-box input {
+      flex: 1;
+      background: none;
+      border: none;
+      outline: none;
+      color: #fff;
+      font-size: 15px;
+    }
+
+    .search-box input::placeholder {
+      color: #737373;
+    }
+
+    .search-clear {
+      background: none;
+      border: none;
+      color: #737373;
+      font-size: 16px;
+      cursor: pointer;
+      display: none;
+    }
+
+    .search-clear.show {
+      display: block;
+    }
+
+    .back-btn {
+      background: none;
+      border: none;
+      color: #a3a3a3;
+      font-size: 24px;
+      cursor: pointer;
+      padding: 4px 8px;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+      padding: 0 16px;
+    }
+
+    .results-section {
+      padding: 16px 0;
+    }
+
+    .results-header {
+      font-size: 12px;
+      font-weight: 600;
+      color: #737373;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      padding: 0 16px;
+    }
+
+    .creator-card {
+      background: #1a1a1a;
+      border: 1px solid #2d2d2d;
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 12px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .creator-card:hover {
+      background: #252525;
+    }
+
+    .creator-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: #333;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    .creator-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .creator-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .creator-name-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+
+    .creator-name {
+      font-weight: 600;
+      font-size: 14px;
+      color: #fff;
+    }
+
+    .creator-username {
+      font-size: 12px;
+      color: #737373;
+      margin-bottom: 4px;
+    }
+
+    .creator-bio {
+      font-size: 13px;
+      color: #a3a3a3;
+      line-height: 1.4;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+
+    .creator-stats {
+      display: flex;
+      gap: 12px;
+      font-size: 12px;
+      color: #737373;
+      margin-top: 6px;
+    }
+
+    .creator-action {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .follow-btn {
+      padding: 6px 16px;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .follow-btn.follow {
+      background: #dc2626;
+      color: white;
+    }
+
+    .follow-btn.follow:hover {
+      background: #b91c1c;
+    }
+
+    .follow-btn.following {
+      background: #2d2d2d;
+      color: #fff;
+      border: 1px solid #3f3f3f;
+    }
+
+    .follow-btn.following:hover {
+      background: #3f3f3f;
+    }
+
+    .follow-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .verified-badge {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      background: #dc2626;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      color: white;
+      font-weight: 700;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #737373;
+    }
+
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+
+    .empty-state-text {
+      font-size: 14px;
+      margin-bottom: 6px;
+    }
+
+    .empty-state-subtext {
+      font-size: 12px;
+      color: #525252;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px 20px;
+      color: #737373;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+      border: 2px solid #3f3f3f;
+      border-top-color: #dc2626;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 12px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .error-message {
+      background: rgba(220, 38, 38, 0.1);
+      border: 1px solid rgba(220, 38, 38, 0.3);
+      color: #fca5a5;
+      padding: 12px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      margin: 16px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Search Header -->
+  <div class="search-header">
+    <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 12px;">
+      <button class="back-btn" onclick="window.location.href='./index.html'">←</button>
+      <h1 style="font-size: 18px; font-weight: 700; flex: 1;">Search Creators</h1>
+    </div>
+
+    <div class="search-box">
+      <span style="font-size: 16px;">🔍</span>
+      <input
+        id="search-input"
+        type="text"
+        placeholder="Search by name or username..."
+        autocomplete="off"
+      >
+      <button class="search-clear" id="clear-btn" onclick="document.getElementById('search-input').value=''; window.searchCreators && window.searchCreators.search('')">✕</button>
+    </div>
+  </div>
+
+  <!-- Results Container -->
+  <div class="container">
+    <div id="results-container">
+      <div class="empty-state">
+        <div class="empty-state-icon">🎬</div>
+        <div class="empty-state-text">Find creators</div>
+        <div class="empty-state-subtext">Search for creators to follow and discover</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
+  <script src="js/appwrite-config.js"></script>
+  <script src="js/search-creators.js"></script>
+</body>
+</html>
