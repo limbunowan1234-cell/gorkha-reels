@@ -188,7 +188,6 @@
             if (existing.total === 0) {
               await db.create(
                 APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS,
-                ID.unique(),
                 {
                   followId: ID.unique(),
                   followerID: userId,
@@ -196,6 +195,7 @@
                   CreatorId: this.creatorId,
                   createdAt: new Date().toISOString()
                 },
+                null,
                 [
                   Permission.read(Role.any()),
                   Permission.delete(Role.user(userId))
