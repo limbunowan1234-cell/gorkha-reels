@@ -263,7 +263,7 @@
         const thumbnail = reel.thumbnail || 'assets/placeholder.svg';
         html += `
           <div class="thumbnail" onclick="openVideo('${reel.$id}')">
-            <img src="${thumbnail}" onerror="this.src='assets/placeholder.svg'">
+            <img src="assets/placeholder.svg" onerror="this.src='assets/placeholder.svg'">
             <div class="play-icon">▶</div>
             <div class="thumbnail-overlay">
               <div class="thumbnail-title">${reel.title}</div>
