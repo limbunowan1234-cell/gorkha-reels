@@ -2,6 +2,12 @@
  * GorkhaReels - Simple Upload (Instagram-style)
  * 2 steps: Pick Video → Add Details → Post
  * Uses: bunny (from appwrite-config.js), session, db, Toast
+ * 
+ * FIXES APPLIED:
+ * ✅ hashtags: [] → hashtags: '' (STRING, not array)
+ * ✅ isMonetised → isMonetized (correct American spelling)
+ * ✅ duration: 120 → duration: videoDuration (capture actual video length)
+ * ✅ Added detailed error logging for debugging
  */
 
 class SimpleUpload {
@@ -9,6 +15,7 @@ class SimpleUpload {
     console.log('🏗️ Creating SimpleUpload instance...');
     this.selectedFile = null;
     this.blobUrl = null;
+    this.videoDuration = 0;
     this.uploadRetries = 0;
     this.maxRetries = 3;
     this.init();
@@ -164,6 +171,10 @@ class SimpleUpload {
         return;
       }
       
+      // ✅ Store actual duration for later
+      this.videoDuration = Math.floor(video.duration);
+      console.log('✅ Video duration stored:', this.videoDuration);
+      
       console.log('✅ File validation passed');
       this.selectedFile = file;
       this.blobUrl = URL.createObjectURL(file);
@@ -247,15 +258,17 @@ class SimpleUpload {
         views: 0,
         comments: 0,
         shares: 0,
-        hashtags: [],
-        duration: 120,
-        isMonetised: false,
+        hashtags: '', // ✅ FIXED: Must be STRING (empty string), not array
+        duration: this.videoDuration, // ✅ FIXED: Use actual captured duration
+        isMonetized: false, // ✅ FIXED: Correct American spelling (was "isMonetised")
         adRevenue: 0
       };
 
       console.log('💾 Saving to Appwrite with reelId:', reelId);
+      console.log('📋 Reel data:', JSON.stringify(reelData, null, 2));
+      
       const result = await db.create(APPWRITE_CONFIG.COLLECTIONS.REELS, reelData, reelId);
-      console.log('✅ Saved:', result.$id);
+      console.log('✅ Saved successfully:', result.$id);
 
       Toast.success('Reel posted! 🎉');
       setTimeout(() => {
@@ -264,6 +277,12 @@ class SimpleUpload {
 
     } catch(err) {
       console.error('❌ Post error:', err);
+      console.error('📌 Error details:', {
+        message: err.message,
+        code: err.code,
+        type: err.type,
+        response: err.response
+      });
       Toast.error(`Upload failed: ${err.message}`);
       const postBtn = document.getElementById('post-btn');
       postBtn.disabled = false;
