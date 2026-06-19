@@ -137,13 +137,21 @@ class FeedManager {
     const video = document.querySelector('video');
     const hint = document.querySelector('.unmute-hint');
 
-    // Apply current sound state
+    // Try to play WITH sound (works after first user interaction like swipe/tap)
     video.muted = !this.soundOn;
-    if (hint) {
-      hint.style.display = this.soundOn ? 'none' : 'flex';
-    }
 
-    // Tap video to toggle sound (applies to ALL videos this session)
+    video.play().then(() => {
+      // Played successfully - if we wanted sound and got it, hide hint
+      if (this.soundOn && hint) hint.style.display = 'none';
+    }).catch(() => {
+      // Browser blocked autoplay with sound - fall back to muted
+      video.muted = true;
+      this.soundOn = false;
+      video.play().catch(()=>{});
+      if (hint) { hint.style.display = 'flex'; hint.innerHTML = '🔇 Tap for sound'; }
+    });
+
+    // Tap video to toggle sound (stays on for the whole session)
     video.addEventListener('click', () => {
       this.soundOn = !this.soundOn;
       video.muted = !this.soundOn;
@@ -162,7 +170,6 @@ class FeedManager {
       e.stopPropagation();
       this.toggleLike(reel.$id);
     };
-    video.play().catch(()=>{});
   }
 
   async toggleLike(reelId) {
@@ -313,6 +320,8 @@ class FeedManager {
     document.addEventListener('touchend', e => {
       const diff = startY - e.changedTouches[0].clientY;
       if (Math.abs(diff) > 80) {
+        // A swipe is a user gesture — enable sound from here on
+        this.soundOn = true;
         if (diff > 0 && this.currentIndex < this.reels.length-1) {
           this.currentIndex++; this.displayCurrentVideo();
         } else if (diff < 0 && this.currentIndex > 0) {
