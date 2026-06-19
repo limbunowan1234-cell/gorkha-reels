@@ -26,85 +26,136 @@
     .header-title { font-size: 14px; font-weight: 700; color: #fbbf24; flex: 1; }
     .header-btn { background: none; border: none; color: #a3a3a3; font-size: 18px; cursor: pointer; padding: 4px 8px; }
 
-    /* Feed */
+    /* Feed Container */
     .feed {
-      max-width: 600px;
+      max-width: 500px;
       margin: 0 auto;
-      padding: 8px;
+      padding: 0;
     }
 
-    /* Grid */
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-      gap: 8px;
-    }
-
-    /* Video Thumbnail */
-    .thumbnail {
-      position: relative;
-      aspect-ratio: 9 / 16;
-      background: #1a1a1a;
+    /* Post Card */
+    .post {
+      background: #0f0f0f;
+      margin: 12px 16px;
+      padding: 12px;
+      border: 1px solid #1a1a1a;
       border-radius: 8px;
-      overflow: hidden;
       cursor: pointer;
       transition: transform 0.2s;
     }
 
-    .thumbnail:active {
-      transform: scale(0.95);
+    .post:active {
+      transform: scale(0.98);
     }
 
-    .thumbnail img {
+    /* Creator Header */
+    .post-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .creator-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #333;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .creator-avatar img {
       width: 100%;
       height: 100%;
       object-fit: cover;
     }
 
-    /* Play Icon */
+    .creator-name {
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    /* Thumbnail */
+    .post-thumbnail {
+      width: 100%;
+      aspect-ratio: 9 / 16;
+      background: #1a1a1a;
+      border-radius: 6px;
+      overflow: hidden;
+      margin-bottom: 12px;
+      position: relative;
+    }
+
+    .post-thumbnail img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
     .play-icon {
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 40px;
-      height: 40px;
-      background: rgba(220, 38, 38, 0.8);
+      width: 50px;
+      height: 50px;
+      background: rgba(220, 38, 38, 0.9);
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 20px;
+      font-size: 24px;
       opacity: 0;
       transition: opacity 0.2s;
     }
 
-    .thumbnail:hover .play-icon {
+    .post:hover .play-icon {
       opacity: 1;
     }
 
-    /* Overlay */
-    .thumbnail-overlay {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: linear-gradient(transparent, rgba(0,0,0,0.8));
-      padding: 12px 8px;
-      font-size: 11px;
-    }
-
-    .thumbnail-title {
+    /* Title */
+    .post-title {
+      font-size: 12px;
       font-weight: 600;
-      margin-bottom: 2px;
+      margin-bottom: 8px;
+      line-height: 1.3;
       overflow: hidden;
       text-overflow: ellipsis;
-      white-space: nowrap;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
     }
 
-    .thumbnail-creator {
-      font-size: 9px;
-      color: #999;
+    /* Actions */
+    .post-actions {
+      display: flex;
+      gap: 16px;
+    }
+
+    .action-btn {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: none;
+      border: none;
+      color: #a3a3a3;
+      font-size: 12px;
+      cursor: pointer;
+      padding: 0;
+      transition: color 0.2s;
+    }
+
+    .action-btn:hover {
+      color: #fff;
+    }
+
+    .action-btn.liked {
+      color: #dc2626;
+    }
+
+    .action-icon {
+      font-size: 16px;
     }
 
     /* Bottom Nav */
@@ -210,12 +261,10 @@
   </div>
 
   <!-- Feed -->
-  <div class="feed">
-    <div class="grid" id="grid">
-      <div class="loading">
-        <div class="spinner"></div>
-        <p>Loading videos...</p>
-      </div>
+  <div class="feed" id="feed">
+    <div class="loading">
+      <div class="spinner"></div>
+      <p>Loading videos...</p>
     </div>
   </div>
 
@@ -248,27 +297,81 @@
         let html = '';
         reels.documents.forEach(reel => {
           const thumbnail = reel.thumbnail || reel.videoUrl;
+          const likes = (reel.likes || 0) >= 1000 ? Math.floor(reel.likes / 1000) + 'K' : (reel.likes || 0);
+          const comments = reel.comments || 0;
+
           html += `
-            <div class="thumbnail" onclick="openVideo('${reel.$id}')">
-              <img src="${thumbnail}" onerror="this.src='https://via.placeholder.com/150x267'">
-              <div class="play-icon">▶</div>
-              <div class="thumbnail-overlay">
-                <div class="thumbnail-title">${reel.title}</div>
-                <div class="thumbnail-creator">${reel.creatorName}</div>
+            <div class="post" onclick="openVideo('${reel.$id}')">
+              <!-- Creator Header -->
+              <div class="post-header">
+                <div class="creator-avatar">
+                  <img src="${reel.creatorProfilePic || 'assets/placeholder.svg'}" onerror="this.src='assets/placeholder.svg'">
+                </div>
+                <div class="creator-name">${reel.creatorName}</div>
+              </div>
+
+              <!-- Thumbnail -->
+              <div class="post-thumbnail">
+                <img src="${thumbnail}" onerror="this.src='assets/placeholder.svg'">
+                <div class="play-icon">▶️</div>
+              </div>
+
+              <!-- Title -->
+              <div class="post-title">${reel.title}</div>
+
+              <!-- Actions -->
+              <div class="post-actions">
+                <button class="action-btn" onclick="event.stopPropagation(); toggleLike(this, '${reel.$id}')">
+                  <span class="action-icon">❤️</span>
+                  <span>${likes}</span>
+                </button>
+                <button class="action-btn" onclick="event.stopPropagation(); alert('Comments opening...')">
+                  <span class="action-icon">💬</span>
+                  <span>${comments}</span>
+                </button>
+                <button class="action-btn" onclick="event.stopPropagation(); sharePost('${reel.title}', '${reel.videoUrl}')">
+                  <span class="action-icon">📤</span>
+                  <span>Share</span>
+                </button>
               </div>
             </div>
           `;
         });
 
-        document.getElementById('grid').innerHTML = html || '<div class="loading"><p>No videos yet</p></div>';
+        document.getElementById('feed').innerHTML = html || '<div class="loading"><p>No videos yet</p></div>';
       } catch (err) {
         console.error('Load error:', err);
-        document.getElementById('grid').innerHTML = '<div class="loading"><p>Error loading videos</p></div>';
+        document.getElementById('feed').innerHTML = '<div class="loading"><p>Error loading videos</p></div>';
       }
     }
 
     function openVideo(reelId) {
       window.location.href = `./video-modal.html?id=${reelId}`;
+    }
+
+    async function toggleLike(btn, postId) {
+      try {
+        await session.refresh();
+        btn.classList.toggle('liked');
+        const currentCount = parseInt(btn.querySelector('span:last-child').textContent) || 0;
+        btn.classList.contains('liked') 
+          ? btn.querySelector('span:last-child').textContent = currentCount + 1
+          : btn.querySelector('span:last-child').textContent = Math.max(0, currentCount - 1);
+      } catch (err) {
+        alert('Login to like');
+      }
+    }
+
+    function sharePost(title, url) {
+      if (navigator.share) {
+        navigator.share({
+          title: 'GorkhaReels',
+          text: title,
+          url: window.location.href
+        }).catch(err => console.error(err));
+      } else {
+        alert('Share: ' + title);
+      }
     }
 
     function toggleMenu() {
