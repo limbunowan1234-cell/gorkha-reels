@@ -296,7 +296,7 @@
 
         let html = '';
         reels.documents.forEach(reel => {
-          const thumbnail = reel.thumbnail || reel.videoUrl;
+          const thumbnail = reel.thumbnail || 'assets/placeholder.svg';
           const likes = (reel.likes || 0) >= 1000 ? Math.floor(reel.likes / 1000) + 'K' : (reel.likes || 0);
           const comments = reel.comments || 0;
 
