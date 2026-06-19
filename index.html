@@ -247,15 +247,13 @@
 
   <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
   <script src="js/appwrite-config.js"></script>
-  <script src="js/thumbnail-utils.js"></script>
   <script>
     async function init() {
       try {
         await session.refresh();
-        await loadVideos();
+        loadVideos();
       } catch (err) {
         console.error('Init error:', err);
-        showError('Error loading videos');
       }
     }
 
@@ -272,11 +270,7 @@
         }
 
         let html = '';
-        
-        // Load thumbnails in parallel
-        for (const reel of reels.documents) {
-          const thumbnail = await generateThumbnailFromVideo(reel.videoUrl);
-          
+        reels.documents.forEach(reel => {
           html += `
             <div class="post" onclick="openVideo('${reel.$id}')">
               <div class="post-header">
@@ -287,7 +281,7 @@
               </div>
 
               <div class="post-thumbnail">
-                <img src="${thumbnail}" alt="Video">
+                <img src="${reel.thumbnail || 'assets/placeholder.svg'}" alt="Video" onerror="this.src='assets/placeholder.svg'">
                 <div class="play-icon">▶️</div>
               </div>
 
@@ -309,12 +303,12 @@
               </div>
             </div>
           `;
-        }
+        });
 
         document.getElementById('feed').innerHTML = html;
       } catch (err) {
         console.error('Load error:', err);
-        showError('Error loading videos');
+        document.getElementById('feed').innerHTML = '<div class="loading"><p>Error loading videos</p></div>';
       }
     }
 
@@ -322,16 +316,8 @@
       window.location = `video-modal.html?id=${reelId}`;
     }
 
-    function showError(msg) {
-      document.getElementById('feed').innerHTML = `<div class="loading"><p>${msg}</p></div>`;
-    }
-
-    // Start when all scripts loaded
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', init);
-    } else {
-      init();
-    }
+    // Auto-init when page loads
+    document.addEventListener('DOMContentLoaded', init);
   </script>
 </body>
 </html>
