@@ -201,9 +201,9 @@ class FeedManager {
         ]);
 
         if (existing.documents.length === 0) {
-          // Your db.create signature is: create(collectionId, data, documentId, permissions)
-          // The wrapper auto-generates ID.unique() when documentId is null
+          // Your LIKES collection requires a 'likeId' field
           await db.create(APPWRITE_CONFIG.COLLECTIONS.LIKES, {
+            likeId: ID.unique(),
             userId: userId,
             reelId: reelId,
             creatorId: this.currentVideo.creatorId,
