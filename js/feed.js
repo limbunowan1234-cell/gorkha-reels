@@ -110,6 +110,12 @@ class FeedManager {
     document.getElementById('feed-container').innerHTML = `
       <div class="video-card">
         <video class="video-player" src="${reel.videoUrl}" loop playsinline autoplay muted style="width:100%;height:100vh;object-fit:cover"></video>
+
+        <!-- Tap to unmute hint -->
+        <div class="unmute-hint" style="position:absolute;top:80px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.7);color:white;padding:8px 16px;border-radius:20px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;pointer-events:none;transition:opacity 0.3s">
+          🔇 Tap for sound
+        </div>
+
         <div style="position:absolute;right:15px;bottom:120px;display:flex;flex-direction:column;gap:20px;align-items:center">
           <button class="like-btn" data-id="${reel.$id}" style="background:${isLiked?'#ff3b30':'rgba(0,0,0,0.6)'};border:none;width:55px;height:55px;border-radius:50%;color:white;font-size:26px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 10px rgba(0,0,0,0.3)">❤️</button>
           <div class="like-count" style="color:white;font-size:12px;margin-top:-15px">${reel.likes||0}</div>
@@ -127,8 +133,29 @@ class FeedManager {
       </div>
     `;
 
-    document.querySelector('.like-btn').onclick = () => this.toggleLike(reel.$id);
-    document.querySelector('video').play().catch(()=>{});
+    const video = document.querySelector('video');
+    const hint = document.querySelector('.unmute-hint');
+
+    // Tap video to toggle mute/unmute
+    video.addEventListener('click', () => {
+      video.muted = !video.muted;
+      if (hint) {
+        hint.innerHTML = video.muted ? '🔇 Tap for sound' : '🔊 Sound on';
+        hint.style.opacity = '1';
+        if (!video.muted) {
+          setTimeout(() => { hint.style.opacity = '0'; }, 1500);
+        }
+      }
+    });
+
+    document.querySelector('.like-btn').onclick = (e) => {
+      e.stopPropagation();
+      this.toggleLike(reel.$id);
+    };
+    video.play().catch(()=>{});
+
+    // Auto-hide hint after 3s
+    if (hint) setTimeout(() => { if (video.muted) hint.style.opacity = '0.5'; }, 3000);
   }
 
   async toggleLike(reelId) {
