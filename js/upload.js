@@ -14,12 +14,24 @@ class SimpleUpload {
   }
 
   async init() {
-    await session.refresh();
-    if (!session.isLoggedIn()) {
-      window.location.href = './login.html';
-      return;
+    try {
+      console.log('🔄 Refreshing session...');
+      await session.refresh();
+      console.log('✅ Session refreshed');
+      
+      if (!session.isLoggedIn()) {
+        console.warn('❌ Not logged in, redirecting...');
+        window.location.href = './login.html';
+        return;
+      }
+      
+      console.log('✅ User logged in');
+      this.showPickStep();
+      console.log('✅ Upload ready');
+    } catch(err) {
+      console.error('❌ Init failed:', err);
+      Toast.error(`Init failed: ${err.message}`);
     }
-    this.showPickStep();
   }
 
   // ===== STEP 1: PICK VIDEO =====
