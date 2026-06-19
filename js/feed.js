@@ -112,11 +112,6 @@ class FeedManager {
       <div class="video-card">
         <video class="video-player" src="${reel.videoUrl}" loop playsinline autoplay muted style="width:100%;height:100vh;object-fit:cover"></video>
 
-        <!-- Tap to unmute hint -->
-        <div class="unmute-hint" style="position:absolute;top:80px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.7);color:white;padding:8px 16px;border-radius:20px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;pointer-events:none;transition:opacity 0.3s">
-          🔇 Tap for sound
-        </div>
-
         <div style="position:absolute;right:15px;bottom:120px;display:flex;flex-direction:column;gap:20px;align-items:center">
           <button class="like-btn" data-id="${reel.$id}" style="background:${isLiked?'#ff3b30':'rgba(0,0,0,0.6)'};border:none;width:55px;height:55px;border-radius:50%;color:white;font-size:26px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 10px rgba(0,0,0,0.3)">❤️</button>
           <div class="like-count" style="color:white;font-size:12px;margin-top:-15px">${reel.likes||0}</div>
@@ -135,41 +130,12 @@ class FeedManager {
     `;
 
     const video = document.querySelector('video');
-    const hint = document.querySelector('.unmute-hint');
-
-    // Try to play WITH sound (works after first user interaction like swipe/tap)
-    video.muted = !this.soundOn;
-
-    video.play().then(() => {
-      // Played successfully - if we wanted sound and got it, hide hint
-      if (this.soundOn && hint) hint.style.display = 'none';
-    }).catch(() => {
-      // Browser blocked autoplay with sound - fall back to muted
-      video.muted = true;
-      this.soundOn = false;
-      video.play().catch(()=>{});
-      if (hint) { hint.style.display = 'flex'; hint.innerHTML = '🔇 Tap for sound'; }
-    });
-
-    // Tap video to toggle sound (stays on for the whole session)
-    video.addEventListener('click', () => {
-      this.soundOn = !this.soundOn;
-      video.muted = !this.soundOn;
-      if (hint) {
-        if (this.soundOn) {
-          hint.innerHTML = '🔊 Sound on';
-          setTimeout(() => { if (hint) hint.style.display = 'none'; }, 1000);
-        } else {
-          hint.innerHTML = '🔇 Tap for sound';
-          hint.style.display = 'flex';
-        }
-      }
-    });
 
     document.querySelector('.like-btn').onclick = (e) => {
       e.stopPropagation();
       this.toggleLike(reel.$id);
     };
+    video.play().catch(()=>{});
   }
 
   async toggleLike(reelId) {
@@ -320,8 +286,6 @@ class FeedManager {
     document.addEventListener('touchend', e => {
       const diff = startY - e.changedTouches[0].clientY;
       if (Math.abs(diff) > 80) {
-        // A swipe is a user gesture — enable sound from here on
-        this.soundOn = true;
         if (diff > 0 && this.currentIndex < this.reels.length-1) {
           this.currentIndex++; this.displayCurrentVideo();
         } else if (diff < 0 && this.currentIndex > 0) {
