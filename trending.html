@@ -147,41 +147,6 @@
       to { transform: rotate(360deg); }
     }
 
-    .bottom-nav {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: #1a1a1a;
-      border-top: 1px solid #2d2d2d;
-      display: flex;
-      justify-content: space-around;
-      padding: 8px 0;
-      z-index: 100;
-    }
-
-    .nav-item {
-      background: none;
-      border: none;
-      color: #999;
-      cursor: pointer;
-      padding: 8px 12px;
-      font-size: 20px;
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .nav-item.active {
-      color: #dc2626;
-    }
-
-    .nav-label {
-      font-size: 10px;
-    }
-
     @media (max-width: 600px) {
       .grid {
         grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
@@ -196,7 +161,7 @@
       <div class="header-title">🔥 TRENDING</div>
     </div>
     <div class="header-right">
-      <button class="icon-btn" onclick="window.location='search-videos.html'">🔍</button>
+      <button class="icon-btn" onclick="window.location='index.html'">🔍</button>
       <button class="icon-btn" onclick="window.location='creator-dashboard.html'">👤</button>
       <button class="icon-btn" onclick="alert('Menu coming soon')">⋮</button>
     </div>
@@ -209,32 +174,15 @@
     </div>
   </div>
 
-  <nav class="bottom-nav">
-    <button class="nav-item" onclick="window.location='index.html'">
-      <span>🏠</span>
-      <span class="nav-label">Home</span>
-    </button>
-    <button class="nav-item" onclick="window.location='upload.html'">
-      <span>➕</span>
-      <span class="nav-label">Create</span>
-    </button>
-    <button class="nav-item active" onclick="window.location='trending.html'">
-      <span>🔥</span>
-      <span class="nav-label">Trending</span>
-    </button>
-  </nav>
-
   <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
   <script src="js/appwrite-config.js"></script>
-  <script src="js/thumbnail-utils.js"></script>
   <script>
     async function init() {
       try {
         await session.refresh();
-        await loadTrending();
+        loadTrending();
       } catch (err) {
         console.error('Init error:', err);
-        showError('Error loading trending');
       }
     }
 
@@ -251,15 +199,11 @@
         }
 
         let html = '';
-        
-        for (let index = 0; index < reels.documents.length; index++) {
-          const reel = reels.documents[index];
+        reels.documents.forEach((reel, index) => {
           const rank = index + 1;
-          const thumbnail = await generateThumbnailFromVideo(reel.videoUrl);
-          
           html += `
             <div class="thumbnail" onclick="openVideo('${reel.$id}')">
-              <img src="${thumbnail}" alt="Video">
+              <img src="${reel.thumbnail || 'assets/placeholder.svg'}" alt="Video" onerror="this.src='assets/placeholder.svg'">
               <div class="trending-badge">#${rank}</div>
               <div class="play-icon">▶️</div>
               <div class="thumbnail-overlay">
@@ -268,12 +212,12 @@
               </div>
             </div>
           `;
-        }
+        });
 
         document.getElementById('grid').innerHTML = html;
       } catch (err) {
         console.error('Load error:', err);
-        showError('Error loading trending');
+        document.getElementById('grid').innerHTML = '<div class="loading"><p>Error loading trending</p></div>';
       }
     }
 
@@ -281,15 +225,8 @@
       window.location = `video-modal.html?id=${reelId}`;
     }
 
-    function showError(msg) {
-      document.getElementById('grid').innerHTML = `<div class="loading"><p>${msg}</p></div>`;
-    }
-
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', init);
-    } else {
-      init();
-    }
+    // Auto-init when page loads
+    document.addEventListener('DOMContentLoaded', init);
   </script>
 </body>
 </html>
