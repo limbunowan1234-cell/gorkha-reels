@@ -1,11 +1,6 @@
 /**
- * GorkhaReels - Simple Upload (Instagram-style)
- * Flow: Pick Video → Add Details → Post
- *
- * THUMBNAILS: A real JPEG is generated from the video frame at upload time
- * (while the file is still local — no CORS), uploaded to Bunny alongside the
- * video, and its URL saved into the `thumbnail` field. Display pages just read
- * reel.thumbnail — no canvas, no CORS, instant.
+ * GorkhaReels - Upload with Progress Tracking
+ * Shows upload speed, percentage, and estimated time remaining
  */
 
 class SimpleUpload {
@@ -14,8 +9,6 @@ class SimpleUpload {
     this.selectedFile = null;
     this.blobUrl = null;
     this.videoDuration = 0;
-    this.uploadRetries = 0;
-    this.maxRetries = 3;
     this.init();
   }
 
@@ -23,7 +16,6 @@ class SimpleUpload {
     try {
       console.log('🔄 Refreshing session...');
       await session.refresh();
-      console.log('✅ Session refreshed');
 
       if (!session.isLoggedIn()) {
         console.warn('❌ Not logged in, redirecting...');
@@ -42,21 +34,17 @@ class SimpleUpload {
     }
   }
 
-  // ===== STEP 1: PICK VIDEO =====
   showPickStep() {
     try {
       const stepPick = document.getElementById('step-pick');
       const stepDetails = document.getElementById('step-details');
       const input = document.getElementById('video-file-input');
       const dropzone = document.getElementById('dropzone');
-      const headerTitle = document.getElementById('upload-header-title');
 
       stepPick.style.display = 'flex';
       stepDetails.style.display = 'none';
-      if (headerTitle) headerTitle.textContent = 'New Reel';
 
       const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-      console.log('📱 Device type:', isMobile ? 'Mobile' : 'Desktop');
 
       const triggerFilePicker = () => {
         console.log('Opening file picker...');
@@ -64,45 +52,24 @@ class SimpleUpload {
           input.style.display = 'block';
           input.style.opacity = '0.01';
           input.style.position = 'absolute';
-          input.style.top = '0';
-          input.style.left = '0';
-          input.style.width = '100%';
-          input.style.height = '100%';
-          input.style.zIndex = '9999';
-
           input.click();
-
-          setTimeout(() => {
-            input.style.display = 'none';
-          }, 100);
+          setTimeout(() => { input.style.display = 'none'; }, 100);
         } catch(e) {
           console.warn('⚠️ Click failed:', e.message);
           input.style.display = 'block';
           input.style.opacity = '1';
           input.style.position = 'static';
-          input.style.width = '100%';
-          input.style.height = '100%';
-          input.style.zIndex = '9999';
         }
       };
 
       dropzone.onclick = triggerFilePicker;
-      dropzone.ontouchstart = (e) => {
-        console.log('📱 Touch detected on dropzone');
-      };
-      dropzone.ontouchend = (e) => {
-        e.preventDefault();
-        triggerFilePicker();
-      };
-
-      const selectBtn = dropzone.querySelector('.select-btn');
-      if (selectBtn) {
-        selectBtn.onclick = (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          triggerFilePicker();
-        };
-      }
+      
+      input.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files[0]) {
+          input.style.display = 'none';
+          this.handleFile(e.target.files[0]);
+        }
+      }, { passive: false });
 
       if (!isMobile) {
         dropzone.ondragover = (e) => {
@@ -117,23 +84,14 @@ class SimpleUpload {
         };
       }
 
-      input.addEventListener('change', (e) => {
-        console.log('📹 File input changed, files:', e.target.files.length);
-        if (e.target.files && e.target.files[0]) {
-          input.style.display = 'none';
-          this.handleFile(e.target.files[0]);
-        }
-      }, { passive: false });
-
-      console.log('✅ Pick step ready (Mobile: ' + isMobile + ')');
+      console.log('✅ Pick step ready');
     } catch(err) {
       console.error('❌ showPickStep error:', err);
     }
   }
 
-  // ===== FILE HANDLING =====
   handleFile(file) {
-    console.log('📹 Handling file:', file.name, file.size, file.type);
+    console.log('📹 Handling file:', file.name, (file.size / 1024 / 1024).toFixed(2) + ' MB');
 
     const allowed = ['video/mp4', 'video/webm', 'video/quicktime', 'video/mpeg'];
     if (!allowed.includes(file.type)) {
@@ -154,43 +112,33 @@ class SimpleUpload {
 
       if (video.duration > 120) {
         const m = Math.floor(video.duration / 60);
-        Toast.error(`Video is ${m}:${Math.floor(video.duration % 60)} — max 2 minutes`);
+        Toast.error(`Max 2 minutes (you: ${m}:${Math.floor(video.duration % 60)})`);
         return;
       }
 
       this.videoDuration = Math.floor(video.duration);
-      console.log('✅ Video duration stored:', this.videoDuration);
-
-      console.log('✅ File validation passed');
       this.selectedFile = file;
       this.blobUrl = URL.createObjectURL(file);
-
       this.showDetailsStep();
     };
 
     video.onerror = () => {
-      console.error('❌ Video error');
       Toast.error('Invalid video file');
     };
 
     video.src = URL.createObjectURL(file);
   }
 
-  // ===== STEP 2: DETAILS =====
   showDetailsStep() {
     try {
       const stepPick = document.getElementById('step-pick');
       const stepDetails = document.getElementById('step-details');
       const videoPreview = document.getElementById('video-preview');
-      const headerTitle = document.getElementById('upload-header-title');
       const changeBtn = document.getElementById('change-video-btn');
 
       stepPick.style.display = 'none';
       stepDetails.style.display = 'flex';
-      if (headerTitle) headerTitle.textContent = 'Add Details';
-
       videoPreview.src = this.blobUrl;
-
       changeBtn.onclick = () => this.showPickStep();
 
       console.log('✅ Details step shown');
@@ -199,8 +147,6 @@ class SimpleUpload {
     }
   }
 
-  // ===== THUMBNAIL GENERATION (from LOCAL file — no CORS) =====
-  // Returns a JPEG Blob of a frame, or null if it can't be produced.
   generateThumbnailBlob(file, seekTime = 1) {
     return new Promise((resolve) => {
       let settled = false;
@@ -213,8 +159,6 @@ class SimpleUpload {
 
       const url = URL.createObjectURL(file);
       const cleanup = () => { try { URL.revokeObjectURL(url); } catch(e){} };
-
-      // Safety timeout so a stuck decode never blocks the upload
       const timer = setTimeout(() => { cleanup(); done(null); }, 8000);
 
       video.onloadedmetadata = () => {
@@ -232,7 +176,7 @@ class SimpleUpload {
           canvas.toBlob((blob) => {
             clearTimeout(timer);
             cleanup();
-            done(blob); // null if the browser couldn't encode
+            done(blob);
           }, 'image/jpeg', 0.7);
         } catch(e) {
           clearTimeout(timer);
@@ -242,12 +186,56 @@ class SimpleUpload {
       };
 
       video.onerror = () => { clearTimeout(timer); cleanup(); done(null); };
-
       video.src = url;
     });
   }
 
-  // ===== POST VIDEO =====
+  // ===== UPLOAD WITH PROGRESS =====
+  uploadVideoWithProgress(file, fileName, statusBtn) {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      const startTime = Date.now();
+
+      xhr.upload.addEventListener('progress', (e) => {
+        if (e.lengthComputable) {
+          const percentComplete = Math.round((e.loaded / e.total) * 100);
+          const elapsed = (Date.now() - startTime) / 1000;
+          const rate = e.loaded / elapsed;
+          const remaining = (e.total - e.loaded) / rate;
+          const minutes = Math.floor(remaining / 60);
+          const seconds = Math.floor(remaining % 60);
+
+          statusBtn.textContent = `📹 Uploading ${percentComplete}% (${minutes}m ${seconds}s)`;
+          console.log(`Upload: ${percentComplete}% | Speed: ${(rate / 1024 / 1024).toFixed(2)} MB/s`);
+        }
+      });
+
+      xhr.addEventListener('load', () => {
+        if (xhr.status === 200) {
+          resolve({
+            success: true,
+            url: `${BUNNY_CONFIG.PULL_ZONE_URL}${fileName}`,
+            fileName: fileName
+          });
+        } else {
+          reject(new Error(`Upload failed: ${xhr.status}`));
+        }
+      });
+
+      xhr.addEventListener('error', () => {
+        reject(new Error('Upload failed - network error'));
+      });
+
+      xhr.addEventListener('abort', () => {
+        reject(new Error('Upload cancelled'));
+      });
+
+      xhr.open('PUT', `${BUNNY_CONFIG.STORAGE_ENDPOINT}${BUNNY_CONFIG.STORAGE_ZONE}/${fileName}`);
+      xhr.setRequestHeader('AccessKey', BUNNY_CONFIG.API_KEY);
+      xhr.send(file);
+    });
+  }
+
   async post() {
     try {
       if (!this.selectedFile) {
@@ -263,82 +251,63 @@ class SimpleUpload {
 
       const postBtn = document.getElementById('post-btn');
       postBtn.disabled = true;
-      postBtn.textContent = '⏳ Posting...';
 
-      console.log('🚀 Starting upload...');
+      console.log('🚀 Upload started');
+      console.log('📦 File:', (this.selectedFile.size / 1024 / 1024).toFixed(2) + ' MB');
 
-      // 1) Upload the video to Bunny
+      // 1) UPLOAD VIDEO WITH PROGRESS
       const fileName = `${session.getUserId()}_${Date.now()}_${this.selectedFile.name}`;
-      console.log('📤 Uploading video to Bunny:', fileName);
-      const uploadResult = await bunny.uploadVideo(this.selectedFile, fileName);
+      postBtn.textContent = '📹 Uploading video...';
+      
+      const uploadResult = await this.uploadVideoWithProgress(this.selectedFile, fileName, postBtn);
       console.log('✅ Video uploaded:', uploadResult.url);
 
-      // 2) Generate a real thumbnail from the LOCAL file and upload it
-      //    (local file = no CORS). Falls back to '' so display pages can
-      //    show the placeholder if anything goes wrong.
+      // 2) GENERATE THUMBNAIL (NON-BLOCKING)
       let thumbnailUrl = '';
+      postBtn.textContent = '🖼️ Processing thumbnail...';
+      
       try {
-        postBtn.textContent = '🖼️ Making thumbnail...';
         const thumbBlob = await this.generateThumbnailBlob(this.selectedFile, 1);
         if (thumbBlob) {
           const thumbName = `thumb_${session.getUserId()}_${Date.now()}.jpg`;
           const thumbResult = await bunny.uploadVideo(thumbBlob, thumbName);
           thumbnailUrl = thumbResult.url;
           console.log('✅ Thumbnail uploaded:', thumbnailUrl);
-        } else {
-          console.warn('⚠️ Thumbnail blob was null — saving without thumbnail');
         }
       } catch (thumbErr) {
-        console.warn('⚠️ Thumbnail step failed:', thumbErr.message);
+        console.warn('⚠️ Thumbnail failed (non-blocking):', thumbErr.message);
       }
 
-      postBtn.textContent = '⏳ Posting...';
+      postBtn.textContent = '⏳ Saving...';
 
-      // 3) Save to Appwrite
+      // 3) SAVE TO APPWRITE
       const reelId = ID.unique();
-
       const reelData = {
-        // === IDENTIFIERS ===
         reelId: reelId,
         creatorId: session.getUserId(),
-
-        // === VIDEO METADATA ===
         videoUrl: uploadResult.url,
-        thumbnail: thumbnailUrl,           // ← real image URL (or '' → placeholder)
+        thumbnail: thumbnailUrl,
         title: title,
         description: document.getElementById('post-description').value.trim() || '',
-
-        // === CATEGORIZATION ===
         category: document.getElementById('post-category').value || 'other',
         language: document.getElementById('post-language').value || 'Nepali',
         hashtags: '',
-
-        // === ENGAGEMENT METRICS ===
         views: 0,
         likes: 0,
         comments: 0,
         shares: 0,
-
-        // === VIDEO PROPERTIES ===
         duration: this.videoDuration,
-
-        // === CREATOR INFO ===
         creatorName: session.currentUser?.name || 'Anonymous',
         creatorProfilePic: session.currentUser?.prefs?.avatar || '',
-
-        // === MONETIZATION ===
         isMonetised: false,
         adRevenue: 0,
-
-        // === SYSTEM FLAGS ===
         uploadedAt: new Date().toISOString(),
         isDeleted: false
       };
 
-      console.log('💾 Saving to Appwrite with reelId:', reelId);
-
-      const result = await db.create(APPWRITE_CONFIG.COLLECTIONS.REELS, reelData, reelId);
-      console.log('✅ Saved successfully:', result.$id);
+      console.log('💾 Saving to Appwrite...');
+      await db.create(APPWRITE_CONFIG.COLLECTIONS.REELS, reelData, reelId);
+      console.log('✅ Saved!');
 
       Toast.success('Reel posted! 🎉');
       setTimeout(() => {
@@ -346,14 +315,8 @@ class SimpleUpload {
       }, 1500);
 
     } catch(err) {
-      console.error('❌ Post error:', err);
-      console.error('📌 Error details:', {
-        name: err.name,
-        message: err.message,
-        code: err.code,
-        type: err.type
-      });
-      Toast.error(`Upload failed: ${err.message}`);
+      console.error('❌ Post error:', err.message);
+      Toast.error(`Failed: ${err.message}`);
       const postBtn = document.getElementById('post-btn');
       postBtn.disabled = false;
       postBtn.textContent = '🚀 Post Reel';
@@ -361,7 +324,6 @@ class SimpleUpload {
   }
 }
 
-// Initialize when ready
 console.log('📦 Upload script loaded');
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
