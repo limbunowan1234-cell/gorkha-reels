@@ -26,9 +26,61 @@ class FeedManager {
         this.displayCurrentVideo();
         this.setupSwipe();
       }
+
+      // Wire up bottom navigation buttons
+      this.setupNavigation();
     } catch(e) {
       console.error('Init error:', e);
       Toast.error('Load failed: ' + e.message);
+    }
+  }
+
+  setupNavigation() {
+    document.querySelectorAll('.nav-item').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const nav = btn.dataset.nav;
+        switch(nav) {
+          case 'home':
+            // Reload feed
+            this.currentIndex = 0;
+            if (this.reels.length) this.displayCurrentVideo();
+            break;
+          case 'trending':
+            this.loadTrending();
+            break;
+          case 'create':
+            location.href = './upload.html';
+            break;
+          case 'profile':
+            location.href = './creator-dashboard.html';
+            break;
+        }
+      });
+    });
+  }
+
+  async loadTrending() {
+    try {
+      Toast.info('Loading trending 🔥');
+      const response = await db.list(APPWRITE_CONFIG.COLLECTIONS.REELS, [
+        Query.equal('isDeleted', false),
+        Query.orderDesc('views'),
+        Query.limit(20)
+      ]);
+      if (response.documents.length === 0) {
+        Toast.error('No trending videos yet');
+        return;
+      }
+      // Score by views + likes*3 + comments*2
+      this.reels = response.documents
+        .map(r => ({ ...r, _score: (r.views||0) + ((r.likes||0)*3) + ((r.comments||0)*2) }))
+        .sort((a,b) => b._score - a._score);
+      this.currentIndex = 0;
+      this.displayCurrentVideo();
+      Toast.success('Trending now 🔥');
+    } catch(e) {
+      console.error('Trending failed:', e);
+      Toast.error('Failed to load trending');
     }
   }
 
@@ -122,17 +174,14 @@ class FeedManager {
         ]);
 
         if (existing.documents.length === 0) {
-          // Only create if it doesn't already exist
-          await db.create(
-            APPWRITE_CONFIG.COLLECTIONS.LIKES,
-            ID.unique(),   // FIX: document ID goes HERE, not in the data
-            {
-              userId: userId,
-              reelId: reelId,
-              creatorId: this.currentVideo.creatorId,
-              createdAt: new Date().toISOString()
-            }
-          );
+          // Create like - let db wrapper handle the ID via ID.unique()
+          // NOTE: do NOT pass reelId as the document id (it can exceed 36 chars)
+          await db.create(APPWRITE_CONFIG.COLLECTIONS.LIKES, ID.unique(), {
+            userId: userId,
+            reelId: reelId,
+            creatorId: this.currentVideo.creatorId,
+            createdAt: new Date().toISOString()
+          });
         }
 
         this.likedReels.add(reelId);
@@ -156,6 +205,71 @@ class FeedManager {
       btn.style.background = this.likedReels.has(reelId) ? '#ff3b30' : 'rgba(0,0,0,0.6)';
     } finally {
       btn.dataset.busy = '0';
+    }
+  }
+
+  // Search button handler (header 🔍) — uses the search overlay in index.html
+  openSearch() {
+    const overlay = document.getElementById('search-overlay');
+    if (!overlay) return;
+    overlay.style.display = 'flex';
+    const input = document.getElementById('search-input-field');
+    if (input) {
+      setTimeout(() => input.focus(), 100);
+      input.oninput = (e) => this.handleSearchInput(e.target.value.trim());
+    }
+  }
+
+  closeSearch() {
+    const overlay = document.getElementById('search-overlay');
+    if (overlay) overlay.style.display = 'none';
+    const input = document.getElementById('search-input-field');
+    if (input) input.value = '';
+  }
+
+  handleSearchInput(query) {
+    const results = document.getElementById('search-results');
+    const clearBtn = document.getElementById('search-clear-btn');
+    if (clearBtn) clearBtn.style.display = query ? 'block' : 'none';
+    if (!results) return;
+
+    if (!query || query.length < 2) {
+      results.innerHTML = `<div style="text-align:center;color:#737373;padding:60px 20px;"><div style="font-size:40px;margin-bottom:12px;">🎬</div><p>Search for videos by title</p></div>`;
+      return;
+    }
+
+    const q = query.toLowerCase();
+    const matched = this.reels.filter(r =>
+      (r.title||'').toLowerCase().includes(q) ||
+      (r.description||'').toLowerCase().includes(q) ||
+      (r.category||'').toLowerCase().includes(q)
+    );
+
+    if (matched.length === 0) {
+      results.innerHTML = `<div style="text-align:center;color:#737373;padding:60px 20px;"><div style="font-size:40px;margin-bottom:12px;">😕</div><p>No videos found</p></div>`;
+      return;
+    }
+
+    results.innerHTML = matched.map(r => {
+      const idx = this.reels.findIndex(x => x.$id === r.$id);
+      return `
+      <div onclick="window.feedManager.playFromSearch(${idx})" style="display:flex;gap:12px;align-items:center;background:#1a1a1a;border-radius:12px;padding:10px;cursor:pointer;border:1px solid #2d2d2d;margin-bottom:10px;">
+        <div style="width:56px;height:72px;flex-shrink:0;border-radius:8px;overflow:hidden;background:#242424;">
+          <img src="${r.thumbnail || 'assets/logo.png'}" onerror="this.src='assets/logo.png'" style="width:100%;height:100%;object-fit:cover;">
+        </div>
+        <div style="flex:1;min-width:0;">
+          <p style="color:#fff;font-weight:600;font-size:14px;margin:0 0 4px;">${r.title || 'Untitled'}</p>
+          <p style="color:#a3a3a3;font-size:12px;margin:0;">👁️ ${r.views||0} · ❤️ ${r.likes||0}</p>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  playFromSearch(idx) {
+    this.closeSearch();
+    if (idx >= 0 && idx < this.reels.length) {
+      this.currentIndex = idx;
+      this.displayCurrentVideo();
     }
   }
 
