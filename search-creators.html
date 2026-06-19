@@ -2,43 +2,43 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Search Videos</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Search and discover Gorkha creators on GorkhaReels">
+  <title>Search Creators - GorkhaReels</title>
   <link rel="icon" type="image/png" href="assets/logo.png">
+  <link rel="stylesheet" href="css/styles.css">
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #0f0f0f; color: #fff; font-family: system-ui; padding-bottom: 0; }
-
-    /* Header */
-    .header {
-      display: flex;
-      gap: 8px;
-      padding: 10px 12px;
-      background: #0f0f0f;
-      border-bottom: 1px solid #1a1a1a;
-      position: sticky;
-      top: 0;
-      z-index: 50;
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
 
-    .back-btn {
-      background: none;
-      border: none;
-      color: #a3a3a3;
-      font-size: 18px;
-      cursor: pointer;
-      padding: 4px;
+    body {
+      background: #0f0f0f;
+      color: #fff;
+      font-family: system-ui, -apple-system, sans-serif;
+      padding-bottom: 100px;
+    }
+
+    .search-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: #0f0f0f;
+      border-bottom: 1px solid #2d2d2d;
+      padding: 12px 16px;
     }
 
     .search-box {
-      flex: 1;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
       background: #1a1a1a;
-      border: 1px solid #2d2d2d;
-      border-radius: 6px;
-      padding: 6px 10px;
+      border: 1px solid #3f3f3f;
+      border-radius: 12px;
+      padding: 10px 14px;
+      margin-bottom: 8px;
     }
 
     .search-box input {
@@ -47,128 +47,114 @@
       border: none;
       outline: none;
       color: #fff;
-      font-size: 13px;
+      font-size: 15px;
     }
 
-    .search-box input::placeholder { color: #666; }
+    .search-box input::placeholder {
+      color: #737373;
+    }
 
-    .clear-btn {
+    .search-clear {
       background: none;
       border: none;
-      color: #666;
-      font-size: 14px;
+      color: #737373;
+      font-size: 16px;
       cursor: pointer;
       display: none;
     }
 
-    .clear-btn.show { display: block; }
+    .search-clear.show {
+      display: block;
+    }
 
-    /* Content */
-    .content {
-      padding: 12px;
-      max-width: 600px;
+    .back-btn {
+      background: none;
+      border: none;
+      color: #a3a3a3;
+      font-size: 24px;
+      cursor: pointer;
+      padding: 4px 8px;
+    }
+
+    .container {
+      max-width: 500px;
       margin: 0 auto;
+      padding: 0 16px;
     }
 
-    /* Categories */
-    .categories {
-      display: flex;
-      gap: 8px;
-      overflow-x: auto;
-      margin-bottom: 16px;
-      padding: 8px 0;
-      -webkit-overflow-scrolling: touch;
+    .results-section {
+      padding: 16px 0;
     }
 
-    .category-btn {
-      padding: 8px 14px;
+    .results-header {
+      font-size: 12px;
+      font-weight: 600;
+      color: #737373;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      padding: 0 16px;
+    }
+
+    .creator-card {
       background: #1a1a1a;
       border: 1px solid #2d2d2d;
-      color: #a3a3a3;
-      border-radius: 20px;
-      font-size: 12px;
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 12px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
       cursor: pointer;
-      white-space: nowrap;
-      transition: all 0.2s;
+      transition: background 0.2s;
+    }
+
+    .creator-card:hover {
+      background: #252525;
+    }
+
+    .creator-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: #333;
       flex-shrink: 0;
-    }
-
-    .category-btn.active {
-      background: #dc2626;
-      border-color: #dc2626;
-      color: #fff;
-    }
-
-    /* Section Title */
-    .section-title {
-      font-size: 13px;
-      font-weight: 600;
-      margin: 16px 0 8px 0;
-      color: #e5e5e5;
-    }
-
-    /* Grid */
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-      gap: 8px;
-      margin-bottom: 16px;
-    }
-
-    /* Thumbnail */
-    .thumbnail {
-      position: relative;
-      aspect-ratio: 9 / 16;
-      background: #1a1a1a;
-      border-radius: 8px;
       overflow: hidden;
-      cursor: pointer;
-      transition: transform 0.2s;
     }
 
-    .thumbnail:active {
-      transform: scale(0.95);
-    }
-
-    .thumbnail img {
+    .creator-avatar img {
       width: 100%;
       height: 100%;
       object-fit: cover;
     }
 
-    .play-icon {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 32px;
-      height: 32px;
-      background: rgba(220, 38, 38, 0.8);
-      border-radius: 50%;
+    .creator-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .creator-name-row {
       display: flex;
       align-items: center;
-      justify-content: center;
-      font-size: 16px;
-      opacity: 0;
-      transition: opacity 0.2s;
+      gap: 6px;
+      margin-bottom: 4px;
     }
 
-    .thumbnail:hover .play-icon {
-      opacity: 1;
-    }
-
-    .thumbnail-overlay {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: linear-gradient(transparent, rgba(0,0,0,0.8));
-      padding: 8px;
-      font-size: 10px;
-    }
-
-    .thumbnail-title {
+    .creator-name {
       font-weight: 600;
+      font-size: 14px;
+      color: #fff;
+    }
+
+    .creator-username {
+      font-size: 12px;
+      color: #737373;
+      margin-bottom: 4px;
+    }
+
+    .creator-bio {
+      font-size: 13px;
+      color: #a3a3a3;
+      line-height: 1.4;
       overflow: hidden;
       text-overflow: ellipsis;
       display: -webkit-box;
@@ -176,164 +162,157 @@
       -webkit-box-orient: vertical;
     }
 
-    /* Empty */
-    .empty {
-      text-align: center;
-      padding: 40px 20px;
-      color: #666;
+    .creator-stats {
+      display: flex;
+      gap: 12px;
+      font-size: 12px;
+      color: #737373;
+      margin-top: 6px;
     }
 
-    .empty-icon { font-size: 32px; margin-bottom: 8px; }
+    .creator-action {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .follow-btn {
+      padding: 6px 16px;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .follow-btn.follow {
+      background: #dc2626;
+      color: white;
+    }
+
+    .follow-btn.follow:hover {
+      background: #b91c1c;
+    }
+
+    .follow-btn.following {
+      background: #2d2d2d;
+      color: #fff;
+      border: 1px solid #3f3f3f;
+    }
+
+    .follow-btn.following:hover {
+      background: #3f3f3f;
+    }
+
+    .follow-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .verified-badge {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      background: #dc2626;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      color: white;
+      font-weight: 700;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #737373;
+    }
+
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+
+    .empty-state-text {
+      font-size: 14px;
+      margin-bottom: 6px;
+    }
+
+    .empty-state-subtext {
+      font-size: 12px;
+      color: #525252;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px 20px;
+      color: #737373;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+      border: 2px solid #3f3f3f;
+      border-top-color: #dc2626;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 12px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .error-message {
+      background: rgba(220, 38, 38, 0.1);
+      border: 1px solid rgba(220, 38, 38, 0.3);
+      color: #fca5a5;
+      padding: 12px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      margin: 16px;
+    }
   </style>
 </head>
 <body>
-  <!-- Header -->
-  <div class="header">
-    <button class="back-btn" onclick="history.back()">←</button>
+  <!-- Search Header -->
+  <div class="search-header">
+    <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 12px;">
+      <button class="back-btn" onclick="window.location.href='./index.html'">←</button>
+      <h1 style="font-size: 18px; font-weight: 700; flex: 1;">Search Creators</h1>
+    </div>
+
     <div class="search-box">
-      <span>🔍</span>
-      <input id="search" type="text" placeholder="Search videos...">
-      <button class="clear-btn" id="clear" onclick="clearSearch()">✕</button>
+      <span style="font-size: 16px;">🔍</span>
+      <input
+        id="search-input"
+        type="text"
+        placeholder="Search by name or username..."
+        autocomplete="off"
+      >
+      <button class="search-clear" id="clear-btn" onclick="document.getElementById('search-input').value=''; window.searchCreators && window.searchCreators.search('')">✕</button>
     </div>
   </div>
 
-  <!-- Content -->
-  <div class="content">
-    <!-- Categories -->
-    <div class="categories" id="categories"></div>
-
-    <!-- Results -->
-    <div id="results">
-      <div class="section-title">Trending Now</div>
-      <div class="grid" id="trendingGrid"></div>
-
-      <div class="section-title">Recommended</div>
-      <div class="grid" id="recommendedGrid"></div>
+  <!-- Results Container -->
+  <div class="container">
+    <div id="results-container">
+      <div class="empty-state">
+        <div class="empty-state-icon">🎬</div>
+        <div class="empty-state-text">Find creators</div>
+        <div class="empty-state-subtext">Search for creators to follow and discover</div>
+      </div>
     </div>
   </div>
 
+  <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
   <script src="js/appwrite-config.js"></script>
-  <script>
-    const CATEGORIES = ['All', 'Music', 'Comedy', 'Moto', 'Lifestyle', 'Sports', 'Dance', 'Cooking', 'Travel', 'Gaming'];
-    let selectedCategory = 'All';
-    let debounce;
-
-    async function init() {
-      loadCategories();
-      loadTrendingAndRecommended();
-    }
-
-    function loadCategories() {
-      let html = '';
-      CATEGORIES.forEach(cat => {
-        html += `
-          <button class="category-btn ${cat === 'All' ? 'active' : ''}" onclick="selectCategory('${cat}')">
-            ${cat}
-          </button>
-        `;
-      });
-      document.getElementById('categories').innerHTML = html;
-    }
-
-    async function loadTrendingAndRecommended() {
-      try {
-        // Trending (most views)
-        const trending = await db.list(
-          APPWRITE_CONFIG.COLLECTIONS.REELS,
-          [Query.orderDesc('views'), Query.limit(12)]
-        );
-
-        // Recommended (recent)
-        const recommended = await db.list(
-          APPWRITE_CONFIG.COLLECTIONS.REELS,
-          [Query.orderDesc('uploadedAt'), Query.limit(12)]
-        );
-
-        renderThumbnails('trendingGrid', trending.documents);
-        renderThumbnails('recommendedGrid', recommended.documents);
-      } catch (err) {
-        console.error('Load error:', err);
-      }
-    }
-
-    function renderThumbnails(elementId, reels) {
-      let html = '';
-      reels.forEach(reel => {
-        const thumbnail = reel.thumbnail || reel.videoUrl;
-        html += `
-          <div class="thumbnail" onclick="openVideo('${reel.$id}')">
-            <img src="${thumbnail}" onerror="this.src='https://via.placeholder.com/120x213'">
-            <div class="play-icon">▶</div>
-            <div class="thumbnail-overlay">
-              <div class="thumbnail-title">${reel.title}</div>
-            </div>
-          </div>
-        `;
-      });
-      document.getElementById(elementId).innerHTML = html;
-    }
-
-    function selectCategory(cat) {
-      selectedCategory = cat;
-      document.querySelectorAll('.category-btn').forEach(btn => {
-        btn.classList.remove('active');
-      });
-      event.target.classList.add('active');
-      loadTrendingAndRecommended();
-    }
-
-    document.getElementById('search').addEventListener('input', (e) => {
-      const query = e.target.value.trim();
-      document.getElementById('clear').classList.toggle('show', query.length > 0);
-      
-      clearTimeout(debounce);
-      if (query.length > 0) {
-        debounce = setTimeout(() => searchVideos(query), 300);
-      } else {
-        loadTrendingAndRecommended();
-      }
-    });
-
-    async function searchVideos(query) {
-      try {
-        const results = await db.list(
-          APPWRITE_CONFIG.COLLECTIONS.REELS,
-          [
-            Query.or([
-              Query.contains('title', query),
-              Query.contains('description', query),
-              Query.contains('hashtags', query)
-            ]),
-            Query.orderDesc('views'),
-            Query.limit(50)
-          ]
-        );
-
-        if (results.documents.length === 0) {
-          document.getElementById('results').innerHTML = '<div class="empty"><div class="empty-icon">🔍</div><p>No videos found</p></div>';
-          return;
-        }
-
-        let html = '<div class="section-title">Search Results</div><div class="grid" id="searchGrid"></div>';
-        document.getElementById('results').innerHTML = html;
-        renderThumbnails('searchGrid', results.documents);
-      } catch (err) {
-        console.error('Search error:', err);
-      }
-    }
-
-    function clearSearch() {
-      document.getElementById('search').value = '';
-      document.getElementById('clear').classList.remove('show');
-      loadTrendingAndRecommended();
-    }
-
-    function openVideo(reelId) {
-      window.location.href = `./video-modal.html?id=${reelId}`;
-    }
-
-    init();
-  </script>
+  <script src="js/search-creators.js"></script>
 </body>
 </html>
