@@ -94,21 +94,46 @@ class SimpleUpload {
 
       dropzone.onclick = () => {
         try {
-          console.log('Dropzone clicked');
-          // Use setTimeout to break out of any sync error context (like Eruda)
-          setTimeout(() => {
-            try {
-              input.click();
-            } catch(err) {
-              console.error('❌ input.click() error:', err);
-              // Fallback: try dispatchEvent
-              if (input.dispatchEvent) {
-                input.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-              }
-            }
-          }, 0);
+          console.log('Dropzone clicked - triggering file picker');
+          
+          // Method 1: Try direct click first
+          try {
+            console.log('Method 1: Trying input.click()');
+            input.click();
+            return; // Success - exit
+          } catch(e1) {
+            console.warn('Method 1 failed:', e1.message);
+          }
+          
+          // Method 2: Try dispatchEvent
+          try {
+            console.log('Method 2: Trying dispatchEvent');
+            input.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+            return; // Success - exit
+          } catch(e2) {
+            console.warn('Method 2 failed:', e2.message);
+          }
+          
+          // Method 3: Try focus + manual trigger
+          try {
+            console.log('Method 3: Trying focus + setAttribute');
+            input.focus();
+            input.setAttribute('style', 'display: block !important; opacity: 0; position: fixed; top: 0; left: 0; width: 100%; height: 100%;');
+            input.click();
+            setTimeout(() => {
+              input.setAttribute('style', 'display: none;');
+            }, 100);
+            return; // Success - exit
+          } catch(e3) {
+            console.warn('Method 3 failed:', e3.message);
+          }
+          
+          console.error('❌ All file picker methods failed');
+          alert('Unable to open file picker. Try using the button below.');
+          
         } catch(err) {
-          console.error('❌ Dropzone click handler error:', err);
+          console.error('❌ CRITICAL Dropzone click error:', err);
+          console.error('Stack:', err.stack);
         }
       };
       
@@ -127,8 +152,31 @@ class SimpleUpload {
       };
       
       input.onchange = (e) => { 
-        console.log('File selected:', e.target.files.length);
-        if (e.target.files[0]) this.handleFile(e.target.files[0]); 
+        try {
+          console.log('📹 File input change event fired');
+          console.log('Files available:', e.target.files.length);
+          
+          if (!e.target.files || e.target.files.length === 0) {
+            console.warn('⚠️ No files selected');
+            return;
+          }
+          
+          const file = e.target.files[0];
+          console.log('Selected file:', file.name, 'Size:', file.size, 'Type:', file.type);
+          
+          // Call handleFile wrapped in try-catch
+          try {
+            this.handleFile(file);
+          } catch(handleErr) {
+            console.error('❌ handleFile threw error:', handleErr);
+            console.error('Stack:', handleErr.stack);
+            throw handleErr;
+          }
+        } catch(err) {
+          console.error('❌ File input change handler error:', err);
+          console.error('Error type:', err.constructor.name);
+          console.error('Stack:', err.stack);
+        }
       };
       
       console.log('✅ Pick step setup complete');
