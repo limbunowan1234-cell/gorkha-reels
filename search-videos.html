@@ -256,7 +256,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
   <script src="js/appwrite-config.js"></script>
-  <script src="js/thumbnail-utils.js"></script>
   <script>
     let allReels = [];
     let searchTimeout;
@@ -332,42 +331,42 @@
         return matchesQuery && matchesCategory;
       });
 
-      await renderThumbnails('resultsGrid', filtered);
+      renderThumbnails('resultsGrid', filtered);
     }
 
     async function loadTrendingAndRecommended() {
       try {
         // Trending (by views)
         const trending = allReels.sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 10);
-        await renderThumbnails('trendingGrid', trending);
+        renderThumbnails('trendingGrid', trending);
 
         // Recommended (random)
         const recommended = allReels.sort(() => Math.random() - 0.5).slice(0, 10);
-        await renderThumbnails('recommendedGrid', recommended);
+        renderThumbnails('recommendedGrid', recommended);
       } catch (err) {
         console.error('Error loading sections:', err);
       }
     }
 
-    async function renderThumbnails(elementId, reels) {
+    function renderThumbnails(elementId, reels) {
       if (!reels.length) {
         document.getElementById(elementId).innerHTML = '<div class="loading"><p>No videos found</p></div>';
         return;
       }
 
       let html = '';
-      for (const reel of reels) {
-        const thumbnail = await generateThumbnailFromVideo(reel.videoUrl);
+      reels.forEach(reel => {
+        const thumb = reel.thumbnail || 'assets/placeholder.svg';
         html += `
           <div class="thumbnail" onclick="openVideo('${reel.$id}')">
-            <img src="${thumbnail}" alt="Video">
+            <img src="${thumb}" alt="Video" onerror="this.src='assets/placeholder.svg'">
             <div class="play-icon">▶️</div>
             <div class="thumbnail-overlay">
               <div class="thumbnail-title">${reel.title}</div>
             </div>
           </div>
         `;
-      }
+      });
       document.getElementById(elementId).innerHTML = html;
     }
 
