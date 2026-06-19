@@ -2,19 +2,18 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>GorkhaReels</title>
   <link rel="icon" type="image/png" href="assets/logo.png">
-  <link rel="stylesheet" href="css/styles.css">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #0f0f0f; color: #fff; font-family: system-ui; touch-action: pan-y; }
-    
+    body { background: #0f0f0f; color: #fff; font-family: system-ui; padding-bottom: 70px; }
+
     /* Header */
     header {
       display: flex;
       align-items: center;
-      padding: 10px 12px;
+      padding: 12px 16px;
       background: #0f0f0f;
       border-bottom: 1px solid #1a1a1a;
       gap: 12px;
@@ -23,114 +22,170 @@
       z-index: 50;
     }
 
-    .logo { height: 28px; width: auto; }
+    .logo { height: 28px; }
     .header-title { font-size: 16px; font-weight: 700; color: #fbbf24; flex: 1; }
-    .header-btn { background: none; border: none; color: #a3a3a3; font-size: 20px; cursor: pointer; padding: 4px; }
+    .header-btn { background: none; border: none; color: #a3a3a3; font-size: 18px; cursor: pointer; padding: 4px 8px; }
 
-    /* Feed */
-    #feed-container {
-      position: relative;
-      width: 100%;
-      height: calc(100vh - 80px);
-      overflow-y: scroll;
-      scroll-snap-type: y mandatory;
-      overscroll-behavior: none;
+    /* Feed Container */
+    .feed {
+      max-width: 500px;
+      margin: 0 auto;
     }
 
-    .video-card {
-      position: relative;
-      width: 100%;
-      height: 100vh;
-      scroll-snap-align: start;
-      scroll-snap-stop: always;
-      background: #000;
+    /* Post Card */
+    .post {
+      background: #1a1a1a;
+      border: 1px solid #2d2d2d;
+      border-radius: 10px;
+      margin: 12px 12px;
       overflow: hidden;
     }
 
-    video {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-    }
-
-    /* Overlay Info */
-    .video-overlay {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: linear-gradient(transparent, rgba(0,0,0,0.8));
-      padding: 20px 12px 80px;
-      color: #fff;
-    }
-
-    .creator-info {
+    /* Post Header */
+    .post-header {
       display: flex;
       align-items: center;
       gap: 10px;
-      margin-bottom: 12px;
+      padding: 12px;
+      border-bottom: 1px solid #2d2d2d;
     }
 
-    .creator-avatar {
-      width: 36px;
-      height: 36px;
+    .post-avatar {
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
       background: #333;
       overflow: hidden;
+      flex-shrink: 0;
     }
 
-    .creator-avatar img {
+    .post-avatar img {
       width: 100%;
       height: 100%;
       object-fit: cover;
     }
 
-    .creator-name {
-      font-size: 13px;
-      font-weight: 600;
+    .post-creator {
+      flex: 1;
     }
 
-    .video-title {
-      font-size: 13px;
-      color: #e5e5e5;
+    .post-name {
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .post-time {
+      font-size: 10px;
+      color: #999;
+    }
+
+    .post-menu {
+      background: none;
+      border: none;
+      color: #a3a3a3;
+      font-size: 16px;
+      cursor: pointer;
+      padding: 4px;
+    }
+
+    /* Video */
+    .post-video {
+      width: 100%;
+      aspect-ratio: 9 / 12;
+      background: #000;
+      overflow: hidden;
+    }
+
+    .post-video video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* Post Footer */
+    .post-footer {
+      padding: 10px 12px;
+    }
+
+    .post-title {
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 4px;
       line-height: 1.3;
+    }
+
+    .post-desc {
+      font-size: 11px;
+      color: #b3b3b3;
+      margin-bottom: 8px;
+      line-height: 1.3;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+
+    /* Actions */
+    .post-actions {
+      display: flex;
+      gap: 12px;
       margin-bottom: 8px;
     }
 
-    /* Action Buttons */
-    .video-actions {
-      position: absolute;
-      right: 12px;
-      bottom: 100px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
     .action-btn {
-      width: 40px;
-      height: 40px;
-      background: rgba(255,255,255,0.1);
-      border: none;
-      border-radius: 50%;
-      color: #fff;
-      font-size: 18px;
-      cursor: pointer;
       display: flex;
       align-items: center;
-      justify-content: center;
-      transition: background 0.2s;
+      gap: 4px;
+      background: none;
+      border: none;
+      color: #a3a3a3;
+      font-size: 13px;
+      cursor: pointer;
+      padding: 4px 0;
+      transition: color 0.2s;
     }
 
-    .action-btn:active {
-      background: rgba(255,255,255,0.2);
+    .action-btn:hover { color: #fff; }
+    .action-btn.liked { color: #dc2626; }
+
+    /* Stats */
+    .post-stats {
+      font-size: 10px;
+      color: #999;
+      padding: 0 0 8px 0;
+      border-bottom: 1px solid #2d2d2d;
     }
 
-    .action-count {
+    /* Comments Preview */
+    .comments-preview {
+      padding: 8px 0;
+      max-height: 60px;
+      overflow: hidden;
       font-size: 11px;
-      text-align: center;
-      margin-top: 2px;
     }
+
+    .comment {
+      padding: 2px 0;
+      color: #ccc;
+    }
+
+    .comment-author {
+      font-weight: 600;
+      color: #fff;
+    }
+
+    /* View All Link */
+    .view-all {
+      font-size: 11px;
+      color: #999;
+      cursor: pointer;
+      padding: 4px 0;
+      margin-bottom: 8px;
+    }
+
+    .view-all:hover { color: #a3a3a3; }
 
     /* Bottom Nav */
     .bottom-nav {
@@ -143,7 +198,6 @@
       border-top: 1px solid #1a1a1a;
       display: flex;
       justify-content: space-around;
-      align-items: center;
       z-index: 40;
     }
 
@@ -151,46 +205,22 @@
       background: none;
       border: none;
       color: #a3a3a3;
-      font-size: 24px;
+      font-size: 22px;
       cursor: pointer;
       padding: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
     }
 
     .nav-create {
-      width: 48px;
-      height: 48px;
+      width: 50px;
+      height: 50px;
       background: #dc2626;
       border-radius: 50%;
-      font-size: 28px;
       color: #fff;
+      font-size: 26px;
       margin-bottom: 8px;
     }
 
-    /* Loading */
-    .loading {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      gap: 10px;
-    }
-
-    .spinner {
-      width: 24px;
-      height: 24px;
-      border: 2px solid #333;
-      border-top-color: #dc2626;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
+    /* Menu Dropdown */
     .menu-dropdown {
       display: none;
       position: fixed;
@@ -199,7 +229,7 @@
       background: #1a1a1a;
       border: 1px solid #2d2d2d;
       border-radius: 8px;
-      min-width: 180px;
+      min-width: 160px;
       z-index: 100;
     }
 
@@ -210,13 +240,35 @@
       border: none;
       color: #fff;
       text-align: left;
-      font-size: 13px;
+      font-size: 12px;
       cursor: pointer;
       border-bottom: 1px solid #2d2d2d;
     }
 
     .menu-item:last-child { border-bottom: none; }
     .menu-item:active { background: #2d2d2d; }
+
+    /* Loading */
+    .loading {
+      text-align: center;
+      padding: 40px 20px;
+      color: #999;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 2px solid #333;
+      border-top-color: #dc2626;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 10px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body>
@@ -224,23 +276,25 @@
   <header>
     <img src="assets/logo.png" alt="Logo" class="logo">
     <div class="header-title">GORKHAREEL</div>
-    <button class="header-btn" onclick="location.href='./search-creators.html'">🔍</button>
-    <button class="header-btn" onclick="location.href='./creator-dashboard.html'">👤</button>
-    <button class="header-btn" onclick="toggleMenu()">⋮</button>
+    <button class="header-btn" onclick="location.href='./search-creators.html'" title="Search">🔍</button>
+    <button class="header-btn" onclick="location.href='./creator-dashboard.html'" title="Profile">👤</button>
+    <button class="header-btn" onclick="toggleMenu()" title="Menu">⋮</button>
   </header>
 
   <!-- Menu -->
   <div id="menu" class="menu-dropdown">
-    <button class="menu-item" onclick="location.href='./upload.html'">Upload</button>
-    <button class="menu-item" onclick="location.href='./creator-dashboard.html'">Profile</button>
-    <button class="menu-item" onclick="location.href='./search-creators.html'">Search</button>
-    <button class="menu-item" onclick="logout()">Logout</button>
+    <button class="menu-item" onclick="location.href='./upload.html'">🎬 Upload</button>
+    <button class="menu-item" onclick="location.href='./creator-dashboard.html'">👤 Profile</button>
+    <button class="menu-item" onclick="location.href='./search-creators.html'">🔍 Search</button>
+    <button class="menu-item" onclick="logout()">🚪 Logout</button>
   </div>
 
   <!-- Feed -->
-  <div id="feed-container" class="loading">
-    <div class="spinner"></div>
-    <p>Loading...</p>
+  <div class="feed" id="feed">
+    <div class="loading">
+      <div class="spinner"></div>
+      <p>Loading posts...</p>
+    </div>
   </div>
 
   <!-- Bottom Nav -->
@@ -252,9 +306,114 @@
 
   <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
   <script src="js/appwrite-config.js"></script>
-  <script src="js/feed.js"></script>
-  
   <script>
+    let currentUser = null;
+    let likedPosts = new Set();
+
+    async function init() {
+      try {
+        await session.refresh();
+        currentUser = session.currentUser;
+        loadFeed();
+      } catch (err) {
+        console.error('Init error:', err);
+      }
+    }
+
+    async function loadFeed() {
+      try {
+        const reels = await db.list(
+          APPWRITE_CONFIG.COLLECTIONS.REELS,
+          [Query.orderDesc('uploadedAt'), Query.limit(20)]
+        );
+
+        let html = '';
+        reels.documents.forEach(reel => {
+          const avatar = reel.creatorProfilePic || 'https://via.placeholder.com/40';
+          const viewCount = (reel.views || 0) >= 1000 ? Math.floor(reel.views / 1000) + 'K' : (reel.views || 0);
+          const likeCount = (reel.likes || 0) >= 1000 ? Math.floor(reel.likes / 1000) + 'K' : (reel.likes || 0);
+          const commentCount = reel.comments || 0;
+
+          html += `
+            <div class="post">
+              <!-- Post Header -->
+              <div class="post-header">
+                <div class="post-avatar">
+                  <img src="${avatar}" onerror="this.src='https://via.placeholder.com/40'" alt="">
+                </div>
+                <div class="post-creator">
+                  <div class="post-name">${reel.creatorName}</div>
+                  <div class="post-time">${new Date(reel.uploadedAt).toLocaleDateString()}</div>
+                </div>
+                <button class="post-menu">⋮</button>
+              </div>
+
+              <!-- Video -->
+              <div class="post-video">
+                <video src="${reel.videoUrl}" controls></video>
+              </div>
+
+              <!-- Post Footer -->
+              <div class="post-footer">
+                <div class="post-title">${reel.title}</div>
+                <div class="post-desc">${reel.description || ''}</div>
+
+                <!-- Actions -->
+                <div class="post-actions">
+                  <button class="action-btn" onclick="toggleLike(this, '${reel.$id}')">❤️ <span>${likeCount}</span></button>
+                  <button class="action-btn" onclick="alert('Comments coming soon')">💬 <span>${commentCount}</span></button>
+                  <button class="action-btn" onclick="sharePost('${reel.title}', '${reel.videoUrl}')">📤 Share</button>
+                </div>
+
+                <!-- Stats -->
+                <div class="post-stats">${viewCount} views</div>
+              </div>
+            </div>
+          `;
+        });
+
+        document.getElementById('feed').innerHTML = html || '<div class="loading"><p>No posts yet</p></div>';
+      } catch (err) {
+        console.error('Load error:', err);
+        document.getElementById('feed').innerHTML = '<div class="loading"><p>Error loading posts</p></div>';
+      }
+    }
+
+    async function toggleLike(btn, postId) {
+      try {
+        if (!currentUser) {
+          alert('Login first');
+          return;
+        }
+
+        const isLiked = btn.classList.contains('liked');
+        btn.classList.toggle('liked');
+
+        const currentLikes = parseInt(btn.querySelector('span').textContent) || 0;
+        btn.querySelector('span').textContent = isLiked ? currentLikes - 1 : currentLikes + 1;
+
+        // Update database
+        const post = (await db.list(APPWRITE_CONFIG.COLLECTIONS.REELS, [Query.equal('$id', postId)])).documents[0];
+        await db.update(APPWRITE_CONFIG.COLLECTIONS.REELS, postId, {
+          likes: isLiked ? Math.max(0, post.likes - 1) : (post.likes || 0) + 1
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function sharePost(title, url) {
+      if (navigator.share) {
+        navigator.share({
+          title: 'GorkhaReels',
+          text: title,
+          url: url
+        }).catch(err => console.error(err));
+      } else {
+        alert('Share: ' + title);
+      }
+    }
+
     function toggleMenu() {
       const menu = document.getElementById('menu');
       menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
@@ -262,21 +421,19 @@
 
     async function logout() {
       if (confirm('Logout?')) {
-        try {
-          await session.logout();
-          window.location.href = './login.html';
-        } catch (err) {
-          alert('Logout failed');
-        }
+        await session.logout();
+        window.location.href = './login.html';
       }
     }
 
     document.addEventListener('click', (e) => {
       const menu = document.getElementById('menu');
-      if (!menu.contains(e.target) && e.target.textContent !== '⋮') {
+      if (!menu.contains(e.target) && !e.target.matches('.header-btn')) {
         menu.style.display = 'none';
       }
     });
+
+    init();
   </script>
 </body>
 </html>
