@@ -260,7 +260,7 @@
     function renderThumbnails(elementId, reels) {
       let html = '';
       reels.forEach(reel => {
-        const thumbnail = reel.thumbnail || reel.videoUrl;
+        const thumbnail = reel.thumbnail || 'assets/placeholder.svg';
         html += `
           <div class="thumbnail" onclick="openVideo('${reel.$id}')">
             <img src="${thumbnail}" onerror="this.src='assets/placeholder.svg'">
