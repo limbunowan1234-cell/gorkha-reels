@@ -131,6 +131,18 @@ class FeedManager {
 
     const video = document.querySelector('video');
 
+    // Click video to unmute + play (yesterday's working behavior)
+    video.addEventListener('click', () => {
+      if (video.muted) {
+        video.muted = false;
+        video.play().catch(()=>{});
+      } else if (video.paused) {
+        video.play().catch(()=>{});
+      } else {
+        video.pause();
+      }
+    });
+
     document.querySelector('.like-btn').onclick = (e) => {
       e.stopPropagation();
       this.toggleLike(reel.$id);
