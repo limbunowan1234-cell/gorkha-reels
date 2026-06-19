@@ -5,6 +5,7 @@ class FeedManager {
   constructor() {
     this.reels = []; this.currentIndex = 0; this.isLoading = false;
     this.currentVideo = null; this.likedReels = new Set(); this.isFullscreen = false;
+    this.soundOn = false; // Global sound state - once on, stays on for session
     this.init();
   }
 
@@ -136,14 +137,23 @@ class FeedManager {
     const video = document.querySelector('video');
     const hint = document.querySelector('.unmute-hint');
 
-    // Tap video to toggle mute/unmute
+    // Apply current sound state
+    video.muted = !this.soundOn;
+    if (hint) {
+      hint.style.display = this.soundOn ? 'none' : 'flex';
+    }
+
+    // Tap video to toggle sound (applies to ALL videos this session)
     video.addEventListener('click', () => {
-      video.muted = !video.muted;
+      this.soundOn = !this.soundOn;
+      video.muted = !this.soundOn;
       if (hint) {
-        hint.innerHTML = video.muted ? '🔇 Tap for sound' : '🔊 Sound on';
-        hint.style.opacity = '1';
-        if (!video.muted) {
-          setTimeout(() => { hint.style.opacity = '0'; }, 1500);
+        if (this.soundOn) {
+          hint.innerHTML = '🔊 Sound on';
+          setTimeout(() => { if (hint) hint.style.display = 'none'; }, 1000);
+        } else {
+          hint.innerHTML = '🔇 Tap for sound';
+          hint.style.display = 'flex';
         }
       }
     });
@@ -153,9 +163,6 @@ class FeedManager {
       this.toggleLike(reel.$id);
     };
     video.play().catch(()=>{});
-
-    // Auto-hide hint after 3s
-    if (hint) setTimeout(() => { if (video.muted) hint.style.opacity = '0.5'; }, 3000);
   }
 
   async toggleLike(reelId) {
