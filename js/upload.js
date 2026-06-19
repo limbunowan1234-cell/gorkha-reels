@@ -93,8 +93,23 @@ class SimpleUpload {
       }
 
       dropzone.onclick = () => {
-        console.log('Dropzone clicked');
-        input.click();
+        try {
+          console.log('Dropzone clicked');
+          // Use setTimeout to break out of any sync error context (like Eruda)
+          setTimeout(() => {
+            try {
+              input.click();
+            } catch(err) {
+              console.error('❌ input.click() error:', err);
+              // Fallback: try dispatchEvent
+              if (input.dispatchEvent) {
+                input.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+              }
+            }
+          }, 0);
+        } catch(err) {
+          console.error('❌ Dropzone click handler error:', err);
+        }
       };
       
       dropzone.ondragover = (e) => { 
@@ -313,22 +328,38 @@ class SimpleUpload {
   }
 }
 
-// Initialize
+// ============== ERUDA SAFETY INIT ==============
+if (typeof window.eruda !== 'undefined') {
+  try {
+    if (typeof window.eruda.init === 'function') {
+      window.eruda.init();
+      console.log('✅ Eruda initialized');
+    }
+  } catch(err) {
+    console.warn('⚠️ Eruda already initialized or init skipped:', err.message);
+  }
+}
+
+// ============== INITIALIZATION ==============
 console.log('📦 Starting upload initialization...');
 
-// Global error handler
+// Global error handler - catches all uncaught errors
 window.onerror = (message, source, lineno, colno, error) => {
   console.error('❌ GLOBAL ERROR:', message);
   console.error('Source:', source);
   console.error('Line:', lineno, 'Col:', colno);
-  console.error('Error object:', error);
+  if (error) console.error('Error object:', error, 'Stack:', error.stack);
   return false;
 };
 
-// Unhandled promise rejection
+// Unhandled promise rejection handler
 window.onunhandledrejection = (event) => {
   console.error('❌ UNHANDLED PROMISE REJECTION:', event.reason);
+  if (event.reason && event.reason.stack) {
+    console.error('Stack:', event.reason.stack);
+  }
   console.error('Promise:', event.promise);
+  // Don't prevent default - let the error propagate
 };
 
 try {
