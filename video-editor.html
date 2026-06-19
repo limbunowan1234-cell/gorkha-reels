@@ -3,309 +3,704 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Video Editor - GorkhaReels</title>
+  <title>Edit Video - GorkhaReels</title>
   <link rel="icon" type="image/png" href="assets/logo.png">
-  <link rel="stylesheet" href="css/styles.css">
   <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #0f0f0f;
+      color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    /* Header */
+    .editor-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(15, 15, 15, 0.95);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .editor-title {
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .editor-tabs {
+      display: flex;
+      gap: 12px;
+    }
+
+    /* Main Layout */
     .editor-container {
       max-width: 500px;
       margin: 0 auto;
-      padding: 20px;
+      display: grid;
+      grid-template-columns: 1fr;
+      grid-template-rows: auto 1fr auto;
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      padding-bottom: 120px;
+      padding-bottom: 100px;
     }
 
-    .editor-preview {
+    /* Preview Section */
+    .preview-section {
+      padding: 16px 20px;
+      background: rgba(0, 0, 0, 0.5);
+    }
+
+    .video-preview-box {
       width: 100%;
       aspect-ratio: 9 / 16;
       background: #000;
-      border-radius: 16px;
+      border-radius: 12px;
       overflow: hidden;
-      border: 2px solid var(--border-light);
+      border: 1px solid rgba(220, 38, 38, 0.2);
       position: relative;
+      margin-bottom: 12px;
     }
 
-    .editor-preview video {
+    .video-preview-box video {
       width: 100%;
       height: 100%;
       object-fit: cover;
+      display: block;
     }
 
-    .controls-group {
-      background: var(--glass-bg);
-      border: 1px solid var(--glass-border);
-      border-radius: 12px;
-      padding: 16px;
-      backdrop-filter: blur(10px);
+    .preview-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: none;
     }
 
-    .control-label {
+    .preview-controls {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
       font-size: 12px;
-      font-weight: 700;
-      color: var(--text-secondary);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 12px;
+    }
+
+    .preview-control-btn {
+      padding: 6px 12px;
+      background: rgba(220, 38, 38, 0.2);
+      border: 1px solid rgba(220, 38, 38, 0.3);
+      border-radius: 6px;
+      color: #fbbf24;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .preview-control-btn:hover {
+      background: rgba(220, 38, 38, 0.3);
+      border-color: rgba(220, 38, 38, 0.5);
+    }
+
+    .preview-control-btn.active {
+      background: rgba(220, 38, 38, 0.4);
+      border-color: #dc2626;
+    }
+
+    /* Tools Section */
+    .tools-section {
+      padding: 0;
+      background: rgba(255, 255, 255, 0.02);
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .tool-tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 0;
+      overflow-x: auto;
+    }
+
+    .tool-tab {
+      padding: 12px 16px;
+      background: transparent;
+      border: none;
+      color: #999;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .tool-tab:hover {
+      color: #fff;
+    }
+
+    .tool-tab.active {
+      color: #dc2626;
+      border-bottom-color: #dc2626;
+    }
+
+    .tool-content {
+      display: none;
+      padding: 16px;
+      animation: slideIn 0.2s;
+    }
+
+    .tool-content.active {
+      display: block;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Slider Styles */
+    .slider-group {
+      margin-bottom: 16px;
+    }
+
+    .slider-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .slider-label-name {
+      color: #fff;
+    }
+
+    .slider-label-value {
+      color: #fbbf24;
+      font-family: 'Courier New', monospace;
+      background: rgba(251, 191, 36, 0.1);
+      padding: 2px 8px;
+      border-radius: 4px;
     }
 
     input[type="range"] {
       width: 100%;
-      height: 6px;
-      background: var(--border-light);
-      border-radius: 3px;
+      height: 4px;
+      border-radius: 2px;
+      background: rgba(255, 255, 255, 0.1);
       outline: none;
       -webkit-appearance: none;
-      margin: 12px 0;
     }
 
     input[type="range"]::-webkit-slider-thumb {
       -webkit-appearance: none;
       appearance: none;
-      width: 18px;
-      height: 18px;
-      background: linear-gradient(135deg, #dc2626 0%, #fbbf24 100%);
-      cursor: pointer;
+      width: 16px;
+      height: 16px;
       border-radius: 50%;
-      box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+      background: #dc2626;
+      cursor: pointer;
+      box-shadow: 0 0 8px rgba(220, 38, 38, 0.4);
     }
 
-    .time-display {
-      display: flex;
-      justify-content: space-between;
+    input[type="range"]::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #dc2626;
+      cursor: pointer;
+      border: none;
+      box-shadow: 0 0 8px rgba(220, 38, 38, 0.4);
+    }
+
+    /* Filter Buttons */
+    .filter-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    .filter-btn {
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      color: #fff;
       font-size: 12px;
-      color: var(--text-secondary);
-      margin-top: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
     }
 
-    .button-group {
+    .filter-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .filter-btn.active {
+      background: rgba(220, 38, 38, 0.2);
+      border-color: #dc2626;
+      color: #dc2626;
+    }
+
+    .filter-icon {
+      font-size: 16px;
+    }
+
+    /* Text Tool */
+    .text-input-group {
+      margin-bottom: 12px;
+    }
+
+    .text-input {
+      width: 100%;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      color: #fff;
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+
+    .text-input::placeholder {
+      color: #666;
+    }
+
+    .text-position-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .position-btn {
+      padding: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      color: #999;
+      font-size: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .position-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .position-btn.active {
+      background: #dc2626;
+      border-color: #dc2626;
+      color: #fff;
+    }
+
+    .text-add-btn {
+      width: 100%;
+      padding: 10px;
+      background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    /* Music Section */
+    .music-selection {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      padding: 12px;
+    }
+
+    .music-selected {
+      background: rgba(251, 191, 36, 0.1);
+      border: 1px solid rgba(251, 191, 36, 0.3);
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 12px;
+      display: none;
+    }
+
+    .music-selected.show {
+      display: block;
+    }
+
+    .music-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 2px;
+    }
+
+    .music-artist {
+      font-size: 10px;
+      color: #999;
+    }
+
+    .music-browse-btn {
+      width: 100%;
+      padding: 10px;
+      background: rgba(251, 191, 36, 0.1);
+      border: 1px solid rgba(251, 191, 36, 0.3);
+      border-radius: 8px;
+      color: #fbbf24;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    /* Action Buttons */
+    .editor-actions {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      max-width: 500px;
+      margin: 0 auto;
+      background: rgba(15, 15, 15, 0.95);
+      backdrop-filter: blur(20px);
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 12px 20px;
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 12px;
     }
 
-    .btn-small {
-      padding: 12px;
+    .btn {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 10px;
       font-size: 13px;
       font-weight: 700;
-      border-radius: 10px;
-      border: none;
       cursor: pointer;
       transition: all 0.3s;
       text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
-    .btn-preview {
-      background: var(--glass-bg);
-      border: 1.5px solid var(--glass-border);
-      color: var(--text-primary);
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
     }
 
-    .btn-preview:hover {
-      border-color: var(--accent-gold);
-      color: var(--accent-gold);
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.15);
     }
 
-    .btn-proceed {
+    .btn-primary {
       background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
       color: white;
+      grid-column: 1 / -1;
       box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
     }
 
-    .btn-proceed:hover:not(:disabled) {
+    .btn-primary:hover {
       transform: translateY(-2px);
       box-shadow: 0 8px 25px rgba(220, 38, 38, 0.4);
     }
 
-    .btn-proceed:disabled {
+    .btn:disabled {
       opacity: 0.5;
       cursor: not-allowed;
     }
 
-    .editor-info {
-      background: rgba(251, 191, 36, 0.05);
-      border: 1px solid rgba(251, 191, 36, 0.2);
-      border-radius: 10px;
-      padding: 12px;
-      font-size: 12px;
-      color: var(--text-secondary);
-      line-height: 1.5;
+    /* Mobile */
+    @media (max-width: 480px) {
+      .editor-header {
+        padding: 10px 16px;
+      }
+
+      .preview-section {
+        padding: 12px 16px;
+      }
+
+      .tools-section {
+        max-height: 300px;
+      }
+
+      .tool-tabs {
+        padding: 0 16px;
+      }
+
+      .tool-content {
+        padding: 12px 16px;
+      }
+
+      .editor-actions {
+        padding: 10px 16px;
+      }
+
+      .filter-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
     }
 
-    .status-text {
-      font-size: 12px;
+    /* Scrollbar */
+    .tools-section::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .tools-section::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .tools-section::-webkit-scrollbar-thumb {
+      background: rgba(220, 38, 38, 0.3);
+      border-radius: 3px;
+    }
+
+    .tools-section::-webkit-scrollbar-thumb:hover {
+      background: rgba(220, 38, 38, 0.5);
+    }
+
+    /* Loading */
+    .processing {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.9);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .processing.show {
+      display: flex;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(220, 38, 38, 0.2);
+      border-top-color: #dc2626;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 16px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .processing-text {
+      color: #999;
+      font-size: 13px;
       text-align: center;
-      margin-top: 12px;
     }
-
-    .success { color: #10b981; font-weight: 600; }
-    .warning { color: var(--accent-gold); font-weight: 600; }
   </style>
 </head>
 <body>
-  <div class="editor-container">
-    <header style="text-align: center; padding: 20px 0;">
-      <img src="assets/logo.png" alt="GorkhaReels" style="height: 32px; margin-bottom: 12px;">
-      <h1 style="font-size: 20px; font-weight: 800; margin: 0;">✂️ Video Editor</h1>
-      <p style="font-size: 12px; color: var(--text-secondary); margin: 8px 0 0 0;">Trim your video</p>
-    </header>
-
-    <div class="editor-preview">
-      <video id="video-preview" playsinline controls></video>
-    </div>
-
-    <div class="controls-group">
-      <div class="control-label">⏱️ Trim Duration (Max 2 min)</div>
-      <label style="font-size: 11px; color: var(--text-tertiary);">Start Time</label>
-      <input type="range" id="start-slider" min="0" max="100" value="0">
-      <div class="time-display">
-        <span id="start-time">0:00</span>
-        <span id="total-duration">0:00</span>
-      </div>
-
-      <label style="font-size: 11px; color: var(--text-tertiary); margin-top: 16px; display: block;">End Time</label>
-      <input type="range" id="end-slider" min="0" max="100" value="100">
-      <div class="time-display">
-        <span id="end-time">0:00</span>
-        <span id="trimmed-duration" class="warning">0:00</span>
-      </div>
-    </div>
-
-    <div class="editor-info">
-      ✨ Slide to trim your video. Maximum 2 minutes allowed.
-    </div>
-
-    <div class="status-text" id="status-text"></div>
-
-    <div class="button-group">
-      <button class="btn-small btn-preview" id="preview-btn">▶️ Preview</button>
-      <button class="btn-small btn-proceed" id="proceed-btn" disabled>✓ Done</button>
-    </div>
-
-    <button class="btn btn-secondary" onclick="window.history.back()" style="width: 100%;">← Back</button>
+  <!-- Header -->
+  <div class="editor-header">
+    <h1 class="editor-title">✨ Edit Video</h1>
   </div>
 
-  <script>
-    class VideoEditor {
-      constructor() {
-        this.video = document.getElementById('video-preview');
-        this.startSlider = document.getElementById('start-slider');
-        this.endSlider = document.getElementById('end-slider');
-        this.previewBtn = document.getElementById('preview-btn');
-        this.proceedBtn = document.getElementById('proceed-btn');
-        this.statusText = document.getElementById('status-text');
-        this.videoDuration = 0;
-        this.init();
-      }
+  <!-- Editor Container -->
+  <div class="editor-container">
+    <!-- Preview -->
+    <div class="preview-section">
+      <div class="video-preview-box">
+        <video id="preview-video" playsinline controls></video>
+        <canvas id="preview-canvas" class="preview-canvas"></canvas>
+      </div>
+      <div class="preview-controls">
+        <button class="preview-control-btn active" id="btn-toggle-effects" onclick="editor.toggleEffects()">
+          👁️ Live Preview
+        </button>
+      </div>
+    </div>
 
-      init() {
-        const videoData = localStorage.getItem('videoData');
-        if (!videoData) {
-          console.log('No video data in localStorage');
-          alert('No video found. Please select a video first.');
-          window.location.href = './upload.html';
-          return;
-        }
+    <!-- Tools Section -->
+    <div class="tools-section">
+      <!-- Tool Tabs -->
+      <div class="tool-tabs">
+        <button class="tool-tab active" onclick="editor.switchTool('trim')">✂️ Trim</button>
+        <button class="tool-tab" onclick="editor.switchTool('filters')">🎨 Filters</button>
+        <button class="tool-tab" onclick="editor.switchTool('text')">📝 Text</button>
+        <button class="tool-tab" onclick="editor.switchTool('speed')">⚡ Speed</button>
+        <button class="tool-tab" onclick="editor.switchTool('rotate')">🔄 Rotate</button>
+        <button class="tool-tab" onclick="editor.switchTool('music')">🎵 Music</button>
+      </div>
 
-        try {
-          const binaryString = atob(videoData);
-          const bytes = new Uint8Array(binaryString.length);
-          for (let i = 0; i < binaryString.length; i++) {
-            bytes[i] = binaryString.charCodeAt(i);
-          }
-          const blob = new Blob([bytes], { type: 'video/mp4' });
-          const url = URL.createObjectURL(blob);
-          this.video.src = url;
+      <!-- Trim Tool -->
+      <div class="tool-content active" id="tool-trim">
+        <div class="slider-group">
+          <div class="slider-label">
+            <span class="slider-label-name">Timeline</span>
+            <span class="slider-label-value" id="trim-display">0:00 - 0:00</span>
+          </div>
+          <input type="range" id="trim-slider" min="0" max="100" value="0" oninput="editor.updateTrimPreview()">
+        </div>
+        <div style="font-size: 11px; color: #999; line-height: 1.6;">
+          💡 <strong>Drag the slider</strong> or use quick presets below to trim your video.
+        </div>
+        <div style="margin-top: 12px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
+          <button class="filter-btn" onclick="editor.quickTrim(5)" style="background: rgba(251,191,36,0.1); border-color: rgba(251,191,36,0.3); color: #fbbf24;">5s</button>
+          <button class="filter-btn" onclick="editor.quickTrim(15)" style="background: rgba(251,191,36,0.1); border-color: rgba(251,191,36,0.3); color: #fbbf24;">15s</button>
+          <button class="filter-btn" onclick="editor.quickTrim(30)" style="background: rgba(251,191,36,0.1); border-color: rgba(251,191,36,0.3); color: #fbbf24;">30s</button>
+          <button class="filter-btn" onclick="editor.quickTrim(60)" style="background: rgba(251,191,36,0.1); border-color: rgba(251,191,36,0.3); color: #fbbf24;">1:00</button>
+        </div>
+      </div>
 
-          this.video.onloadedmetadata = () => {
-            this.videoDuration = this.video.duration;
-            console.log('Video loaded:', this.videoDuration);
-            this.updateTimeDisplays();
-            this.setupEventListeners();
-            this.checkDuration();
-          };
-        } catch (e) {
-          console.error('Error:', e);
-          alert('Error loading video: ' + e.message);
-          window.location.href = './upload.html';
-        }
-      }
+      <!-- Filters Tool -->
+      <div class="tool-content" id="tool-filters">
+        <div class="slider-group">
+          <div class="slider-label">
+            <span class="slider-label-name">Brightness</span>
+            <span class="slider-label-value" id="brightness-value">100%</span>
+          </div>
+          <input type="range" id="brightness-slider" min="50" max="150" value="100" oninput="editor.applyFilters()">
+        </div>
 
-      setupEventListeners() {
-        this.startSlider.addEventListener('input', () => this.handleSliderChange());
-        this.endSlider.addEventListener('input', () => this.handleSliderChange());
-        this.previewBtn.addEventListener('click', () => this.previewTrim());
-        this.proceedBtn.addEventListener('click', () => this.proceedWithEdit());
-      }
+        <div class="slider-group">
+          <div class="slider-label">
+            <span class="slider-label-name">Contrast</span>
+            <span class="slider-label-value" id="contrast-value">100%</span>
+          </div>
+          <input type="range" id="contrast-slider" min="50" max="150" value="100" oninput="editor.applyFilters()">
+        </div>
 
-      handleSliderChange() {
-        const start = parseFloat(this.startSlider.value);
-        const end = parseFloat(this.endSlider.value);
+        <div class="slider-group">
+          <div class="slider-label">
+            <span class="slider-label-name">Saturation</span>
+            <span class="slider-label-value" id="saturation-value">100%</span>
+          </div>
+          <input type="range" id="saturation-slider" min="0" max="200" value="100" oninput="editor.applyFilters()">
+        </div>
 
-        if (start > end) {
-          this.startSlider.value = end;
-        }
+        <div style="margin-top: 16px;">
+          <div style="font-size: 11px; font-weight: 600; margin-bottom: 8px; color: #999;">PRESETS</div>
+          <div class="filter-grid">
+            <button class="filter-btn" onclick="editor.applyPreset('sepia')"><div class="filter-icon">🟤</div>Sepia</button>
+            <button class="filter-btn" onclick="editor.applyPreset('grayscale')"><div class="filter-icon">⚫</div>B&W</button>
+            <button class="filter-btn" onclick="editor.applyPreset('blur')"><div class="filter-icon">👁️</div>Blur</button>
+            <button class="filter-btn" onclick="editor.applyPreset('invert')"><div class="filter-icon">🔳</div>Invert</button>
+          </div>
+        </div>
+      </div>
 
-        this.updateTimeDisplays();
-        this.checkDuration();
-      }
+      <!-- Text Tool -->
+      <div class="tool-content" id="tool-text">
+        <div class="text-input-group">
+          <input type="text" class="text-input" id="text-input" placeholder="Add text..." maxlength="100">
+        </div>
 
-      updateTimeDisplays() {
-        const start = (parseFloat(this.startSlider.value) / 100) * this.videoDuration;
-        const end = (parseFloat(this.endSlider.value) / 100) * this.videoDuration;
-        const trimmed = end - start;
+        <div style="font-size: 11px; font-weight: 600; margin-bottom: 8px; color: #999;">POSITION</div>
+        <div class="text-position-grid">
+          <button class="position-btn" onclick="editor.setTextPosition('top-left')">↖️</button>
+          <button class="position-btn" onclick="editor.setTextPosition('top-center')">⬆️</button>
+          <button class="position-btn" onclick="editor.setTextPosition('top-right')">↗️</button>
+          <button class="position-btn" onclick="editor.setTextPosition('middle-left')">⬅️</button>
+          <button class="position-btn active" onclick="editor.setTextPosition('middle-center')">⭐</button>
+          <button class="position-btn" onclick="editor.setTextPosition('middle-right')">➡️</button>
+          <button class="position-btn" onclick="editor.setTextPosition('bottom-left')">↙️</button>
+          <button class="position-btn" onclick="editor.setTextPosition('bottom-center')">⬇️</button>
+          <button class="position-btn" onclick="editor.setTextPosition('bottom-right')">↘️</button>
+        </div>
 
-        document.getElementById('start-time').textContent = this.formatTime(start);
-        document.getElementById('end-time').textContent = this.formatTime(end);
-        document.getElementById('total-duration').textContent = this.formatTime(this.videoDuration);
-        document.getElementById('trimmed-duration').textContent = this.formatTime(trimmed);
-      }
+        <button class="text-add-btn" onclick="editor.addText()">+ Add Text</button>
 
-      checkDuration() {
-        const start = (parseFloat(this.startSlider.value) / 100) * this.videoDuration;
-        const end = (parseFloat(this.endSlider.value) / 100) * this.videoDuration;
-        const trimmed = end - start;
+        <div style="margin-top: 12px; max-height: 150px; overflow-y: auto;">
+          <div id="text-list" style="font-size: 11px; color: #999;"></div>
+        </div>
+      </div>
 
-        if (trimmed > 120) {
-          this.statusText.innerHTML = '⚠️ <span class="warning">Video exceeds 2 min</span>';
-          this.proceedBtn.disabled = true;
-        } else if (trimmed < 3) {
-          this.statusText.innerHTML = '⚠️ <span class="warning">Video must be 3+ sec</span>';
-          this.proceedBtn.disabled = true;
-        } else {
-          this.statusText.innerHTML = `✓ <span class="success">${this.formatTime(trimmed)} - Ready!</span>`;
-          this.proceedBtn.disabled = false;
-        }
-      }
+      <!-- Speed Tool -->
+      <div class="tool-content" id="tool-speed">
+        <div class="slider-group">
+          <div class="slider-label">
+            <span class="slider-label-name">Speed</span>
+            <span class="slider-label-value" id="speed-value">1.0x</span>
+          </div>
+          <input type="range" id="speed-slider" min="0.5" max="2" step="0.1" value="1" oninput="editor.updateSpeed()">
+        </div>
 
-      formatTime(seconds) {
-        const mins = Math.floor(seconds / 60);
-        const secs = Math.floor(seconds % 60);
-        return `${mins}:${secs.toString().padStart(2, '0')}`;
-      }
+        <div style="margin-top: 16px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+          <button class="filter-btn" onclick="editor.setSpeed(0.5)" style="background: rgba(251,191,36,0.1); border-color: rgba(251,191,36,0.3); color: #fbbf24;">0.5x</button>
+          <button class="filter-btn active" onclick="editor.setSpeed(1)" style="background: rgba(251,191,36,0.1); border-color: rgba(251,191,36,0.3); color: #fbbf24;">1x</button>
+          <button class="filter-btn" onclick="editor.setSpeed(1.5)" style="background: rgba(251,191,36,0.1); border-color: rgba(251,191,36,0.3); color: #fbbf24;">1.5x</button>
+          <button class="filter-btn" onclick="editor.setSpeed(2)" style="background: rgba(251,191,36,0.1); border-color: rgba(251,191,36,0.3); color: #fbbf24;">2x</button>
+        </div>
+      </div>
 
-      previewTrim() {
-        const start = (parseFloat(this.startSlider.value) / 100) * this.videoDuration;
-        this.video.currentTime = start;
-        this.video.play();
-      }
+      <!-- Rotate Tool -->
+      <div class="tool-content" id="tool-rotate">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <button class="filter-btn" onclick="editor.rotate(90)">
+            <div class="filter-icon">🔄</div>Rotate 90°
+          </button>
+          <button class="filter-btn" onclick="editor.flip('horizontal')">
+            <div class="filter-icon">↔️</div>Flip H
+          </button>
+          <button class="filter-btn" onclick="editor.flip('vertical')">
+            <div class="filter-icon">↕️</div>Flip V
+          </button>
+          <button class="filter-btn" onclick="editor.reset()">
+            <div class="filter-icon">↩️</div>Reset
+          </button>
+        </div>
+        <div style="font-size: 11px; color: #999; margin-top: 16px; line-height: 1.6;">
+          💡 Changes are <strong>applied to preview only</strong>. Final video preserves original quality.
+        </div>
+      </div>
 
-      proceedWithEdit() {
-        const start = (parseFloat(this.startSlider.value) / 100) * this.videoDuration;
-        const end = (parseFloat(this.endSlider.value) / 100) * this.videoDuration;
+      <!-- Music Tool -->
+      <div class="tool-content" id="tool-music">
+        <div class="music-selection">
+          <div class="music-selected" id="music-selected">
+            <div class="music-title" id="music-title"></div>
+            <div class="music-artist" id="music-artist"></div>
+            <button class="filter-btn" style="width: 100%; margin-top: 8px; font-size: 10px;" onclick="editor.removeMusic()">Remove Music</button>
+          </div>
 
-        localStorage.setItem('videoEdits', JSON.stringify({
-          startTime: start,
-          endTime: end
-        }));
+          <button class="music-browse-btn" onclick="editor.openMusicLibrary()">
+            🎵 Browse Music Library
+          </button>
+        </div>
 
-        window.location.href = './upload.html';
-      }
-    }
+        <div style="font-size: 11px; color: #999; margin-top: 16px; line-height: 1.6;">
+          💡 Select music from your library to sync with this video. Music will be mixed with original audio.
+        </div>
+      </div>
+    </div>
+  </div>
 
-    new VideoEditor();
-  </script>
+  <!-- Action Buttons -->
+  <div class="editor-actions">
+    <button class="btn btn-secondary" onclick="editor.cancel()">Skip Editing</button>
+    <button class="btn btn-primary" id="apply-btn" onclick="editor.apply()">✓ Continue</button>
+  </div>
+
+  <!-- Processing -->
+  <div class="processing" id="processing">
+    <div style="text-align: center;">
+      <div class="spinner"></div>
+      <div class="processing-text">Processing video...</div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
+  <script src="js/appwrite-config.js"></script>
+  <script src="js/video-editor.js"></script>
 </body>
 </html>
