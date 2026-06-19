@@ -174,9 +174,9 @@ class FeedManager {
         ]);
 
         if (existing.documents.length === 0) {
-          // Create like - let db wrapper handle the ID via ID.unique()
-          // NOTE: do NOT pass reelId as the document id (it can exceed 36 chars)
-          await db.create(APPWRITE_CONFIG.COLLECTIONS.LIKES, ID.unique(), {
+          // Your db.create signature is: create(collectionId, data, documentId, permissions)
+          // The wrapper auto-generates ID.unique() when documentId is null
+          await db.create(APPWRITE_CONFIG.COLLECTIONS.LIKES, {
             userId: userId,
             reelId: reelId,
             creatorId: this.currentVideo.creatorId,
