@@ -6,18 +6,37 @@
 
 class SimpleUpload {
   constructor() {
-    this.selectedFile = null;
-    this.blobUrl = null;
-    this.uploadRetries = 0;
-    this.maxRetries = 3;
-    this.init();
+    try {
+      console.log('🏗️ Creating SimpleUpload instance...');
+      this.selectedFile = null;
+      this.blobUrl = null;
+      this.uploadRetries = 0;
+      this.maxRetries = 3;
+      console.log('✅ Properties initialized');
+      this.init();
+      console.log('✅ init() called');
+    } catch(err) {
+      console.error('❌ Constructor error:', err);
+      console.error('Error message:', err.message);
+      console.error('Stack:', err.stack);
+      throw err;
+    }
   }
 
   async init() {
     try {
       console.log('🔄 Refreshing session...');
-      await session.refresh();
-      console.log('✅ Session refreshed');
+      
+      try {
+        await session.refresh();
+        console.log('✅ Session refreshed');
+      } catch(sessionErr) {
+        console.error('❌ Session refresh FAILED:', sessionErr);
+        console.error('Error type:', sessionErr.constructor.name);
+        console.error('Error message:', sessionErr.message);
+        console.error('Error stack:', sessionErr.stack);
+        throw sessionErr;
+      }
       
       if (!session.isLoggedIn()) {
         console.warn('❌ Not logged in, redirecting...');
@@ -37,12 +56,13 @@ class SimpleUpload {
       
       console.log('✅ Upload ready');
     } catch(err) {
-      console.error('❌ Init failed:', err.message || err);
+      console.error('❌ INIT FAILED:', err.message || err);
+      console.error('Error type:', err.constructor.name);
       console.error('Stack:', err.stack);
       if (window.Toast) {
         Toast.error(`Init failed: ${err.message}`);
       } else {
-        alert(`Init failed: ${err.message}`);
+        alert(`Init failed: ${err.message || err}`);
       }
     }
   }
