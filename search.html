@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Search - GorkhaReels</title>
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #0f0f0f; color: #fff; font-family: system-ui; }
+
+    header {
+      position: sticky;
+      top: 0;
+      background: #1a1a1a;
+      padding: 12px 16px;
+      border-bottom: 1px solid #2d2d2d;
+      z-index: 100;
+    }
+
+    .search-box {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .search-input {
+      flex: 1;
+      background: #2d2d2d;
+      border: none;
+      color: #fff;
+      padding: 10px 12px;
+      border-radius: 20px;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .search-input::placeholder { color: #666; }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      padding: 12px 16px 0;
+      border-bottom: 1px solid #2d2d2d;
+    }
+
+    .tab {
+      background: none;
+      border: none;
+      color: #999;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      transition: all 0.2s;
+      border-bottom: 2px solid transparent;
+    }
+
+    .tab.active {
+      color: #dc2626;
+      border-bottom-color: #dc2626;
+    }
+
+    .categories {
+      display: flex;
+      gap: 6px;
+      padding: 8px 16px;
+      overflow-x: auto;
+      border-bottom: 1px solid #2d2d2d;
+    }
+
+    .category-btn {
+      background: #2d2d2d;
+      border: none;
+      color: #ccc;
+      padding: 6px 10px;
+      border-radius: 14px;
+      font-size: 11px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+
+    .category-btn.active {
+      background: #dc2626;
+      color: #fff;
+    }
+
+    .content {
+      padding-bottom: 80px;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .section-title {
+      padding: 12px 16px 8px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #999;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 8px;
+      padding: 0 12px 12px;
+    }
+
+    .thumbnail {
+      position: relative;
+      aspect-ratio: 9/16;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #1a1a1a;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .thumbnail:active { transform: scale(0.95); }
+    .thumbnail img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .play-icon {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 36px;
+      opacity: 0.8;
+    }
+
+    .trending-badge {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      background: linear-gradient(135deg, #dc2626, #991b1b);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .thumbnail-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+      padding: 12px 8px 8px;
+    }
+
+    .thumbnail-title {
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Creator Cards */
+    .creators-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 12px 16px;
+    }
+
+    .creator-card {
+      background: #1a1a1a;
+      border: 1px solid #2d2d2d;
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .creator-card:active {
+      background: #2d2d2d;
+    }
+
+    .creator-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: #2d2d2d;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .creator-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .creator-info {
+      flex: 1;
+    }
+
+    .creator-name {
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .creator-username {
+      font-size: 11px;
+      color: #999;
+      margin-top: 2px;
+    }
+
+    .creator-stats {
+      font-size: 10px;
+      color: #666;
+      margin-top: 2px;
+    }
+
+    .follow-btn {
+      padding: 6px 12px;
+      background: #dc2626;
+      border: none;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 600;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .follow-btn:active { background: #b91c1c; }
+    .follow-btn.following {
+      background: transparent;
+      border: 1px solid #999;
+    }
+
+    .loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 300px;
+      gap: 12px;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid #2d2d2d;
+      border-top-color: #dc2626;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #1a1a1a;
+      border-top: 1px solid #2d2d2d;
+      display: flex;
+      justify-content: space-around;
+      padding: 8px 0;
+      z-index: 100;
+    }
+
+    .nav-item {
+      background: none;
+      border: none;
+      color: #999;
+      cursor: pointer;
+      padding: 8px 12px;
+      font-size: 20px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .nav-item.active { color: #dc2626; }
+    .nav-label { font-size: 10px; }
+
+    @media (max-width: 600px) {
+      .grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="search-box">
+      <input 
+        type="text" 
+        id="searchInput" 
+        class="search-input" 
+        placeholder="Search videos or creators..."
+        onkeyup="debounceSearch()"
+      >
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('videos')">📹 Videos</button>
+      <button class="tab" onclick="switchTab('creators')">👥 Creators</button>
+    </div>
+
+    <div class="categories" id="categories" style="display: none;"></div>
+  </header>
+
+  <div class="content">
+    <!-- VIDEOS TAB -->
+    <div id="videos-tab" class="tab-content active">
+      <div class="section-title" id="videoSectionTitle">🔥 Trending</div>
+      <div class="grid" id="videosGrid">
+        <div class="loading">
+          <div class="spinner"></div>
+          <p>Loading videos...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- CREATORS TAB -->
+    <div id="creators-tab" class="tab-content">
+      <div class="section-title">Popular Creators</div>
+      <div class="creators-list" id="creatorsGrid">
+        <div class="loading">
+          <div class="spinner"></div>
+          <p>Loading creators...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="bottom-nav">
+    <button class="nav-item" onclick="window.location='index.html'">
+      <span>🏠</span>
+      <span class="nav-label">Home</span>
+    </button>
+    <button class="nav-item" onclick="window.location='upload.html'">
+      <span>➕</span>
+      <span class="nav-label">Create</span>
+    </button>
+    <button class="nav-item active" onclick="window.location='search.html'">
+      <span>🔍</span>
+      <span class="nav-label">Search</span>
+    </button>
+    <button class="nav-item" onclick="window.location='trending.html'">
+      <span>🔥</span>
+      <span class="nav-label">Trending</span>
+    </button>
+  </nav>
+
+  <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
+  <script src="js/appwrite-config.js"></script>
+  <script>
+    let allReels = [];
+    let allCreators = [];
+    let searchTimeout;
+    let currentTab = 'videos';
+    let selectedCategory = 'All';
+
+    // Upload categories (the source of truth)
+    const categories = ['All', 'Sports', 'Entertainment', 'Music', 'Dance', 'Comedy', 'Education', 'Vlog', 'Other'];
+
+    async function init() {
+      try {
+        await session.refresh();
+        await loadAllData();
+        setupCategories();
+        displayTrending();
+      } catch (err) {
+        console.error('Init error:', err);
+      }
+    }
+
+    async function loadAllData() {
+      try {
+        const reels = await db.list(APPWRITE_CONFIG.COLLECTIONS.REELS, [Query.orderDesc('uploadedAt'), Query.limit(100)]);
+        allReels = reels.documents;
+
+        const creators = await db.list(APPWRITE_CONFIG.COLLECTIONS.CREATORS, [Query.orderDesc('totalViews'), Query.limit(50)]);
+        allCreators = creators.documents;
+      } catch (err) {
+        console.error('Load error:', err);
+      }
+    }
+
+    function setupCategories() {
+      let html = '';
+      categories.forEach(cat => {
+        const active = cat === 'All' ? 'active' : '';
+        html += `<button class="category-btn ${active}" onclick="selectCategory('${cat}')">${cat}</button>`;
+      });
+      document.getElementById('categories').innerHTML = html;
+    }
+
+    function switchTab(tab) {
+      currentTab = tab;
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      
+      event.target.classList.add('active');
+      document.getElementById(`${tab}-tab`).classList.add('active');
+      
+      const categoriesEl = document.getElementById('categories');
+      if (tab === 'videos') {
+        categoriesEl.style.display = 'flex';
+        if (!document.getElementById('searchInput').value.trim()) {
+          displayTrending();
+        }
+      } else {
+        categoriesEl.style.display = 'none';
+        if (!document.getElementById('searchInput').value.trim()) {
+          displayCreators(allCreators);
+        }
+      }
+    }
+
+    function selectCategory(cat) {
+      selectedCategory = cat;
+      document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+      performSearch();
+    }
+
+    function debounceSearch() {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(performSearch, 300);
+    }
+
+    function performSearch() {
+      const query = document.getElementById('searchInput').value.trim().toLowerCase();
+
+      if (!query) {
+        if (currentTab === 'videos') {
+          displayTrending();
+        } else {
+          displayCreators(allCreators);
+        }
+        return;
+      }
+
+      if (currentTab === 'videos') {
+        searchVideos(query);
+      } else {
+        searchCreators(query);
+      }
+    }
+
+    function searchVideos(query) {
+      let filtered = allReels.filter(reel => {
+        const matchesQuery = 
+          reel.title.toLowerCase().includes(query) ||
+          reel.description.toLowerCase().includes(query) ||
+          reel.hashtags.toLowerCase().includes(query);
+        
+        const matchesCategory = selectedCategory === 'All' || reel.category.toLowerCase() === selectedCategory.toLowerCase();
+        
+        return matchesQuery && matchesCategory;
+      });
+
+      document.getElementById('videoSectionTitle').textContent = `Search Results (${filtered.length})`;
+      displayVideos('videosGrid', filtered);
+    }
+
+    function searchCreators(query) {
+      let filtered = allCreators.filter(creator => 
+        creator.name.toLowerCase().includes(query) ||
+        creator.username?.toLowerCase().includes(query) ||
+        creator.email?.toLowerCase().includes(query)
+      );
+
+      displayCreators(filtered);
+    }
+
+    function displayTrending() {
+      const trending = allReels.sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 20);
+      document.getElementById('videoSectionTitle').textContent = '🔥 Trending';
+      displayVideos('videosGrid', trending);
+    }
+
+    function displayVideos(elementId, videos) {
+      if (!videos.length) {
+        document.getElementById(elementId).innerHTML = '<div class="loading"><p>No videos found</p></div>';
+        return;
+      }
+
+      let html = '';
+      videos.forEach(reel => {
+        const thumb = reel.thumbnail || 'assets/placeholder.svg';
+        html += `
+          <div class="thumbnail" onclick="openVideo('${reel.$id}')">
+            <img src="${thumb}" alt="Video" onerror="this.src='assets/placeholder.svg'">
+            <div class="play-icon">▶️</div>
+            <div class="thumbnail-overlay">
+              <div class="thumbnail-title">${reel.title}</div>
+            </div>
+          </div>
+        `;
+      });
+      document.getElementById(elementId).innerHTML = html;
+    }
+
+    function displayCreators(creators) {
+      if (!creators.length) {
+        document.getElementById('creatorsGrid').innerHTML = '<div class="loading"><p>No creators found</p></div>';
+        return;
+      }
+
+      let html = '';
+      creators.forEach(creator => {
+        html += `
+          <div class="creator-card" onclick="window.location='creator-profile.html?id=${creator.$id}'">
+            <div class="creator-avatar">
+              <img src="${creator.profilePic || 'assets/placeholder.svg'}" onerror="this.src='assets/placeholder.svg'">
+            </div>
+            <div class="creator-info">
+              <div class="creator-name">${creator.name}</div>
+              <div class="creator-username">@${creator.username || creator.name.toLowerCase().replace(/\s/g, '')}</div>
+              <div class="creator-stats">${creator.followers || 0} followers • ${creator.totalReels || 0} videos</div>
+            </div>
+            <button class="follow-btn" onclick="event.stopPropagation(); alert('Follow coming soon')">Follow</button>
+          </div>
+        `;
+      });
+      document.getElementById('creatorsGrid').innerHTML = html;
+    }
+
+    function openVideo(reelId) {
+      window.location = `video-modal.html?id=${reelId}`;
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  </script>
+</body>
+</html>
