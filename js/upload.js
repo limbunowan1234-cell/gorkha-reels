@@ -1,13 +1,13 @@
 /**
- * GorkhaReels - Simple Upload (Instagram-style)
- * 2 steps: Pick Video → Add Details → Post
- * Uses: bunny (from appwrite-config.js), session, db, Toast
+ * GorkhaReels - Simple Upload (Instagram-style) with Professional Video Editor
+ * Flow: Pick Video → Edit (optional) → Add Details → Post
  * 
- * SCHEMA-MATCHED FIELDS:
- * ✅ isMonetised (British spelling - matches Appwrite)
- * ✅ hashtags (correct field name)
- * ✅ All 19 fields match exact Appwrite schema
- * ✅ Type validation included
+ * FEATURES:
+ * ✅ Video selection with validation
+ * ✅ Send to professional editor (6 tools)
+ * ✅ Or skip editor and go straight to details
+ * ✅ Save edited video metadata
+ * ✅ Post to Appwrite with all edits
  */
 
 class SimpleUpload {
@@ -65,7 +65,6 @@ class SimpleUpload {
       const triggerFilePicker = () => {
         console.log('Opening file picker...');
         try {
-          // Make input visible temporarily (some mobile browsers need this)
           input.style.display = 'block';
           input.style.opacity = '0.01';
           input.style.position = 'absolute';
@@ -75,16 +74,13 @@ class SimpleUpload {
           input.style.height = '100%';
           input.style.zIndex = '9999';
           
-          // Try click
           input.click();
           
-          // Reset visibility after a moment
           setTimeout(() => {
             input.style.display = 'none';
           }, 100);
         } catch(e) {
           console.warn('⚠️ Click failed:', e.message);
-          // Fallback: just make input visible and let user tap it
           input.style.display = 'block';
           input.style.opacity = '1';
           input.style.position = 'static';
@@ -94,7 +90,6 @@ class SimpleUpload {
         }
       };
 
-      // Dropzone click/tap
       dropzone.onclick = triggerFilePicker;
       dropzone.ontouchstart = (e) => {
         console.log('📱 Touch detected on dropzone');
@@ -104,7 +99,6 @@ class SimpleUpload {
         triggerFilePicker();
       };
       
-      // Button click (fallback)
       const selectBtn = dropzone.querySelector('.select-btn');
       if (selectBtn) {
         selectBtn.onclick = (e) => {
@@ -114,7 +108,6 @@ class SimpleUpload {
         };
       }
 
-      // Dropzone drag & drop (desktop only)
       if (!isMobile) {
         dropzone.ondragover = (e) => { 
           e.preventDefault(); 
@@ -128,11 +121,9 @@ class SimpleUpload {
         };
       }
       
-      // File input change - most important handler
       input.addEventListener('change', (e) => {
         console.log('📹 File input changed, files:', e.target.files.length);
         if (e.target.files && e.target.files[0]) {
-          // Hide input again
           input.style.display = 'none';
           this.handleFile(e.target.files[0]);
         }
@@ -171,14 +162,16 @@ class SimpleUpload {
         return;
       }
       
-      // ✅ Store actual duration for later
+      // ✅ Store actual duration
       this.videoDuration = Math.floor(video.duration);
       console.log('✅ Video duration stored:', this.videoDuration);
       
       console.log('✅ File validation passed');
       this.selectedFile = file;
       this.blobUrl = URL.createObjectURL(file);
-      this.showDetailsStep();
+      
+      // ✅ SEND TO EDITOR (professional editing)
+      this.sendToEditor();
     };
     
     video.onerror = () => {
@@ -189,7 +182,30 @@ class SimpleUpload {
     video.src = URL.createObjectURL(file);
   }
 
-  // ===== STEP 2: DETAILS =====
+  // ===== SEND TO EDITOR =====
+  sendToEditor() {
+    try {
+      console.log('📤 Sending video to editor...');
+      
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        // Convert to base64 for localStorage
+        const videoData = btoa(String.fromCharCode(...new Uint8Array(e.target.result)));
+        localStorage.setItem('editorVideoData', videoData);
+        localStorage.setItem('uploadWizardStep', '2');
+        
+        console.log('✅ Video ready for editor');
+        window.location.href = './video-editor.html';
+      };
+      reader.readAsArrayBuffer(this.selectedFile);
+    } catch(err) {
+      console.error('❌ Editor send error:', err);
+      Toast.error(`Error: ${err.message}`);
+      this.showDetailsStep(); // Fallback if editor not available
+    }
+  }
+
+  // ===== STEP 2: DETAILS (after editor) =====
   showDetailsStep() {
     try {
       const stepPick = document.getElementById('step-pick');
@@ -232,17 +248,36 @@ class SimpleUpload {
 
       console.log('🚀 Starting upload...');
 
+      // ✅ CHECK IF VIDEO WAS EDITED
+      const isEdited = localStorage.getItem('videoEdits');
+      let uploadFile = this.selectedFile;
+      let actualDuration = this.videoDuration;
+      let videoEdits = null;
+
+      if (isEdited) {
+        console.log('🎬 Video was edited in editor');
+        videoEdits = JSON.parse(isEdited);
+        
+        // If trimmed, use trimmed duration
+        if (videoEdits.trim) {
+          actualDuration = Math.floor(videoEdits.trim.end - videoEdits.trim.start);
+          console.log('✂️ Trimmed duration:', actualDuration);
+        }
+        
+        // Clear edit data
+        localStorage.removeItem('videoEdits');
+      }
+
       // Upload to Bunny CDN
       const fileName = `${session.getUserId()}_${Date.now()}_${this.selectedFile.name}`;
       console.log('📤 Uploading to Bunny:', fileName);
       
-      const uploadResult = await bunny.uploadVideo(this.selectedFile, fileName);
+      const uploadResult = await bunny.uploadVideo(uploadFile, fileName);
       console.log('✅ Bunny upload success:', uploadResult.url);
 
       // Save to Appwrite
       const reelId = ID.unique();
       
-      // ✅ BUILD OBJECT MATCHING EXACT APPWRITE SCHEMA
       const reelData = {
         // === IDENTIFIERS ===
         reelId: reelId,
@@ -257,7 +292,7 @@ class SimpleUpload {
         // === CATEGORIZATION ===
         category: document.getElementById('post-category').value || 'other',
         language: document.getElementById('post-language').value || 'Nepali',
-        hashtags: '', // ✅ String field (searchable for future hashtag discovery)
+        hashtags: '',
         
         // === ENGAGEMENT METRICS ===
         views: 0,
@@ -266,15 +301,19 @@ class SimpleUpload {
         shares: 0,
         
         // === VIDEO PROPERTIES ===
-        duration: this.videoDuration, // ✅ Actual video length in seconds
+        duration: actualDuration, // ✅ Correct duration (trimmed or original)
         
         // === CREATOR INFO ===
         creatorName: session.currentUser?.name || 'Anonymous',
         creatorProfilePic: session.currentUser?.prefs?.avatar || '',
         
         // === MONETIZATION ===
-        isMonetised: false, // ✅ BRITISH SPELLING - matches Appwrite exactly!
+        isMonetised: false,
         adRevenue: 0,
+        
+        // === EDITS METADATA ===
+        hasEdits: !!videoEdits,
+        videoEdits: videoEdits ? JSON.stringify(videoEdits) : '',
         
         // === SYSTEM FLAGS ===
         uploadedAt: new Date().toISOString(),
@@ -282,7 +321,7 @@ class SimpleUpload {
       };
 
       console.log('💾 Saving to Appwrite with reelId:', reelId);
-      console.log('📋 Reel data matches Appwrite schema');
+      console.log('📋 Video edits:', videoEdits ? 'Yes' : 'No');
       
       const result = await db.create(APPWRITE_CONFIG.COLLECTIONS.REELS, reelData, reelId);
       console.log('✅ Saved successfully:', result.$id);
