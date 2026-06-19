@@ -258,7 +258,7 @@
 
         let html = '';
         reels.documents.forEach((reel, index) => {
-          const thumbnail = reel.thumbnail || reel.videoUrl;
+          const thumbnail = reel.thumbnail || 'assets/placeholder.svg';
           const rank = index + 1;
           html += `
             <div class="thumbnail" onclick="openVideo('${reel.$id}')">
