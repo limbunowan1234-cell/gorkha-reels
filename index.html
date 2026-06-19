@@ -2,261 +2,278 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <meta name="description" content="GorkhaReels - Short-form video platform for Gorkha creators and community. Watch, create, and share videos from the Gorkha community.">
-  <meta name="theme-color" content="#121212">
-  <meta name="keywords" content="gorkha, reels, videos, short-form, gorkha community, darjeeling, nepali">
-  <meta name="author" content="Darjeeling Web Studio">
-  
-  <title>GorkhaReels - Gorkha Community Videos</title>
-  
-  <!-- Favicon -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>GorkhaReels</title>
   <link rel="icon" type="image/png" href="assets/logo.png">
-  <link rel="shortcut icon" href="assets/logo.png">
-  
-  <!-- Open Graph -->
-  <meta property="og:title" content="GorkhaReels - Gorkha Community Videos">
-  <meta property="og:description" content="Discover short-form videos from Gorkha creators and community">
-  <meta property="og:image" content="assets/logo.png">
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://gorkhareel.com">
-
-  <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="GorkhaReels">
-  <meta name="twitter:description" content="Watch Gorkha community videos">
-  <meta name="twitter:image" content="assets/logo.png">
-
-  <!-- Styles -->
   <link rel="stylesheet" href="css/styles.css">
-  <link rel="sitemap" href="sitemap.xml">
-  
   <style>
-    html {
-      scroll-behavior: smooth;
-      scroll-snap-type: y mandatory;
-    }
-
-    body {
-      overflow-y: scroll;
-      overflow-x: hidden;
-    }
-
-    #feed-container {
-      scroll-snap-align: start;
-    }
-
-    /* Prevent pinch zoom on feed */
-    html, body {
-      touch-action: pan-y;
-      overscroll-behavior: none;
-    }
-    .video-card, .feed-container, #feed-container {
-      touch-action: pan-y;
-    }
-
-    /* Video scroll snap */
-    .video-card {
-      scroll-snap-align: start;
-      scroll-snap-stop: always;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-  
-    /* Prevent pinch zoom on feed */
-    html, body {
-      touch-action: pan-y;
-      overscroll-behavior: none;
-    }
-    .video-card, #feed-container {
-      touch-action: pan-y;
-    }
-
-    /* Header styles */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #0f0f0f; color: #fff; font-family: system-ui; touch-action: pan-y; }
+    
+    /* Header */
     header {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      padding: 12px 16px;
+      padding: 10px 12px;
       background: #0f0f0f;
-      border-bottom: 1px solid #2d2d2d;
+      border-bottom: 1px solid #1a1a1a;
+      gap: 12px;
       position: sticky;
       top: 0;
       z-index: 50;
     }
 
-    .header-logo {
-      font-size: 18px;
-      font-weight: 700;
-      color: #fbbf24;
+    .logo { height: 28px; width: auto; }
+    .header-title { font-size: 16px; font-weight: 700; color: #fbbf24; flex: 1; }
+    .header-btn { background: none; border: none; color: #a3a3a3; font-size: 20px; cursor: pointer; padding: 4px; }
+
+    /* Feed */
+    #feed-container {
+      position: relative;
+      width: 100%;
+      height: calc(100vh - 80px);
+      overflow-y: scroll;
+      scroll-snap-type: y mandatory;
+      overscroll-behavior: none;
     }
 
-    .header-actions {
-      display: flex;
-      gap: 12px;
-      align-items: center;
+    .video-card {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+      background: #000;
+      overflow: hidden;
     }
 
-    .header-btn {
-      background: none;
-      border: none;
-      color: #a3a3a3;
-      font-size: 18px;
-      cursor: pointer;
-      padding: 6px 8px;
-      transition: color 0.2s;
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
     }
 
-    .header-btn:hover {
+    /* Overlay Info */
+    .video-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(transparent, rgba(0,0,0,0.8));
+      padding: 20px 12px 80px;
       color: #fff;
     }
 
-    .header-btn.active {
-      color: #fbbf24;
+    .creator-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
     }
+
+    .creator-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #333;
+      overflow: hidden;
+    }
+
+    .creator-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .creator-name {
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .video-title {
+      font-size: 13px;
+      color: #e5e5e5;
+      line-height: 1.3;
+      margin-bottom: 8px;
+    }
+
+    /* Action Buttons */
+    .video-actions {
+      position: absolute;
+      right: 12px;
+      bottom: 100px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .action-btn {
+      width: 40px;
+      height: 40px;
+      background: rgba(255,255,255,0.1);
+      border: none;
+      border-radius: 50%;
+      color: #fff;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+
+    .action-btn:active {
+      background: rgba(255,255,255,0.2);
+    }
+
+    .action-count {
+      font-size: 11px;
+      text-align: center;
+      margin-top: 2px;
+    }
+
+    /* Bottom Nav */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      background: #0f0f0f;
+      border-top: 1px solid #1a1a1a;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 40;
+    }
+
+    .nav-item {
+      background: none;
+      border: none;
+      color: #a3a3a3;
+      font-size: 24px;
+      cursor: pointer;
+      padding: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .nav-create {
+      width: 48px;
+      height: 48px;
+      background: #dc2626;
+      border-radius: 50%;
+      font-size: 28px;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+
+    /* Loading */
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      gap: 10px;
+    }
+
+    .spinner {
+      width: 24px;
+      height: 24px;
+      border: 2px solid #333;
+      border-top-color: #dc2626;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .menu-dropdown {
+      display: none;
+      position: fixed;
+      top: 50px;
+      right: 12px;
+      background: #1a1a1a;
+      border: 1px solid #2d2d2d;
+      border-radius: 8px;
+      min-width: 180px;
+      z-index: 100;
+    }
+
+    .menu-item {
+      width: 100%;
+      padding: 10px 12px;
+      background: none;
+      border: none;
+      color: #fff;
+      text-align: left;
+      font-size: 13px;
+      cursor: pointer;
+      border-bottom: 1px solid #2d2d2d;
+    }
+
+    .menu-item:last-child { border-bottom: none; }
+    .menu-item:active { background: #2d2d2d; }
   </style>
 </head>
 <body>
   <!-- Header -->
   <header>
-    <div style="display: flex; align-items: center; gap: 12px; text-decoration: none; cursor: pointer;" onclick="location.href='./index.html'">
-      <img src="assets/logo.png" alt="GorkhaReels" style="height: 32px; width: auto;">
-      <div class="header-logo">GorkhaReels</div>
-    </div>
-    <div style="flex:1;"></div>
-    <div class="header-actions">
-      <button class="header-btn" id="search-btn" title="Search Creators" onclick="window.location.href='./search-creators.html'">🔍</button>
-      <button class="header-btn" id="profile-btn" title="Profile" onclick="window.location.href='./creator-dashboard.html'">👤</button>
-      <button class="header-btn" id="menu-btn" title="Menu" onclick="toggleMenu()">⋮</button>
-    </div>
+    <img src="assets/logo.png" alt="Logo" class="logo">
+    <div class="header-title">GORKHAREEL</div>
+    <button class="header-btn" onclick="location.href='./search-creators.html'">🔍</button>
+    <button class="header-btn" onclick="location.href='./creator-dashboard.html'">👤</button>
+    <button class="header-btn" onclick="toggleMenu()">⋮</button>
   </header>
 
-  <!-- Dropdown Menu -->
-  <div id="menu-dropdown" style="
-    display: none;
-    position: fixed;
-    top: 50px;
-    right: 16px;
-    background: #1a1a1a;
-    border: 1px solid #2d2d2d;
-    border-radius: 8px;
-    min-width: 200px;
-    z-index: 100;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-  ">
-    <button onclick="goTo('./creator-dashboard.html')" style="
-      width: 100%;
-      padding: 12px 16px;
-      background: none;
-      border: none;
-      color: #fff;
-      text-align: left;
-      font-size: 14px;
-      cursor: pointer;
-      border-bottom: 1px solid #2d2d2d;
-      transition: background 0.2s;
-    " onhover="this.style.background='#252525'">👤 My Profile</button>
-
-    <button onclick="goTo('./upload.html')" style="
-      width: 100%;
-      padding: 12px 16px;
-      background: none;
-      border: none;
-      color: #fff;
-      text-align: left;
-      font-size: 14px;
-      cursor: pointer;
-      border-bottom: 1px solid #2d2d2d;
-      transition: background 0.2s;
-    " onhover="this.style.background='#252525'">🎬 Upload Video</button>
-
-    <button onclick="goTo('./search-creators.html')" style="
-      width: 100%;
-      padding: 12px 16px;
-      background: none;
-      border: none;
-      color: #fff;
-      text-align: left;
-      font-size: 14px;
-      cursor: pointer;
-      border-bottom: 1px solid #2d2d2d;
-      transition: background 0.2s;
-    " onhover="this.style.background='#252525'">🔍 Search Creators</button>
-
-    <button onclick="logout()" style="
-      width: 100%;
-      padding: 12px 16px;
-      background: none;
-      border: none;
-      color: #fca5a5;
-      text-align: left;
-      font-size: 14px;
-      cursor: pointer;
-      transition: background 0.2s;
-    " onhover="this.style.background='#252525'">🚪 Logout</button>
+  <!-- Menu -->
+  <div id="menu" class="menu-dropdown">
+    <button class="menu-item" onclick="location.href='./upload.html'">Upload</button>
+    <button class="menu-item" onclick="location.href='./creator-dashboard.html'">Profile</button>
+    <button class="menu-item" onclick="location.href='./search-creators.html'">Search</button>
+    <button class="menu-item" onclick="logout()">Logout</button>
   </div>
 
-  <!-- Feed Container -->
-  <div id="feed-container" class="feed-container">
-    <!-- Videos will be loaded here -->
-    <div class="loading">
-      <div class="spinner"></div>
-      <p style="margin-left: 12px;">Loading videos...</p>
-    </div>
+  <!-- Feed -->
+  <div id="feed-container" class="loading">
+    <div class="spinner"></div>
+    <p>Loading...</p>
   </div>
 
-  <!-- Bottom Navigation -->
+  <!-- Bottom Nav -->
   <nav class="bottom-nav">
-    <button class="nav-item active" data-nav="home" onclick="window.feedManager && window.feedManager.showHome()">
-      <span>🏠</span>
-      <span class="nav-label">Home</span>
-    </button>
-    <button class="nav-item nav-create" data-nav="create" onclick="window.location.href='./upload.html'">
-      <span class="nav-create-btn">+</span>
-      <span class="nav-label">Create</span>
-    </button>
-    <button class="nav-item" data-nav="trending" onclick="alert('Trending coming soon!')">
-      <span>🔥</span>
-      <span class="nav-label">Trending</span>
-    </button>
+    <button class="nav-item" onclick="location.href='./index.html'">🏠</button>
+    <button class="nav-item nav-create" onclick="location.href='./upload.html'">+</button>
+    <button class="nav-item" onclick="alert('Coming soon')">🔥</button>
   </nav>
 
-  <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
   <script src="js/appwrite-config.js"></script>
   <script src="js/feed.js"></script>
-
+  
   <script>
     function toggleMenu() {
-      const menu = document.getElementById('menu-dropdown');
-      menu.style.display = menu.style.display === 'none' ? 'flex' : 'none';
-      menu.style.flexDirection = 'column';
-    }
-
-    function goTo(url) {
-      document.getElementById('menu-dropdown').style.display = 'none';
-      window.location.href = url;
+      const menu = document.getElementById('menu');
+      menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
     }
 
     async function logout() {
-      if (confirm('Are you sure you want to logout?')) {
+      if (confirm('Logout?')) {
         try {
           await session.logout();
           window.location.href = './login.html';
         } catch (err) {
-          console.error('Logout error:', err);
           alert('Logout failed');
         }
       }
     }
 
-    // Close menu when clicking outside
     document.addEventListener('click', (e) => {
-      const menu = document.getElementById('menu-dropdown');
-      const menuBtn = document.getElementById('menu-btn');
-      if (!menu.contains(e.target) && !menuBtn.contains(e.target)) {
+      const menu = document.getElementById('menu');
+      if (!menu.contains(e.target) && e.target.textContent !== '⋮') {
         menu.style.display = 'none';
       }
     });
