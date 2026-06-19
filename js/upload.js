@@ -50,30 +50,88 @@ class SimpleUpload {
       stepDetails.style.display = 'none';
       if (headerTitle) headerTitle.textContent = 'New Reel';
 
-      // Dropzone click
-      dropzone.onclick = () => {
-        console.log('Dropzone clicked');
-        input.click();
+      // Detect mobile
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      console.log('📱 Device type:', isMobile ? 'Mobile' : 'Desktop');
+
+      // Mobile-friendly file picker trigger
+      const triggerFilePicker = () => {
+        console.log('Opening file picker...');
+        try {
+          // Make input visible temporarily (some mobile browsers need this)
+          input.style.display = 'block';
+          input.style.opacity = '0.01';
+          input.style.position = 'absolute';
+          input.style.top = '0';
+          input.style.left = '0';
+          input.style.width = '100%';
+          input.style.height = '100%';
+          input.style.zIndex = '9999';
+          
+          // Try click
+          input.click();
+          
+          // Reset visibility after a moment
+          setTimeout(() => {
+            input.style.display = 'none';
+          }, 100);
+        } catch(e) {
+          console.warn('⚠️ Click failed:', e.message);
+          // Fallback: just make input visible and let user tap it
+          input.style.display = 'block';
+          input.style.opacity = '1';
+          input.style.position = 'static';
+          input.style.width = '100%';
+          input.style.height = '100%';
+          input.style.zIndex = '9999';
+        }
       };
-      
-      // Dropzone drag & drop
-      dropzone.ondragover = (e) => { 
-        e.preventDefault(); 
-        dropzone.classList.add('drag-over'); 
+
+      // Dropzone click/tap
+      dropzone.onclick = triggerFilePicker;
+      dropzone.ontouchstart = (e) => {
+        console.log('📱 Touch detected on dropzone');
       };
-      dropzone.ondragleave = () => dropzone.classList.remove('drag-over');
-      dropzone.ondrop = (e) => {
+      dropzone.ontouchend = (e) => {
         e.preventDefault();
-        dropzone.classList.remove('drag-over');
-        if (e.dataTransfer.files[0]) this.handleFile(e.dataTransfer.files[0]);
+        triggerFilePicker();
       };
       
-      // File input change
-      input.onchange = (e) => { 
-        if (e.target.files[0]) this.handleFile(e.target.files[0]); 
-      };
+      // Button click (fallback)
+      const selectBtn = dropzone.querySelector('.select-btn');
+      if (selectBtn) {
+        selectBtn.onclick = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          triggerFilePicker();
+        };
+      }
+
+      // Dropzone drag & drop (desktop only)
+      if (!isMobile) {
+        dropzone.ondragover = (e) => { 
+          e.preventDefault(); 
+          dropzone.classList.add('drag-over'); 
+        };
+        dropzone.ondragleave = () => dropzone.classList.remove('drag-over');
+        dropzone.ondrop = (e) => {
+          e.preventDefault();
+          dropzone.classList.remove('drag-over');
+          if (e.dataTransfer.files[0]) this.handleFile(e.dataTransfer.files[0]);
+        };
+      }
       
-      console.log('✅ Pick step ready');
+      // File input change - most important handler
+      input.addEventListener('change', (e) => {
+        console.log('📹 File input changed, files:', e.target.files.length);
+        if (e.target.files && e.target.files[0]) {
+          // Hide input again
+          input.style.display = 'none';
+          this.handleFile(e.target.files[0]);
+        }
+      }, { passive: false });
+      
+      console.log('✅ Pick step ready (Mobile: ' + isMobile + ')');
     } catch(err) {
       console.error('❌ showPickStep error:', err);
     }
@@ -171,7 +229,9 @@ class SimpleUpload {
       console.log('✅ Bunny upload success:', uploadResult.url);
 
       // Save to Appwrite
+      const reelId = ID.unique();
       const reelData = {
+        reelId: reelId,
         creatorId: session.getUserId(),
         creatorName: session.currentUser.name || 'Anonymous',
         creatorProfilePic: session.currentUser.prefs?.avatar || '',
@@ -193,8 +253,8 @@ class SimpleUpload {
         adRevenue: 0
       };
 
-      console.log('💾 Saving to Appwrite...');
-      const result = await db.create(APPWRITE_CONFIG.COLLECTIONS.REELS, reelData, ID.unique());
+      console.log('💾 Saving to Appwrite with reelId:', reelId);
+      const result = await db.create(APPWRITE_CONFIG.COLLECTIONS.REELS, reelData, reelId);
       console.log('✅ Saved:', result.$id);
 
       Toast.success('Reel posted! 🎉');
