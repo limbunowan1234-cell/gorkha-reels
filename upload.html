@@ -8,12 +8,8 @@
   <link rel="icon" type="image/png" href="assets/logo.png">
   <link rel="stylesheet" href="css/styles.css">
   <style>
-    /* Fix header for non-feed pages */
-    header { background: rgba(10,10,10,0.98) !important; position: sticky !important; backdrop-filter: blur(20px) !important; border-bottom: 1px solid rgba(255,255,255,0.06) !important; }
-
     body { background: #0f0f0f; overflow-x: hidden; }
 
-    /* Upload Header */
     .upload-header {
       display: flex;
       align-items: center;
@@ -43,7 +39,6 @@
 
     .header-spacer { width: 36px; }
 
-    /* ===== STEP 1: PICK VIDEO ===== */
     #step-pick {
       display: flex;
       flex-direction: column;
@@ -57,7 +52,6 @@
       width: 100%;
       max-width: 340px;
       aspect-ratio: 9/16;
-      max-height: 60vh;
       border: 2px dashed #3f3f3f;
       border-radius: 20px;
       display: flex;
@@ -67,15 +61,13 @@
       gap: 16px;
       cursor: pointer;
       background: #1a1a1a;
-      transition: border-color 0.2s, background 0.2s;
+      transition: border-color 0.2s;
     }
 
     #dropzone.drag-over {
       border-color: var(--primary-red);
       background: rgba(220,38,38,0.05);
     }
-
-    #dropzone:active { opacity: 0.8; }
 
     .dropzone-icon { font-size: 56px; }
     .dropzone-text { font-size: 18px; font-weight: 700; color: #fff; }
@@ -93,7 +85,6 @@
       cursor: pointer;
     }
 
-    /* ===== STEP 2: DETAILS ===== */
     #step-details {
       display: none;
       flex-direction: column;
@@ -156,7 +147,6 @@
       color: #fff;
       font-size: 15px;
       box-sizing: border-box;
-      transition: border-color 0.2s;
     }
 
     .form-input:focus, .form-textarea:focus, .form-select:focus {
@@ -165,7 +155,6 @@
     }
 
     .form-textarea { resize: none; }
-
     .form-select option { background: #1a1a1a; }
 
     .form-row {
@@ -174,7 +163,6 @@
       gap: 12px;
     }
 
-    /* Post button - fixed at bottom */
     .post-btn-container {
       position: fixed;
       bottom: 0;
@@ -195,15 +183,12 @@
       font-size: 17px;
       font-weight: 800;
       cursor: pointer;
-      letter-spacing: 0.3px;
       box-shadow: 0 4px 20px rgba(220,38,38,0.4);
-      transition: opacity 0.2s, transform 0.1s;
     }
 
-    #post-btn:active { transform: scale(0.98); opacity: 0.9; }
+    #post-btn:active { transform: scale(0.98); }
     #post-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    /* Character counter */
     .char-count {
       font-size: 11px;
       color: #737373;
@@ -214,14 +199,12 @@
 </head>
 <body>
 
-  <!-- Upload Header -->
   <div class="upload-header">
     <button class="upload-back" onclick="history.length > 1 ? history.back() : window.location.href='./index.html'">‹</button>
     <span id="upload-header-title">New Reel</span>
     <div class="header-spacer"></div>
   </div>
 
-  <!-- STEP 1: Pick Video -->
   <div id="step-pick">
     <div id="dropzone">
       <div class="dropzone-icon">🎬</div>
@@ -234,39 +217,22 @@
     <input type="file" id="video-file-input" accept="video/*" style="display:none;">
   </div>
 
-  <!-- STEP 2: Details -->
   <div id="step-details">
-    <!-- Video Preview -->
     <div class="details-preview">
       <video id="video-preview" playsinline muted loop autoplay></video>
       <button class="change-video-btn" id="change-video-btn">✏️ Change</button>
     </div>
 
-    <!-- Form -->
     <div class="details-form">
       <div class="form-field">
         <label class="form-label">Title *</label>
-        <input
-          id="post-title"
-          type="text"
-          class="form-input"
-          placeholder="Give your reel a catchy title..."
-          maxlength="100"
-          oninput="document.getElementById('title-count').textContent = this.value.length + '/100'"
-        >
+        <input id="post-title" type="text" class="form-input" placeholder="Give your reel a catchy title..." maxlength="100" oninput="document.getElementById('title-count').textContent = this.value.length + '/100'">
         <div class="char-count" id="title-count">0/100</div>
       </div>
 
       <div class="form-field">
         <label class="form-label">Description</label>
-        <textarea
-          id="post-description"
-          class="form-textarea"
-          rows="3"
-          placeholder="What's this reel about? Add hashtags..."
-          maxlength="300"
-          oninput="document.getElementById('desc-count').textContent = this.value.length + '/300'"
-        ></textarea>
+        <textarea id="post-description" class="form-textarea" rows="3" placeholder="What's this reel about?" maxlength="300" oninput="document.getElementById('desc-count').textContent = this.value.length + '/300'"></textarea>
         <div class="char-count" id="desc-count">0/300</div>
       </div>
 
@@ -278,12 +244,6 @@
             <option value="music">Music</option>
             <option value="dance">Dance</option>
             <option value="comedy">Comedy</option>
-            <option value="food">Food</option>
-            <option value="travel">Travel</option>
-            <option value="sports">Sports</option>
-            <option value="education">Education</option>
-            <option value="culture">Gorkha Culture</option>
-            <option value="news">News</option>
             <option value="other" selected>Other</option>
           </select>
         </div>
@@ -293,22 +253,16 @@
             <option value="Nepali" selected>Nepali</option>
             <option value="Hindi">Hindi</option>
             <option value="English">English</option>
-            <option value="Gorkhali">Gorkhali</option>
-            <option value="Other">Other</option>
           </select>
         </div>
       </div>
     </div>
 
-    <!-- Post Button (fixed bottom) -->
     <div class="post-btn-container">
-      <button id="post-btn" onclick="window.uploader && window.uploader.post()">
-        🚀 Post Reel
-      </button>
+      <button id="post-btn" onclick="window.uploader && window.uploader.post()">🚀 Post Reel</button>
     </div>
   </div>
 
-  <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
   <script src="js/appwrite-config.js"></script>
   <script src="js/upload.js"></script>
