@@ -6,23 +6,37 @@
   <title>Edit Video - GorkhaReels</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #0f0f0f; color: #fff; font-family: system-ui; }
+    html, body { height: 100%; }
+    body { background: #0f0f0f; color: #fff; font-family: system-ui; overflow: hidden; }
     
     .header {
       background: #1a1a1a;
       padding: 16px;
       text-align: center;
       border-bottom: 1px solid #333;
-      position: sticky;
+      position: fixed;
       top: 0;
+      left: 0;
+      right: 0;
       z-index: 100;
     }
     
+    .header h1 {
+      font-size: 16px;
+      font-weight: 700;
+    }
+    
     .container {
+      position: fixed;
+      top: 60px;
+      bottom: 100px;
+      left: 0;
+      right: 0;
       max-width: 500px;
       margin: 0 auto;
+      width: 100%;
       padding: 16px;
-      padding-bottom: 120px;
+      overflow-y: auto;
     }
     
     .video-box {
@@ -33,6 +47,7 @@
       margin-bottom: 16px;
       overflow: hidden;
       border: 2px solid #dc2626;
+      flex-shrink: 0;
     }
     
     video {
@@ -47,6 +62,7 @@
       border-radius: 12px;
       margin-bottom: 16px;
       overflow: hidden;
+      flex-shrink: 0;
     }
     
     .tabs {
@@ -58,16 +74,17 @@
     
     .tab {
       flex: 1;
-      padding: 12px 8px;
+      padding: 10px 8px;
       background: none;
       border: none;
       color: #999;
       cursor: pointer;
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 600;
       border-bottom: 2px solid transparent;
       white-space: nowrap;
-      min-width: 70px;
+      min-width: 60px;
+      transition: color 0.2s;
     }
     
     .tab.active {
@@ -81,8 +98,8 @@
     
     .tool-pane {
       display: none;
-      padding: 16px;
-      max-height: 300px;
+      padding: 12px;
+      max-height: 250px;
       overflow-y: auto;
     }
     
@@ -91,26 +108,28 @@
     }
     
     .slider-group {
-      margin-bottom: 16px;
+      margin-bottom: 12px;
     }
     
     .slider-label {
       display: flex;
       justify-content: space-between;
-      margin-bottom: 8px;
-      font-size: 12px;
+      margin-bottom: 6px;
+      font-size: 11px;
     }
     
     .slider-label-name {
       font-weight: 600;
+      color: #fff;
     }
     
     .slider-label-value {
       color: #fbbf24;
       font-weight: 600;
       background: rgba(251, 191, 36, 0.1);
-      padding: 2px 8px;
+      padding: 2px 6px;
       border-radius: 4px;
+      font-size: 10px;
     }
     
     input[type="range"] {
@@ -120,6 +139,7 @@
       border-radius: 2px;
       outline: none;
       -webkit-appearance: none;
+      appearance: none;
     }
     
     input[type="range"]::-webkit-slider-thumb {
@@ -143,23 +163,46 @@
     .btn-group {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      margin-bottom: 12px;
+      gap: 6px;
+      margin-bottom: 8px;
     }
     
     .btn-preset {
-      padding: 10px;
+      padding: 8px;
       background: rgba(251, 191, 36, 0.1);
       border: 1px solid rgba(251, 191, 36, 0.3);
       color: #fbbf24;
-      border-radius: 8px;
+      border-radius: 6px;
       cursor: pointer;
       font-weight: 600;
-      font-size: 12px;
+      font-size: 10px;
+      transition: background 0.2s;
     }
     
     .btn-preset:active {
       background: rgba(251, 191, 36, 0.2);
+    }
+    
+    .info {
+      font-size: 10px;
+      color: #999;
+      margin: 8px 0;
+      line-height: 1.5;
+    }
+    
+    .text-input {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 8px;
+      background: #333;
+      border: 1px solid #444;
+      color: #fff;
+      border-radius: 6px;
+      font-size: 12px;
+    }
+    
+    .text-input::placeholder {
+      color: #666;
     }
     
     .actions {
@@ -170,31 +213,34 @@
       max-width: 500px;
       margin: 0 auto;
       background: #1a1a1a;
-      padding: 12px 16px;
+      padding: 10px 16px;
       border-top: 1px solid #333;
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 12px;
+      gap: 10px;
       width: 100%;
+      z-index: 50;
     }
     
     .btn {
-      padding: 12px;
+      padding: 10px;
       border: none;
-      border-radius: 8px;
+      border-radius: 6px;
       font-weight: 700;
-      font-size: 12px;
+      font-size: 10px;
       cursor: pointer;
       text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: opacity 0.2s;
+    }
+    
+    .btn:active {
+      opacity: 0.8;
     }
     
     .btn-secondary {
       background: #333;
       color: #fff;
-    }
-    
-    .btn-secondary:active {
-      background: #444;
     }
     
     .btn-primary {
@@ -203,21 +249,34 @@
       color: white;
     }
     
-    .btn-primary:active {
-      opacity: 0.8;
+    /* Scrollbar styling */
+    .container::-webkit-scrollbar {
+      width: 4px;
     }
     
-    .info {
-      font-size: 11px;
-      color: #999;
-      margin: 12px 0;
-      line-height: 1.6;
+    .container::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    
+    .container::-webkit-scrollbar-thumb {
+      background: #dc2626;
+      border-radius: 2px;
+    }
+    
+    .tool-pane::-webkit-scrollbar {
+      width: 4px;
+    }
+    
+    .tool-pane::-webkit-scrollbar-thumb {
+      background: #dc2626;
+      border-radius: 2px;
     }
     
     @media (max-width: 480px) {
-      .container { padding: 12px; }
-      .tab { font-size: 10px; padding: 10px 6px; }
-      .tool-pane { padding: 12px; }
+      .tab { font-size: 9px; padding: 8px 6px; }
+      .tool-pane { padding: 10px; }
+      .slider-group { margin-bottom: 10px; }
+      .btn { font-size: 9px; padding: 8px; }
     }
   </style>
 </head>
@@ -245,11 +304,11 @@
         <div class="slider-group">
           <div class="slider-label">
             <span class="slider-label-name">Timeline</span>
-            <span class="slider-label-value" id="trim-time">0:00 - 0:20</span>
+            <span class="slider-label-value" id="trim-time">0:00</span>
           </div>
           <input type="range" id="trim-slider" min="0" max="100" value="0">
         </div>
-        <div class="info">💡 Drag slider or click presets below</div>
+        <div class="info">💡 Drag slider to trim from start or end</div>
         <div class="btn-group">
           <button class="btn-preset" onclick="window.editor.quickTrim(5)">5s</button>
           <button class="btn-preset" onclick="window.editor.quickTrim(15)">15s</button>
@@ -274,14 +333,21 @@
           </div>
           <input type="range" id="contrast" min="50" max="150" value="100">
         </div>
-        <div class="info">🎨 Adjust image properties</div>
+        <div class="slider-group">
+          <div class="slider-label">
+            <span class="slider-label-name">Saturation</span>
+            <span class="slider-label-value" id="saturation-val">100%</span>
+          </div>
+          <input type="range" id="saturation" min="0" max="200" value="100">
+        </div>
+        <div class="info">🎨 Adjust color & light</div>
       </div>
       
       <!-- TEXT -->
       <div class="tool-pane" data-pane="text">
-        <input type="text" id="text-input" placeholder="Add text..." style="width:100%;padding:8px;margin-bottom:8px;background:#333;border:none;color:#fff;border-radius:6px;">
+        <input type="text" id="text-input" class="text-input" placeholder="Add text..." maxlength="100">
         <button class="btn-preset" style="width:100%;background:#dc2626;color:#fff;border:none;" onclick="window.editor.addText()">+ Add Text</button>
-        <div class="info" style="margin-top:12px;">📝 Type and click to add</div>
+        <div class="info" style="margin-top:10px;">📝 Add captions to your video</div>
       </div>
       
       <!-- SPEED -->
@@ -294,28 +360,28 @@
           <input type="range" id="speed" min="0.5" max="2" step="0.1" value="1">
         </div>
         <div class="btn-group">
-          <button class="btn-preset" onclick="document.getElementById('speed').value=0.5;window.editor.updateSpeed()">0.5x</button>
-          <button class="btn-preset" onclick="document.getElementById('speed').value=1;window.editor.updateSpeed()">1x</button>
-          <button class="btn-preset" onclick="document.getElementById('speed').value=1.5;window.editor.updateSpeed()">1.5x</button>
-          <button class="btn-preset" onclick="document.getElementById('speed').value=2;window.editor.updateSpeed()">2x</button>
+          <button class="btn-preset" onclick="window.editor.setSpeed(0.5)">0.5x</button>
+          <button class="btn-preset" onclick="window.editor.setSpeed(1)">1x</button>
+          <button class="btn-preset" onclick="window.editor.setSpeed(1.5)">1.5x</button>
+          <button class="btn-preset" onclick="window.editor.setSpeed(2)">2x</button>
         </div>
       </div>
       
       <!-- ROTATE -->
       <div class="tool-pane" data-pane="rotate">
         <div class="btn-group">
-          <button class="btn-preset" onclick="alert('Rotate 90°')">🔄 Rotate</button>
-          <button class="btn-preset" onclick="alert('Flip Horizontal')">↔️ Flip H</button>
-          <button class="btn-preset" onclick="alert('Flip Vertical')">↕️ Flip V</button>
-          <button class="btn-preset" onclick="alert('Reset')">↩️ Reset</button>
+          <button class="btn-preset" onclick="window.editor.rotate(90)">🔄 Rotate 90°</button>
+          <button class="btn-preset" onclick="window.editor.flipH()">↔️ Flip H</button>
+          <button class="btn-preset" onclick="window.editor.flipV()">↕️ Flip V</button>
+          <button class="btn-preset" onclick="window.editor.resetTransform()">↩️ Reset</button>
         </div>
-        <div class="info">🔄 Transform video</div>
+        <div class="info">🔄 Transform video (rotate, flip)</div>
       </div>
     </div>
   </div>
   
   <div class="actions">
-    <button class="btn btn-secondary" onclick="window.editor.skip()">Skip Editing</button>
+    <button class="btn btn-secondary" onclick="window.editor.skip()">Skip</button>
     <button class="btn btn-primary" onclick="window.editor.continue()">✓ Continue</button>
   </div>
 
@@ -325,6 +391,7 @@
         this.duration = 0;
         this.trimStart = 0;
         this.trimEnd = 0;
+        this.transforms = { rotate: 0, flipH: false, flipV: false };
         this.load();
         this.bindTabs();
         this.bindInputs();
@@ -350,7 +417,7 @@
         video.addEventListener('loadedmetadata', () => {
           this.duration = Math.floor(video.duration);
           this.trimEnd = this.duration;
-          document.getElementById('trim-time').textContent = `0:00 - ${this.formatTime(this.duration)}`;
+          this.updateTrimDisplay();
         });
       }
       
@@ -369,12 +436,19 @@
       
       bindInputs() {
         document.getElementById('trim-slider').addEventListener('input', () => this.updateTrim());
+        
         document.getElementById('brightness').addEventListener('input', (e) => {
           document.getElementById('brightness-val').textContent = e.target.value + '%';
         });
+        
         document.getElementById('contrast').addEventListener('input', (e) => {
           document.getElementById('contrast-val').textContent = e.target.value + '%';
         });
+        
+        document.getElementById('saturation').addEventListener('input', (e) => {
+          document.getElementById('saturation-val').textContent = e.target.value + '%';
+        });
+        
         document.getElementById('speed').addEventListener('input', () => this.updateSpeed());
       }
       
@@ -383,11 +457,20 @@
         const pct = slider.value / 100;
         const time = pct * this.duration;
         document.getElementById('video').currentTime = time;
+        this.updateTrimDisplay();
+      }
+      
+      updateTrimDisplay() {
+        const slider = document.getElementById('trim-slider');
+        const pct = slider.value / 100;
+        const time = pct * this.duration;
+        document.getElementById('trim-time').textContent = this.formatTime(time);
       }
       
       quickTrim(seconds) {
         this.trimEnd = Math.min(seconds, this.duration);
-        document.getElementById('trim-time').textContent = `0:00 - ${this.formatTime(this.trimEnd)}`;
+        document.getElementById('trim-slider').value = (this.trimEnd / this.duration) * 100;
+        this.updateTrimDisplay();
       }
       
       updateSpeed() {
@@ -396,10 +479,52 @@
         document.getElementById('video').playbackRate = speed;
       }
       
+      setSpeed(speed) {
+        document.getElementById('speed').value = speed;
+        this.updateSpeed();
+      }
+      
+      rotate(degrees) {
+        this.transforms.rotate = (this.transforms.rotate + degrees) % 360;
+        this.applyTransform();
+      }
+      
+      flipH() {
+        this.transforms.flipH = !this.transforms.flipH;
+        this.applyTransform();
+      }
+      
+      flipV() {
+        this.transforms.flipV = !this.transforms.flipV;
+        this.applyTransform();
+      }
+      
+      resetTransform() {
+        this.transforms = { rotate: 0, flipH: false, flipV: false };
+        this.applyTransform();
+      }
+      
+      applyTransform() {
+        const video = document.getElementById('video');
+        let transform = '';
+        
+        if (this.transforms.rotate) {
+          transform += `rotate(${this.transforms.rotate}deg) `;
+        }
+        if (this.transforms.flipH) {
+          transform += 'scaleX(-1) ';
+        }
+        if (this.transforms.flipV) {
+          transform += 'scaleY(-1) ';
+        }
+        
+        video.style.transform = transform || 'none';
+      }
+      
       addText() {
         const text = document.getElementById('text-input').value;
         if (text) {
-          alert('Text added: ' + text);
+          alert('✅ Text added: "' + text + '"');
           document.getElementById('text-input').value = '';
         }
       }
@@ -420,8 +545,10 @@
           trim: { start: this.trimStart, end: this.trimEnd },
           filters: {
             brightness: document.getElementById('brightness').value,
-            contrast: document.getElementById('contrast').value
-          }
+            contrast: document.getElementById('contrast').value,
+            saturation: document.getElementById('saturation').value
+          },
+          transforms: this.transforms
         }));
         localStorage.removeItem('editorVideoData');
         window.location.href = './upload.html?edited=true';
