@@ -97,7 +97,7 @@
 
           if (session.isLoggedIn() && session.getUserId() !== this.creatorId) {
             const myFollow = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [
-              Query.equal('followerID', session.getUserId()),
+              Query.equal('followerId', session.getUserId()),
               Query.equal('followingId', this.creatorId),
               Query.limit(1)
             ]);
@@ -170,7 +170,7 @@
         try {
           if (this.isFollowing) {
             const follows = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [
-              Query.equal('followerID', userId),
+              Query.equal('followerId', userId),
               Query.equal('followingId', this.creatorId),
               Query.limit(1)
             ]);
@@ -181,7 +181,7 @@
             Toast.success('Unfollowed');
           } else {
             const existing = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [
-              Query.equal('followerID', userId),
+              Query.equal('followerId', userId),
               Query.equal('followingId', this.creatorId),
               Query.limit(1)
             ]);
@@ -190,7 +190,7 @@
                 APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS,
                 {
                   followId: ID.unique(),
-                  followerID: userId,
+                  followerId: userId,
                   followingId: this.creatorId,
                   CreatorId: this.creatorId,
                   createdAt: new Date().toISOString()
