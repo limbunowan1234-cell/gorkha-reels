@@ -252,7 +252,7 @@ class SimpleUpload {
       const fileName = `${session.getUserId()}_${Date.now()}_${this.selectedFile.name}`;
       console.log('📤 Uploading to Bunny:', fileName);
       
-      const uploadResult = await bunny.uploadVideo(uploadFile, fileName);
+      const uploadResult = await bunny.uploadVideo(this.selectedFile, fileName);
       console.log('✅ Bunny upload success:', uploadResult.url);
 
       // Save to Appwrite
