@@ -26,70 +26,165 @@ class SimpleUpload {
       }
       
       console.log('✅ User logged in');
-      this.showPickStep();
+      
+      try {
+        this.showPickStep();
+        console.log('✅ Pick step shown');
+      } catch(err) {
+        console.error('❌ showPickStep failed:', err);
+        throw err;
+      }
+      
       console.log('✅ Upload ready');
     } catch(err) {
-      console.error('❌ Init failed:', err);
-      Toast.error(`Init failed: ${err.message}`);
+      console.error('❌ Init failed:', err.message || err);
+      console.error('Stack:', err.stack);
+      if (window.Toast) {
+        Toast.error(`Init failed: ${err.message}`);
+      } else {
+        alert(`Init failed: ${err.message}`);
+      }
     }
   }
 
   // ===== STEP 1: PICK VIDEO =====
   showPickStep() {
-    document.getElementById('step-pick').style.display = 'flex';
-    document.getElementById('step-details').style.display = 'none';
-    document.getElementById('upload-header-title').textContent = 'New Reel';
+    try {
+      console.log('📝 Setting up pick step...');
+      
+      const stepPick = document.getElementById('step-pick');
+      const stepDetails = document.getElementById('step-details');
+      
+      if (!stepPick || !stepDetails) {
+        throw new Error('HTML elements missing: step-pick or step-details');
+      }
+      
+      stepPick.style.display = 'flex';
+      stepDetails.style.display = 'none';
+      
+      const headerTitle = document.getElementById('upload-header-title');
+      if (headerTitle) headerTitle.textContent = 'New Reel';
 
-    const input = document.getElementById('video-file-input');
-    const dropzone = document.getElementById('dropzone');
+      const input = document.getElementById('video-file-input');
+      const dropzone = document.getElementById('dropzone');
+      
+      if (!input || !dropzone) {
+        throw new Error('HTML elements missing: video-file-input or dropzone');
+      }
 
-    dropzone.onclick = () => input.click();
-    dropzone.ondragover = (e) => { e.preventDefault(); dropzone.classList.add('drag-over'); };
-    dropzone.ondragleave = () => dropzone.classList.remove('drag-over');
-    dropzone.ondrop = (e) => {
-      e.preventDefault();
-      dropzone.classList.remove('drag-over');
-      if (e.dataTransfer.files[0]) this.handleFile(e.dataTransfer.files[0]);
-    };
-    input.onchange = (e) => { if (e.target.files[0]) this.handleFile(e.target.files[0]); };
+      dropzone.onclick = () => {
+        console.log('Dropzone clicked');
+        input.click();
+      };
+      
+      dropzone.ondragover = (e) => { 
+        e.preventDefault(); 
+        dropzone.classList.add('drag-over'); 
+      };
+      
+      dropzone.ondragleave = () => dropzone.classList.remove('drag-over');
+      
+      dropzone.ondrop = (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('drag-over');
+        console.log('Files dropped:', e.dataTransfer.files.length);
+        if (e.dataTransfer.files[0]) this.handleFile(e.dataTransfer.files[0]);
+      };
+      
+      input.onchange = (e) => { 
+        console.log('File selected:', e.target.files.length);
+        if (e.target.files[0]) this.handleFile(e.target.files[0]); 
+      };
+      
+      console.log('✅ Pick step setup complete');
+    } catch(err) {
+      console.error('❌ showPickStep error:', err.message || err);
+      throw err;
+    }
   }
 
   handleFile(file) {
-    const allowed = ['video/mp4', 'video/webm', 'video/quicktime', 'video/mpeg'];
-    if (!allowed.includes(file.type)) { Toast.error('Use MP4, WebM or MOV'); return; }
-    if (file.size > 500 * 1024 * 1024) { Toast.error('Max 500MB'); return; }
-
-    const video = document.createElement('video');
-    video.preload = 'metadata';
-    video.onloadedmetadata = () => {
-      if (video.duration > 120) {
-        const m = Math.floor(video.duration / 60), s = Math.floor(video.duration % 60);
-        Toast.error(`Video is ${m}:${s} — max 2 minutes`);
-        return;
+    console.log('📹 Handling file:', file.name, file.size, file.type);
+    
+    try {
+      const allowed = ['video/mp4', 'video/webm', 'video/quicktime', 'video/mpeg'];
+      if (!allowed.includes(file.type)) { 
+        console.warn('❌ Invalid file type:', file.type);
+        Toast.error('Use MP4, WebM or MOV'); 
+        return; 
       }
-      this.selectedFile = file;
-      this.blobUrl = URL.createObjectURL(file);
-      this.showDetailsStep();
-    };
-    video.onerror = () => Toast.error('Invalid video file');
-    video.src = URL.createObjectURL(file);
+      
+      if (file.size > 500 * 1024 * 1024) { 
+        console.warn('❌ File too large:', file.size);
+        Toast.error('Max 500MB'); 
+        return; 
+      }
+
+      const video = document.createElement('video');
+      video.preload = 'metadata';
+      
+      video.onloadedmetadata = () => {
+        console.log('⏱️ Video duration:', video.duration);
+        
+        if (video.duration > 120) {
+          const m = Math.floor(video.duration / 60), s = Math.floor(video.duration % 60);
+          console.warn('❌ Video too long:', `${m}:${s}`);
+          Toast.error(`Video is ${m}:${s} — max 2 minutes`);
+          return;
+        }
+        
+        console.log('✅ File validation passed');
+        this.selectedFile = file;
+        this.blobUrl = URL.createObjectURL(file);
+        this.showDetailsStep();
+      };
+      
+      video.onerror = () => {
+        console.error('❌ Video error');
+        Toast.error('Invalid video file');
+      };
+      
+      video.src = URL.createObjectURL(file);
+    } catch(err) {
+      console.error('❌ handleFile error:', err);
+      Toast.error(`File error: ${err.message}`);
+    }
   }
 
   // ===== STEP 2: DETAILS =====
   showDetailsStep() {
-    document.getElementById('step-pick').style.display = 'none';
-    document.getElementById('step-details').style.display = 'flex';
-    document.getElementById('upload-header-title').textContent = 'Add Details';
+    try {
+      console.log('📝 Setting up details step...');
+      
+      const stepPick = document.getElementById('step-pick');
+      const stepDetails = document.getElementById('step-details');
+      const preview = document.getElementById('video-preview');
+      const changeBtn = document.getElementById('change-video-btn');
+      const headerTitle = document.getElementById('upload-header-title');
+      
+      if (!stepPick || !stepDetails || !preview || !changeBtn) {
+        throw new Error('Missing HTML elements in details step');
+      }
+      
+      stepPick.style.display = 'none';
+      stepDetails.style.display = 'flex';
+      if (headerTitle) headerTitle.textContent = 'Add Details';
 
-    const preview = document.getElementById('video-preview');
-    preview.src = this.blobUrl;
-    preview.play().catch(() => {});
+      preview.src = this.blobUrl;
+      preview.play().catch(() => console.warn('⚠️ Autoplay blocked'));
 
-    document.getElementById('change-video-btn').onclick = () => {
-      preview.pause();
-      this.selectedFile = null;
-      this.showPickStep();
-    };
+      changeBtn.onclick = () => {
+        console.log('Changing video...');
+        preview.pause();
+        this.selectedFile = null;
+        this.showPickStep();
+      };
+      
+      console.log('✅ Details step setup complete');
+    } catch(err) {
+      console.error('❌ showDetailsStep error:', err);
+      Toast.error(`Details setup failed: ${err.message}`);
+    }
   }
 
   // ===== UPLOAD =====
@@ -179,10 +274,29 @@ class SimpleUpload {
 }
 
 // Initialize
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => { window.uploader = new SimpleUpload(); });
-} else {
-  window.uploader = new SimpleUpload();
+console.log('📦 Starting upload initialization...');
+
+try {
+  if (document.readyState === 'loading') {
+    console.log('⏳ DOM still loading, waiting for DOMContentLoaded...');
+    document.addEventListener('DOMContentLoaded', () => { 
+      console.log('📄 DOMContentLoaded fired');
+      try {
+        window.uploader = new SimpleUpload();
+        console.log('✅ SimpleUpload instance created');
+      } catch(err) {
+        console.error('❌ Failed to create SimpleUpload:', err);
+        throw err;
+      }
+    });
+  } else {
+    console.log('✅ DOM already loaded, initializing now...');
+    window.uploader = new SimpleUpload();
+    console.log('✅ SimpleUpload instance created');
+  }
+} catch(err) {
+  console.error('❌ Global init error:', err.message || err);
+  console.error('Error stack:', err.stack);
 }
 
-console.log('✅ Upload Manager Ready');
+console.log('✅ Upload Manager Script Loaded');
