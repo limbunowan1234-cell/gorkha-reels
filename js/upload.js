@@ -1,47 +1,8 @@
 /**
  * GorkhaReels - Simple Upload (Instagram-style)
  * 2 steps: Pick Video → Add Details → Post
- * With Bunny CDN video upload
+ * Uses: bunny (from appwrite-config.js), session, db, Toast
  */
-
-// Bunny CDN wrapper
-const bunny = {
-  zone: 'gorkhareels',
-  pullUrl: 'https://gorkhareel-video.b-cdn.net/',
-  apiKey: 'cf694f78-8568-4497-9e76-4c8848c4728e', // From appwrite-config.js
-
-  async uploadVideo(file, fileName) {
-    const formData = new FormData();
-    formData.append('file', file);
-
-    try {
-      const response = await fetch(`https://video.bunnycdn.com/upload?library=320093&authToken=${this.apiKey}`, {
-        method: 'POST',
-        body: formData,
-        headers: {
-          'AccessKey': this.apiKey
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`Bunny upload failed: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      const videoGuid = data.guid || data.VideoGuid;
-      
-      if (!videoGuid) {
-        throw new Error('No video GUID returned from Bunny');
-      }
-
-      const url = `${this.pullUrl}${videoGuid}/play_${videoGuid}.mp4`;
-      return { url, guid: videoGuid };
-    } catch (error) {
-      console.error('Bunny upload error:', error);
-      throw error;
-    }
-  }
-};
 
 class SimpleUpload {
   constructor() {
@@ -82,12 +43,10 @@ class SimpleUpload {
   }
 
   handleFile(file) {
-    // Validate type
     const allowed = ['video/mp4', 'video/webm', 'video/quicktime', 'video/mpeg'];
     if (!allowed.includes(file.type)) { Toast.error('Use MP4, WebM or MOV'); return; }
     if (file.size > 500 * 1024 * 1024) { Toast.error('Max 500MB'); return; }
 
-    // Check duration
     const video = document.createElement('video');
     video.preload = 'metadata';
     video.onloadedmetadata = () => {
@@ -110,12 +69,10 @@ class SimpleUpload {
     document.getElementById('step-details').style.display = 'flex';
     document.getElementById('upload-header-title').textContent = 'Add Details';
 
-    // Show preview
     const preview = document.getElementById('video-preview');
     preview.src = this.blobUrl;
     preview.play().catch(() => {});
 
-    // Change video button
     document.getElementById('change-video-btn').onclick = () => {
       preview.pause();
       this.selectedFile = null;
@@ -137,7 +94,7 @@ class SimpleUpload {
     postBtn.disabled = true;
 
     try {
-      // Step 1: Upload video to Bunny CDN
+      // Upload video to Bunny CDN
       postBtn.textContent = '⏳ Uploading...';
       const fileName = `${Date.now()}_${Math.random().toString(36).substr(2,9)}_${this.selectedFile.name.replace(/[^a-zA-Z0-9._-]/g,'_').toLowerCase().substring(0,80)}`;
 
@@ -146,8 +103,9 @@ class SimpleUpload {
 
       while (this.uploadRetries < this.maxRetries && !uploadResult) {
         try {
+          // Use bunny client from appwrite-config.js
           uploadResult = await bunny.uploadVideo(this.selectedFile, fileName);
-          console.log('✅ Video uploaded to Bunny:', uploadResult);
+          console.log('✅ Video uploaded:', uploadResult);
         } catch (err) {
           this.uploadRetries++;
           console.error(`Upload attempt ${this.uploadRetries} failed:`, err);
@@ -158,11 +116,9 @@ class SimpleUpload {
         }
       }
 
-      if (!uploadResult) {
-        throw new Error('Failed to upload video after retries');
-      }
+      if (!uploadResult) throw new Error('Failed to upload video');
 
-      // Step 2: Get creator info
+      // Get creator info
       postBtn.textContent = '⏳ Saving...';
       const user = session.getUser();
       let creatorName = user.name || 'GorkhaReels Creator';
@@ -172,17 +128,17 @@ class SimpleUpload {
         creatorName = profile.name || creatorName;
         creatorProfilePic = profile.profilePic || '';
       } catch (e) {
-        console.warn('Creator profile not found, using defaults');
+        console.warn('Creator profile not found');
       }
 
-      // Step 3: Save to database
+      // Save to database
       const reelData = {
         reelId: ID.unique(),
         creatorId: user.$id,
         creatorName,
         creatorProfilePic,
         videoUrl: uploadResult.url,
-        thumbnail: `${uploadResult.url}?thumb=1`,
+        thumbnail: uploadResult.url,
         title,
         description: description || '',
         category: category || 'other',
@@ -195,14 +151,14 @@ class SimpleUpload {
         shares: 0
       };
 
-      console.log('📝 Saving reel to database:', reelData);
+      console.log('📝 Saving reel:', reelData);
       await db.create(APPWRITE_CONFIG.COLLECTIONS.REELS, reelData);
 
       Toast.success('🎉 Reel posted!');
       setTimeout(() => window.location.href = './creator-dashboard.html', 1200);
 
     } catch (error) {
-      console.error('❌ Upload failed:', error);
+      console.error('Upload failed:', error);
       Toast.error(`Upload failed: ${error.message}`);
       postBtn.disabled = false;
       postBtn.textContent = '🚀 Post Reel';
@@ -210,9 +166,11 @@ class SimpleUpload {
   }
 }
 
-// Init
+// Initialize
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => { window.uploader = new SimpleUpload(); });
 } else {
   window.uploader = new SimpleUpload();
 }
+
+console.log('✅ Upload Manager Ready');
