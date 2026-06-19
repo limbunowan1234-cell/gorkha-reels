@@ -81,7 +81,6 @@
 
       async loadProfile() {
         try {
-          // Load creator info
           this.creator = await db.get(APPWRITE_CONFIG.COLLECTIONS.CREATORS, this.creatorId);
           
           document.getElementById('creator-name').textContent = this.creator.name || 'Creator';
@@ -91,13 +90,11 @@
           document.getElementById('videos-count').textContent = this.creator.totalReels || 0;
           document.getElementById('views-count').textContent = this.creator.totalViews || 0;
 
-          // Load followers count
           const followers = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [
             Query.equal('followingId', this.creatorId)
           ]);
           document.getElementById('followers-count').textContent = followers.total;
 
-          // Check if current user follows
           if (session.isLoggedIn() && session.getUserId() !== this.creatorId) {
             const myFollow = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [
               Query.equal('followerID', session.getUserId()),
@@ -111,7 +108,6 @@
             document.getElementById('follow-btn').style.display = 'none';
           }
 
-          // Load videos
           await this.loadVideos();
           document.getElementById('loading').style.display = 'none';
 
@@ -158,7 +154,6 @@
         }
       }
 
-      // FIXED: Added followingId
       async toggleFollow() {
         if (!session.isLoggedIn()) {
           window.location.href = './login.html';
@@ -167,12 +162,13 @@
 
         const btn = document.getElementById('follow-btn');
         const userId = session.getUserId();
+        if (btn.dataset.busy === '1') return;
+        btn.dataset.busy = '1';
         btn.disabled = true;
         btn.textContent = '...';
 
         try {
           if (this.isFollowing) {
-            // Unfollow
             const follows = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [
               Query.equal('followerID', userId),
               Query.equal('followingId', this.creatorId),
@@ -184,28 +180,33 @@
             this.isFollowing = false;
             Toast.success('Unfollowed');
           } else {
-            // Follow - WITH followingId FIX
-            await db.create(
-              APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS,
-              {
-                followId: ID.unique(),
-                followerID: userId,
-                followingId: this.creatorId,  // ← THIS WAS MISSING
-                CreatorId: this.creatorId,
-                createdAt: new Date().toISOString()
-              },
-              null,
-              [
-                Permission.read(Role.any()),
-                Permission.delete(Role.user(userId))
-              ]
-            );
+            const existing = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [
+              Query.equal('followerID', userId),
+              Query.equal('followingId', this.creatorId),
+              Query.limit(1)
+            ]);
+            if (existing.total === 0) {
+              await db.create(
+                APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS,
+                ID.unique(),
+                {
+                  followId: ID.unique(),
+                  followerID: userId,
+                  followingId: this.creatorId,
+                  CreatorId: this.creatorId,
+                  createdAt: new Date().toISOString()
+                },
+                [
+                  Permission.read(Role.any()),
+                  Permission.delete(Role.user(userId))
+                ]
+              );
+            }
             this.isFollowing = true;
             Toast.success('Following!');
           }
           
           this.updateFollowButton();
-          // Refresh follower count
           const followers = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [
             Query.equal('followingId', this.creatorId)
           ]);
@@ -217,11 +218,11 @@
           this.updateFollowButton();
         } finally {
           btn.disabled = false;
+          btn.dataset.busy = '0';
         }
       }
     }
 
-    // Initialize
     document.addEventListener('DOMContentLoaded', () => {
       new ProfileManager();
     });
