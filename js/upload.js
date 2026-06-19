@@ -189,13 +189,34 @@ class SimpleUpload {
       
       const reader = new FileReader();
       reader.onload = (e) => {
-        // Convert to base64 for localStorage
-        const videoData = btoa(String.fromCharCode(...new Uint8Array(e.target.result)));
-        localStorage.setItem('editorVideoData', videoData);
-        localStorage.setItem('uploadWizardStep', '2');
-        
-        console.log('✅ Video ready for editor');
-        window.location.href = './video-editor.html';
+        try {
+          // Convert to base64 in chunks (prevents stack overflow)
+          const arr = new Uint8Array(e.target.result);
+          const chunkSize = 32768; // 32KB chunks
+          let binary = '';
+          
+          for (let i = 0; i < arr.length; i += chunkSize) {
+            binary += String.fromCharCode.apply(null, arr.subarray(i, i + chunkSize));
+          }
+          
+          const videoData = btoa(binary);
+          console.log('✅ Video encoded:', videoData.length, 'bytes');
+          
+          localStorage.setItem('editorVideoData', videoData);
+          localStorage.setItem('uploadWizardStep', '2');
+          
+          console.log('✅ Video ready for editor');
+          window.location.href = './video-editor.html';
+        } catch(encodeErr) {
+          console.error('❌ Encoding error:', encodeErr.message);
+          Toast.error('File too large for editor');
+          this.showDetailsStep();
+        }
+      };
+      reader.onerror = () => {
+        console.error('❌ FileReader error');
+        Toast.error('Failed to read video file');
+        this.showDetailsStep();
       };
       reader.readAsArrayBuffer(this.selectedFile);
     } catch(err) {
