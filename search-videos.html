@@ -214,6 +214,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
   <script src="js/appwrite-config.js"></script>
+  <script src="js/thumbnail-generator.js"></script>
   <script>
     const CATEGORIES = ['All', 'Music', 'Comedy', 'Moto', 'Lifestyle', 'Sports', 'Dance', 'Cooking', 'Travel', 'Gaming'];
     let selectedCategory = 'All';
@@ -257,20 +258,20 @@
       }
     }
 
-    function renderThumbnails(elementId, reels) {
+    async function renderThumbnails(elementId, reels) {
       let html = '';
-      reels.forEach(reel => {
-        const thumbnail = reel.thumbnail || 'assets/placeholder.svg';
+      for (const reel of reels) {
+        const thumbnail = await loadVideoThumbnail(reel.videoUrl, 'assets/placeholder.svg');
         html += `
           <div class="thumbnail" onclick="openVideo('${reel.$id}')">
-            <img src="assets/placeholder.svg" onerror="this.src='assets/placeholder.svg'">
+            <img src="${thumbnail}" onerror="this.src='assets/placeholder.svg'">
             <div class="play-icon">▶</div>
             <div class="thumbnail-overlay">
               <div class="thumbnail-title">${reel.title}</div>
             </div>
           </div>
         `;
-      });
+      }
       document.getElementById(elementId).innerHTML = html;
     }
 
