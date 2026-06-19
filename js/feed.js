@@ -5,7 +5,7 @@ class FeedManager {
   constructor() {
     this.reels = []; this.currentIndex = 0; this.isLoading = false;
     this.currentVideo = null; this.likedReels = new Set(); this.isFullscreen = false;
-    this.soundOn = false; // Global sound state - once on, stays on for session
+    this.soundEnabled = false; // Session-level: once user unmutes, stay unmuted on swipe
     this.init();
   }
 
@@ -131,10 +131,16 @@ class FeedManager {
 
     const video = document.querySelector('video');
 
-    // Click video to unmute + play (yesterday's working behavior)
+    // Auto-unmute if user previously unmuted a video
+    if (this.soundEnabled) {
+      video.muted = false;
+    }
+
+    // Click video to unmute + play (and stay unmuted for session)
     video.addEventListener('click', () => {
       if (video.muted) {
         video.muted = false;
+        this.soundEnabled = true; // Stay unmuted for all future videos
         video.play().catch(()=>{});
       } else if (video.paused) {
         video.play().catch(()=>{});
