@@ -2,57 +2,75 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>GorkhaReels</title>
   <link rel="icon" type="image/png" href="assets/logo.png">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #0f0f0f; color: #fff; font-family: system-ui; padding-bottom: 70px; }
+    body { background: #0f0f0f; color: #fff; font-family: system-ui; }
 
-    /* Header */
     header {
-      display: flex;
-      align-items: center;
-      padding: 10px 16px;
-      background: #0f0f0f;
-      border-bottom: 1px solid #1a1a1a;
-      gap: 12px;
       position: sticky;
       top: 0;
-      z-index: 50;
+      background: #1a1a1a;
+      padding: 12px 16px;
+      border-bottom: 1px solid #2d2d2d;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
-    .logo { height: 36px; width: auto; cursor: pointer; }
-    .header-title { font-size: 14px; font-weight: 700; color: #fbbf24; flex: 1; }
-    .header-btn { background: none; border: none; color: #a3a3a3; font-size: 18px; cursor: pointer; padding: 4px 8px; }
-
-    /* Feed Container */
-    .feed {
-      max-width: 500px;
-      margin: 0 auto;
-      padding: 0;
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
 
-    /* Post Card */
-    .post {
-      background: #0f0f0f;
-      margin: 12px 16px;
-      padding: 12px;
-      border: 1px solid #1a1a1a;
-      border-radius: 8px;
+    .logo {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+    }
+
+    .header-title {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .header-right {
+      display: flex;
+      gap: 12px;
+    }
+
+    .icon-btn {
+      background: none;
+      border: none;
+      font-size: 20px;
       cursor: pointer;
-      transition: transform 0.2s;
+      color: #fff;
+    }
+
+    .feed {
+      max-width: 100%;
+      margin-bottom: 80px;
+    }
+
+    .post {
+      padding: 16px;
+      border-bottom: 1px solid #2d2d2d;
+      cursor: pointer;
+      transition: background 0.2s;
     }
 
     .post:active {
-      transform: scale(0.98);
+      background: rgba(255,255,255,0.05);
     }
 
-    /* Creator Header */
     .post-header {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
       margin-bottom: 12px;
     }
 
@@ -60,7 +78,7 @@
       width: 40px;
       height: 40px;
       border-radius: 50%;
-      background: #333;
+      background: #2d2d2d;
       overflow: hidden;
       flex-shrink: 0;
     }
@@ -76,15 +94,13 @@
       font-weight: 600;
     }
 
-    /* Thumbnail */
     .post-thumbnail {
-      width: 100%;
-      aspect-ratio: 9 / 16;
-      background: #1a1a1a;
-      border-radius: 6px;
-      overflow: hidden;
-      margin-bottom: 12px;
       position: relative;
+      aspect-ratio: 1;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #1a1a1a;
+      margin-bottom: 12px;
     }
 
     .post-thumbnail img {
@@ -98,169 +114,115 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 50px;
-      height: 50px;
-      background: rgba(220, 38, 38, 0.9);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-      opacity: 0;
-      transition: opacity 0.2s;
+      font-size: 48px;
+      opacity: 0.8;
     }
 
-    .post:hover .play-icon {
-      opacity: 1;
-    }
-
-    /* Title */
     .post-title {
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 600;
-      margin-bottom: 8px;
-      line-height: 1.3;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
+      margin-bottom: 12px;
     }
 
-    /* Actions */
     .post-actions {
       display: flex;
-      gap: 16px;
+      gap: 12px;
     }
 
     .action-btn {
+      flex: 1;
       display: flex;
       align-items: center;
-      gap: 4px;
-      background: none;
+      gap: 6px;
+      background: rgba(255,255,255,0.1);
       border: none;
-      color: #a3a3a3;
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 4px;
       font-size: 12px;
       cursor: pointer;
-      padding: 0;
-      transition: color 0.2s;
+      transition: background 0.2s;
     }
 
-    .action-btn:hover {
-      color: #fff;
-    }
-
-    .action-btn.liked {
-      color: #dc2626;
+    .action-btn:active {
+      background: rgba(255,255,255,0.2);
     }
 
     .action-icon {
       font-size: 16px;
     }
 
-    /* Bottom Nav */
-    .bottom-nav {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 60px;
-      background: #0f0f0f;
-      border-top: 1px solid #1a1a1a;
-      display: flex;
-      justify-content: space-around;
-      z-index: 40;
-    }
-
-    .nav-item {
-      background: none;
-      border: none;
-      color: #a3a3a3;
-      font-size: 20px;
-      cursor: pointer;
-      padding: 8px;
-    }
-
-    .nav-create {
-      width: 50px;
-      height: 50px;
-      background: #dc2626;
-      border-radius: 50%;
-      color: #fff;
-      font-size: 24px;
-      margin-bottom: 8px;
-    }
-
-    /* Menu */
-    .menu-dropdown {
-      display: none;
-      position: fixed;
-      top: 50px;
-      right: 12px;
-      background: #1a1a1a;
-      border: 1px solid #2d2d2d;
-      border-radius: 8px;
-      min-width: 160px;
-      z-index: 100;
-    }
-
-    .menu-item {
-      width: 100%;
-      padding: 10px 12px;
-      background: none;
-      border: none;
-      color: #fff;
-      text-align: left;
-      font-size: 12px;
-      cursor: pointer;
-      border-bottom: 1px solid #2d2d2d;
-    }
-
-    .menu-item:last-child { border-bottom: none; }
-    .menu-item:active { background: #2d2d2d; }
-
-    /* Loading */
     .loading {
-      text-align: center;
-      padding: 40px 20px;
-      color: #999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 400px;
+      gap: 12px;
     }
 
     .spinner {
-      display: inline-block;
-      width: 20px;
-      height: 20px;
-      border: 2px solid #333;
+      width: 40px;
+      height: 40px;
+      border: 3px solid #2d2d2d;
       border-top-color: #dc2626;
       border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      margin-bottom: 10px;
+      animation: spin 1s linear infinite;
     }
 
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
+
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #1a1a1a;
+      border-top: 1px solid #2d2d2d;
+      display: flex;
+      justify-content: space-around;
+      padding: 8px 0;
+      z-index: 100;
+    }
+
+    .nav-item {
+      background: none;
+      border: none;
+      color: #999;
+      cursor: pointer;
+      padding: 8px 12px;
+      font-size: 20px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .nav-item.active {
+      color: #dc2626;
+    }
+
+    .nav-label {
+      font-size: 10px;
+    }
   </style>
 </head>
 <body>
-  <!-- Header -->
   <header>
-    <img src="assets/logo.png" alt="Logo" class="logo" onclick="location.href='./index.html'">
-    <div class="header-title">GORKHAREEL</div>
-    <button class="header-btn" onclick="location.href='./search-videos.html'">🔍</button>
-    <button class="header-btn" onclick="location.href='./creator-dashboard.html'">👤</button>
-    <button class="header-btn" onclick="toggleMenu()">⋮</button>
+    <div class="header-left">
+      <img class="logo" src="assets/logo.png" alt="Logo">
+      <div class="header-title">GORKHAREEL</div>
+    </div>
+    <div class="header-right">
+      <button class="icon-btn" onclick="window.location='search-videos.html'">🔍</button>
+      <button class="icon-btn" onclick="window.location='creator-dashboard.html'">👤</button>
+      <button class="icon-btn" onclick="alert('Menu coming soon')">⋮</button>
+    </div>
   </header>
 
-  <!-- Menu -->
-  <div id="menu" class="menu-dropdown">
-    <button class="menu-item" onclick="location.href='./upload.html'">🎬 Upload</button>
-    <button class="menu-item" onclick="location.href='./trending.html'">🔥 Trending</button>
-    <button class="menu-item" onclick="location.href='./creator-dashboard.html'">👤 Profile</button>
-    <button class="menu-item" onclick="logout()">🚪 Logout</button>
-  </div>
-
-  <!-- Feed -->
   <div class="feed" id="feed">
     <div class="loading">
       <div class="spinner"></div>
@@ -268,23 +230,32 @@
     </div>
   </div>
 
-  <!-- Bottom Nav -->
   <nav class="bottom-nav">
-    <button class="nav-item" onclick="location.href='./index.html'">🏠</button>
-    <button class="nav-item nav-create" onclick="location.href='./upload.html'">+</button>
-    <button class="nav-item" onclick="location.href='./trending.html'">🔥</button>
+    <button class="nav-item active" onclick="window.location='index.html'">
+      <span>🏠</span>
+      <span class="nav-label">Home</span>
+    </button>
+    <button class="nav-item" onclick="window.location='upload.html'">
+      <span>➕</span>
+      <span class="nav-label">Create</span>
+    </button>
+    <button class="nav-item" onclick="window.location='trending.html'">
+      <span>🔥</span>
+      <span class="nav-label">Trending</span>
+    </button>
   </nav>
 
   <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
   <script src="js/appwrite-config.js"></script>
-  <script src="js/thumbnail-generator.js"></script>
+  <script src="js/thumbnail-utils.js"></script>
   <script>
     async function init() {
       try {
         await session.refresh();
-        loadVideos();
+        await loadVideos();
       } catch (err) {
         console.error('Init error:', err);
+        showError('Error loading videos');
       }
     }
 
@@ -292,20 +263,22 @@
       try {
         const reels = await db.list(
           APPWRITE_CONFIG.COLLECTIONS.REELS,
-          [Query.orderDesc('uploadedAt'), Query.limit(100)]
+          [Query.orderDesc('uploadedAt'), Query.limit(50)]
         );
 
+        if (!reels.documents.length) {
+          document.getElementById('feed').innerHTML = '<div class="loading"><p>No videos yet</p></div>';
+          return;
+        }
+
         let html = '';
+        
+        // Load thumbnails in parallel
         for (const reel of reels.documents) {
-          const likes = (reel.likes || 0) >= 1000 ? Math.floor(reel.likes / 1000) + 'K' : (reel.likes || 0);
-          const comments = reel.comments || 0;
-
-          // Generate thumbnail from video
-          const thumbnail = await loadVideoThumbnail(reel.videoUrl, 'assets/placeholder.svg');
-
+          const thumbnail = await generateThumbnailFromVideo(reel.videoUrl);
+          
           html += `
             <div class="post" onclick="openVideo('${reel.$id}')">
-              <!-- Creator Header -->
               <div class="post-header">
                 <div class="creator-avatar">
                   <img src="${reel.creatorProfilePic || 'assets/placeholder.svg'}" onerror="this.src='assets/placeholder.svg'">
@@ -313,27 +286,24 @@
                 <div class="creator-name">${reel.creatorName}</div>
               </div>
 
-              <!-- Thumbnail -->
               <div class="post-thumbnail">
-                <img src="${thumbnail}" alt="Video" style="object-fit: cover;">
+                <img src="${thumbnail}" alt="Video">
                 <div class="play-icon">▶️</div>
               </div>
 
-              <!-- Title -->
               <div class="post-title">${reel.title}</div>
 
-              <!-- Actions -->
               <div class="post-actions">
-                <button class="action-btn" onclick="event.stopPropagation(); toggleLike(this, '${reel.$id}')">
+                <button class="action-btn" onclick="event.stopPropagation()">
                   <span class="action-icon">❤️</span>
-                  <span>${likes}</span>
+                  <span>${reel.likes || 0}</span>
                 </button>
-                <button class="action-btn" onclick="event.stopPropagation(); alert('Comments opening...')">
+                <button class="action-btn" onclick="event.stopPropagation()">
                   <span class="action-icon">💬</span>
-                  <span>${comments}</span>
+                  <span>${reel.comments || 0}</span>
                 </button>
-                <button class="action-btn" onclick="event.stopPropagation(); sharePost('${reel.title}', '${reel.videoUrl}')">
-                  <span class="action-icon">📤</span>
+                <button class="action-btn" onclick="event.stopPropagation()">
+                  <span class="action-icon">↗️</span>
                   <span>Share</span>
                 </button>
               </div>
@@ -341,66 +311,27 @@
           `;
         }
 
-        document.getElementById('feed').innerHTML = html || '<div class="loading"><p>No videos yet</p></div>';
+        document.getElementById('feed').innerHTML = html;
       } catch (err) {
         console.error('Load error:', err);
-        document.getElementById('feed').innerHTML = '<div class="loading"><p>Error loading videos</p></div>';
+        showError('Error loading videos');
       }
     }
 
     function openVideo(reelId) {
-      window.location.href = `./video-modal.html?id=${reelId}`;
+      window.location = `video-modal.html?id=${reelId}`;
     }
 
-    async function toggleLike(btn, postId) {
-      try {
-        await session.refresh();
-        btn.classList.toggle('liked');
-        const currentCount = parseInt(btn.querySelector('span:last-child').textContent) || 0;
-        btn.classList.contains('liked') 
-          ? btn.querySelector('span:last-child').textContent = currentCount + 1
-          : btn.querySelector('span:last-child').textContent = Math.max(0, currentCount - 1);
-      } catch (err) {
-        alert('Login to like');
-      }
+    function showError(msg) {
+      document.getElementById('feed').innerHTML = `<div class="loading"><p>${msg}</p></div>`;
     }
 
-    function sharePost(title, url) {
-      if (navigator.share) {
-        navigator.share({
-          title: 'GorkhaReels',
-          text: title,
-          url: window.location.href
-        }).catch(err => console.error(err));
-      } else {
-        alert('Share: ' + title);
-      }
+    // Start when all scripts loaded
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
     }
-
-    function toggleMenu() {
-      const menu = document.getElementById('menu');
-      menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
-    }
-
-    async function logout() {
-      if (confirm('Logout?')) {
-        try {
-          await session.logout();
-          window.location.href = './login.html';
-        } catch (err) {
-          alert('Logout failed');
-        }
-      }
-    }
-
-    document.addEventListener('click', (e) => {
-      const menu = document.getElementById('menu');
-      if (!menu.contains(e.target) && !e.target.matches('.header-btn')) {
-        menu.style.display = 'none';
-      }
-    });
-
-    init();
   </script>
 </body>
 </html>
