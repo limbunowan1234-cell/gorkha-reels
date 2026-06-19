@@ -110,44 +110,64 @@ class SimpleUpload {
       const allowed = ['video/mp4', 'video/webm', 'video/quicktime', 'video/mpeg'];
       if (!allowed.includes(file.type)) { 
         console.warn('❌ Invalid file type:', file.type);
-        Toast.error('Use MP4, WebM or MOV'); 
+        if (window.Toast) Toast.error('Use MP4, WebM or MOV');
         return; 
       }
       
       if (file.size > 500 * 1024 * 1024) { 
         console.warn('❌ File too large:', file.size);
-        Toast.error('Max 500MB'); 
+        if (window.Toast) Toast.error('Max 500MB');
         return; 
       }
 
+      console.log('📝 Creating video element for validation...');
       const video = document.createElement('video');
       video.preload = 'metadata';
       
       video.onloadedmetadata = () => {
-        console.log('⏱️ Video duration:', video.duration);
-        
-        if (video.duration > 120) {
-          const m = Math.floor(video.duration / 60), s = Math.floor(video.duration % 60);
-          console.warn('❌ Video too long:', `${m}:${s}`);
-          Toast.error(`Video is ${m}:${s} — max 2 minutes`);
-          return;
+        try {
+          console.log('✅ Video metadata loaded, duration:', video.duration);
+          
+          if (video.duration > 120) {
+            const m = Math.floor(video.duration / 60), s = Math.floor(video.duration % 60);
+            console.warn('❌ Video too long:', `${m}:${s}`);
+            if (window.Toast) Toast.error(`Video is ${m}:${s} — max 2 minutes`);
+            return;
+          }
+          
+          console.log('✅ File validation passed, moving to details step');
+          this.selectedFile = file;
+          this.blobUrl = URL.createObjectURL(file);
+          this.showDetailsStep();
+        } catch(err) {
+          console.error('❌ onloadedmetadata callback error:', err);
+          throw err;
         }
-        
-        console.log('✅ File validation passed');
-        this.selectedFile = file;
-        this.blobUrl = URL.createObjectURL(file);
-        this.showDetailsStep();
       };
       
-      video.onerror = () => {
-        console.error('❌ Video error');
-        Toast.error('Invalid video file');
+      video.onerror = (e) => {
+        console.error('❌ Video element error event:', e);
+        console.error('Error type:', video.error?.code, video.error?.message);
+        if (window.Toast) Toast.error('Invalid video file');
       };
       
-      video.src = URL.createObjectURL(file);
+      video.onabort = () => console.warn('⚠️ Video load aborted');
+      video.onstalled = () => console.warn('⚠️ Video load stalled');
+      
+      console.log('📝 Setting video src to blob URL...');
+      try {
+        const blobUrl = URL.createObjectURL(file);
+        console.log('✅ Blob URL created:', blobUrl);
+        video.src = blobUrl;
+        console.log('✅ Video src set');
+      } catch(err) {
+        console.error('❌ Error setting video src:', err);
+        throw err;
+      }
     } catch(err) {
-      console.error('❌ handleFile error:', err);
-      Toast.error(`File error: ${err.message}`);
+      console.error('❌ handleFile FATAL error:', err.message || err);
+      console.error('Stack:', err.stack);
+      if (window.Toast) Toast.error(`File error: ${err.message}`);
     }
   }
 
@@ -276,6 +296,21 @@ class SimpleUpload {
 // Initialize
 console.log('📦 Starting upload initialization...');
 
+// Global error handler
+window.onerror = (message, source, lineno, colno, error) => {
+  console.error('❌ GLOBAL ERROR:', message);
+  console.error('Source:', source);
+  console.error('Line:', lineno, 'Col:', colno);
+  console.error('Error object:', error);
+  return false;
+};
+
+// Unhandled promise rejection
+window.onunhandledrejection = (event) => {
+  console.error('❌ UNHANDLED PROMISE REJECTION:', event.reason);
+  console.error('Promise:', event.promise);
+};
+
 try {
   if (document.readyState === 'loading') {
     console.log('⏳ DOM still loading, waiting for DOMContentLoaded...');
@@ -286,6 +321,7 @@ try {
         console.log('✅ SimpleUpload instance created');
       } catch(err) {
         console.error('❌ Failed to create SimpleUpload:', err);
+        console.error('Stack:', err.stack);
         throw err;
       }
     });
