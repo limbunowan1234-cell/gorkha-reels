@@ -239,6 +239,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
   <script src="js/appwrite-config.js"></script>
+  <script src="js/thumbnail-generator.js"></script>
   <script>
     async function init() {
       try {
@@ -257,12 +258,16 @@
         );
 
         let html = '';
-        reels.documents.forEach((reel, index) => {
-          const thumbnail = reel.thumbnail || 'assets/placeholder.svg';
+        for (let index = 0; index < reels.documents.length; index++) {
+          const reel = reels.documents[index];
           const rank = index + 1;
+          
+          // Generate thumbnail from video
+          const thumbnail = await loadVideoThumbnail(reel.videoUrl, 'assets/placeholder.svg');
+
           html += `
             <div class="thumbnail" onclick="openVideo('${reel.$id}')">
-              <img src="assets/placeholder.svg" onerror="this.src='assets/placeholder.svg'">
+              <img src="${thumbnail}" alt="Thumbnail" style="object-fit: cover;">
               <div class="trending-badge">#${rank}</div>
               <div class="play-icon">▶</div>
               <div class="thumbnail-overlay">
@@ -271,7 +276,7 @@
               </div>
             </div>
           `;
-        });
+        }
 
         document.getElementById('grid').innerHTML = html || '<div class="loading"><p>No trending videos</p></div>';
       } catch (err) {
