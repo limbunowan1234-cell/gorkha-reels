@@ -8,15 +8,12 @@ function log(msg, type) {
 function logErr(msg) {
   console.error(msg);
 }
-function logWarn(msg) {
-  console.warn(msg);
-}
 
 class SimpleUpload {
   constructor() {
     log('🚀 SimpleUpload constructor running');
     this.selectedFile = null;
-    this.selectedHashtags = new Set(); // Track user-selected hashtags
+    this.selectedHashtags = new Set();
     this.init();
   }
 
@@ -26,14 +23,12 @@ class SimpleUpload {
       await session.refresh();
 
       if (!session.isLoggedIn()) {
-        logWarn('Not logged in, redirecting to login');
         window.location.href = './login.html';
         return;
       }
 
       log('✅ User logged in');
       this.setupUI();
-      log('✅ Upload ready');
     } catch(err) {
       logErr('Init failed: ' + err.message);
       if (window.Toast) Toast.error('Init failed: ' + err.message);
@@ -46,7 +41,6 @@ class SimpleUpload {
     const chooseBtn = document.getElementById('choose-btn');
 
     const openPicker = (source) => {
-      log('👆 ' + source + ' tapped — calling input.click()');
       try {
         input.click();
       } catch(e) {
@@ -65,14 +59,9 @@ class SimpleUpload {
     });
 
     input.addEventListener('change', (e) => {
-      log('🔔 CHANGE event fired on file input');
       const files = e.target.files;
       if (files && files[0]) {
-        const f = files[0];
-        log('📁 name=' + f.name + ' type=' + f.type + ' size=' + (f.size/1024/1024).toFixed(2) + 'MB');
-        this.selectVideo(f);
-      } else {
-        logWarn('change fired but no file present (user cancelled)');
+        this.selectVideo(files[0]);
       }
     });
 
@@ -85,56 +74,32 @@ class SimpleUpload {
       e.preventDefault();
       dropzone.classList.remove('drag-over');
       if (e.dataTransfer.files?.[0]) {
-        log('📥 File dropped');
         this.selectVideo(e.dataTransfer.files[0]);
       }
     });
-
-    log('✅ All UI listeners attached');
   }
 
   selectVideo(file) {
-    log('🎬 selectVideo() running for: ' + file.name);
-
     try {
       if (!file.type.startsWith('video/')) {
-        logWarn('Rejected — not a video MIME type: ' + file.type);
         Toast.error('Select a video file');
         return;
       }
 
       if (file.size > 500 * 1024 * 1024) {
-        logWarn('Rejected — file too large: ' + file.size);
         Toast.error('Max 500MB');
         return;
       }
 
       this.selectedFile = file;
 
-      let blobUrl;
-      try {
-        blobUrl = URL.createObjectURL(file);
-      } catch(e) {
-        logErr('createObjectURL threw: ' + e.message);
-        Toast.error('Cannot read this video file');
-        return;
-      }
-
+      const blobUrl = URL.createObjectURL(file);
       const stepPick = document.getElementById('step-pick');
       const stepDetails = document.getElementById('step-details');
       const preview = document.getElementById('video-preview');
 
       stepPick.style.display = 'none';
       stepDetails.style.display = 'flex';
-
-      preview.addEventListener('error', () => {
-        const err = preview.error;
-        logErr('<video> failed to load');
-      });
-      preview.addEventListener('loadedmetadata', () => {
-        log('✅ Video preview loaded OK, duration=' + preview.duration.toFixed(1) + 's');
-      });
-
       preview.src = blobUrl;
 
       document.getElementById('change-video-btn').onclick = () => {
@@ -142,10 +107,7 @@ class SimpleUpload {
         stepDetails.style.display = 'none';
         this.selectedFile = null;
         this.selectedHashtags.clear();
-        log('🔄 Reset to pick step');
       };
-
-      log('🎉 selectVideo() completed');
 
     } catch(err) {
       logErr('selectVideo() crashed: ' + err.message);
@@ -155,17 +117,14 @@ class SimpleUpload {
 
   extractThumbnail(file, seekTime = 1) {
     return new Promise((resolve) => {
-      log('🖼️ Extracting thumbnail at ' + seekTime + 's...');
       let done = false;
-      const finish = (result, reason) => {
+      const finish = (result) => {
         if (done) return;
         done = true;
-        if (result) log('✅ Thumbnail frame captured');
-        else logWarn('Thumbnail extraction skipped: ' + reason);
         resolve(result);
       };
 
-      const safetyTimer = setTimeout(() => finish(null, 'timeout after 8s'), 8000);
+      const safetyTimer = setTimeout(() => finish(null), 8000);
 
       const video = document.createElement('video');
       video.preload = 'metadata';
@@ -177,12 +136,11 @@ class SimpleUpload {
 
       video.onloadedmetadata = () => {
         try {
-          const target = Math.min(seekTime, (video.duration || 2) / 2 || 0.1);
-          video.currentTime = target;
+          video.currentTime = Math.min(seekTime, (video.duration || 2) / 2 || 0.1);
         } catch(e) {
           clearTimeout(safetyTimer);
           cleanup();
-          finish(null, 'seek threw: ' + e.message);
+          finish(null);
         }
       };
 
@@ -196,19 +154,19 @@ class SimpleUpload {
           canvas.toBlob((blob) => {
             clearTimeout(safetyTimer);
             cleanup();
-            finish(blob, blob ? null : 'toBlob returned null');
+            finish(blob);
           }, 'image/jpeg', 0.85);
         } catch(e) {
           clearTimeout(safetyTimer);
           cleanup();
-          finish(null, 'canvas draw threw: ' + e.message);
+          finish(null);
         }
       };
 
       video.onerror = () => {
         clearTimeout(safetyTimer);
         cleanup();
-        finish(null, 'video element error');
+        finish(null);
       };
 
       video.src = url;
@@ -229,7 +187,6 @@ class SimpleUpload {
           const mins = Math.floor(remaining / 60);
           const secs = Math.floor(remaining % 60);
           statusBtn.textContent = `${label} ${percent}% (${mins}m ${secs}s)`;
-          if (percent % 20 === 0) log(label + ' progress: ' + percent + '%');
         }
       });
 
@@ -237,12 +194,11 @@ class SimpleUpload {
         if (xhr.status === 200 || xhr.status === 201) {
           resolve(`${BUNNY_CONFIG.PULL_ZONE_URL}${fileName}`);
         } else {
-          reject(new Error(label + ' upload status: ' + xhr.status));
+          reject(new Error(label + ' status: ' + xhr.status));
         }
       });
 
       xhr.addEventListener('error', () => reject(new Error(label + ' network error')));
-      xhr.addEventListener('abort', () => reject(new Error(label + ' cancelled')));
 
       xhr.open('PUT', `${BUNNY_CONFIG.STORAGE_ENDPOINT}${BUNNY_CONFIG.STORAGE_ZONE}/${fileName}`);
       xhr.setRequestHeader('AccessKey', BUNNY_CONFIG.API_KEY);
@@ -265,36 +221,27 @@ class SimpleUpload {
     postBtn.disabled = true;
 
     try {
-      log('🚀 Post started');
-
-      // 1️⃣ UPLOAD VIDEO
+      // Upload video
       const fileName = `${session.getUserId()}_${Date.now()}_${this.selectedFile.name}`;
       postBtn.textContent = '📹 Uploading video...';
       const videoUrl = await this.uploadFileToBunny(this.selectedFile, fileName, postBtn, '📹');
-      log('✅ Video uploaded: ' + videoUrl);
 
-      // 2️⃣ EXTRACT + UPLOAD THUMBNAIL
+      // Extract thumbnail
       let thumbnailUrl = videoUrl;
       postBtn.textContent = '🖼️ Creating thumbnail...';
       try {
         const thumbBlob = await this.extractThumbnail(this.selectedFile, 1);
         if (thumbBlob) {
           const thumbFileName = `thumb_${session.getUserId()}_${Date.now()}.jpg`;
-          const uploadedThumbUrl = await this.uploadFileToBunny(thumbBlob, thumbFileName, postBtn, '🖼️');
-          thumbnailUrl = uploadedThumbUrl;
-          log('✅ Thumbnail uploaded: ' + thumbnailUrl);
-        } else {
-          logWarn('No thumbnail blob produced, using video URL as fallback');
+          thumbnailUrl = await this.uploadFileToBunny(thumbBlob, thumbFileName, postBtn, '🖼️');
         }
       } catch (thumbErr) {
-        logWarn('Thumbnail step failed (non-blocking): ' + thumbErr.message);
+        log('Thumbnail skipped, using video as fallback');
       }
 
-      // 3️⃣ SAVE TO DATABASE
+      // Save to database
       postBtn.textContent = '⏳ Saving...';
       const reelId = ID.unique();
-      
-      // Format hashtags: join selected hashtags, remove duplicates, save as comma-separated
       const hashtagsString = Array.from(this.selectedHashtags).join(',');
       
       await db.create(APPWRITE_CONFIG.COLLECTIONS.REELS, {
@@ -306,16 +253,21 @@ class SimpleUpload {
         description: document.getElementById('post-description').value.trim() || '',
         category: document.getElementById('post-category').value || 'other',
         language: document.getElementById('post-language').value || 'Nepali',
-        hastags: hashtagsString, // IMPORTANT: field name has typo "hastags"
-        views: 0, likes: 0, comments: 0, shares: 0, duration: 0,
+        hashtags: hashtagsString,
+        views: 0,
+        likes: 0,
+        comments: 0,
+        shares: 0,
+        duration: 0,
         creatorName: session.currentUser?.name || 'Creator',
         creatorProfilePic: session.currentUser?.prefs?.avatar || '',
-        isMonetised: false, adRevenue: 0,
+        isMonetised: false,
+        adRevenue: 0,
         uploadedAt: new Date().toISOString(),
         isDeleted: false
       }, reelId);
 
-      log('✅ Reel saved to database with hashtags: ' + hashtagsString);
+      log('✅ Reel posted with hashtags');
       Toast.success('🎉 Reel posted!');
       setTimeout(() => { window.location.href = './creator-dashboard.html'; }, 1500);
 
@@ -328,7 +280,6 @@ class SimpleUpload {
   }
 }
 
-log('📦 Upload script file loaded');
 document.readyState === 'loading'
   ? document.addEventListener('DOMContentLoaded', () => { window.uploader = new SimpleUpload(); })
   : (window.uploader = new SimpleUpload());
