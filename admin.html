@@ -277,22 +277,35 @@
 
     /* ===== ANALYTICS ===== */
     async function loadAnalytics() {
-      try {
-        const creators = await db.list(APPWRITE_CONFIG.COLLECTIONS.CREATORS, [Query.limit(1000)]);
-        const reels = await db.list(APPWRITE_CONFIG.COLLECTIONS.REELS, [Query.equal('isDeleted', false), Query.limit(1000)]);
-        const reports = await db.list(APPWRITE_CONFIG.COLLECTIONS.REPORTS, [Query.equal('status', 'pending'), Query.limit(1000)]);
-        
-        const totalViews = reels.documents.reduce((s, r) => s + (r.views || 0), 0);
-        
-        document.getElementById('total-users').textContent = creators.total;
-        document.getElementById('total-videos').textContent = reels.total;
-        document.getElementById('total-views').textContent = totalViews;
-        document.getElementById('pending-reports').textContent = reports.total;
-      } catch (e) { console.error('Analytics failed:', e); }
+      // Each stat loads independently — a permission error on one collection
+      // (e.g. reports) won't blank out stats that did succeed.
+      db.list(APPWRITE_CONFIG.COLLECTIONS.CREATORS, [Query.limit(1000)])
+        .then(res => { document.getElementById('total-users').textContent = res.total; })
+        .catch(e => { console.error('Users count failed:', e); document.getElementById('total-users').textContent = '—'; });
+
+      db.list(APPWRITE_CONFIG.COLLECTIONS.REELS, [Query.equal('isDeleted', false), Query.limit(1000)])
+        .then(res => {
+          document.getElementById('total-videos').textContent = res.total;
+          const totalViews = res.documents.reduce((s, r) => s + (r.views || 0), 0);
+          document.getElementById('total-views').textContent = totalViews;
+        })
+        .catch(e => {
+          console.error('Videos count failed:', e);
+          document.getElementById('total-videos').textContent = '—';
+          document.getElementById('total-views').textContent = '—';
+        });
+
+      db.list(APPWRITE_CONFIG.COLLECTIONS.REPORTS, [Query.equal('status', 'pending'), Query.limit(1000)])
+        .then(res => { document.getElementById('pending-reports').textContent = res.total; })
+        .catch(e => {
+          console.error('Reports count failed:', e);
+          document.getElementById('pending-reports').textContent = '—';
+        });
     }
 
     /* ===== MODERATION ===== */
     async function loadReports() {
+      const list = document.getElementById('reports-list');
       try {
         const reports = await db.list(APPWRITE_CONFIG.COLLECTIONS.REPORTS, [
           Query.equal('status', 'pending'),
@@ -300,7 +313,6 @@
           Query.limit(100)
         ]);
 
-        const list = document.getElementById('reports-list');
         if (!reports.documents.length) {
           list.innerHTML = '<div class="list-empty">No pending reports</div>';
           return;
@@ -343,7 +355,14 @@
           
           list.appendChild(item);
         }
-      } catch (e) { console.error('Reports load failed:', e); }
+      } catch (e) {
+        console.error('Reports load failed:', e);
+        if (e.code === 401) {
+          list.innerHTML = '<div class="list-empty">⚠️ No permission to read reports.<br>Add "Users" read access to the reports collection in Appwrite.</div>';
+        } else {
+          list.innerHTML = '<div class="list-empty">Could not load reports</div>';
+        }
+      }
     }
 
     /* ===== CREATORS ===== */
@@ -399,7 +418,15 @@
           
           list.appendChild(item);
         });
-      } catch (e) { console.error('Creators load failed:', e); }
+      } catch (e) {
+        console.error('Creators load failed:', e);
+        const list = document.getElementById('creators-list');
+        if (e.code === 401) {
+          list.innerHTML = '<div class="list-empty">⚠️ No permission to read creators.<br>Add "Users" read access to the creators collection in Appwrite.</div>';
+        } else {
+          list.innerHTML = '<div class="list-empty">Could not load creators</div>';
+        }
+      }
     }
 
     /* ===== WITHDRAWALS ===== */
