@@ -1,6 +1,5 @@
 /**
- * GorkhaReels - Upload with ON-SCREEN debug logging
- * Logs to dlog() (visible on page) AND console (for when console works)
+ * GorkhaReels - Upload with ON-SCREEN debug logging + Auto Thumbnail
  */
 
 function log(msg, type) {
@@ -48,22 +47,16 @@ class SimpleUpload {
     const dropzone = document.getElementById('dropzone');
     const chooseBtn = document.getElementById('choose-btn');
 
-    log('🔧 input found: ' + !!input + ', dropzone found: ' + !!dropzone + ', button found: ' + !!chooseBtn);
-
     const openPicker = (source) => {
       log('👆 ' + source + ' tapped — calling input.click()');
       try {
         input.click();
-        log('✅ input.click() executed without throwing');
       } catch(e) {
         logErr('input.click() threw: ' + e.message);
       }
     };
 
-    // Bind to BOTH the dropzone and the button, separately,
-    // to maximize chance one of them works correctly on this device
     dropzone.addEventListener('click', (e) => {
-      // avoid double fire if button inside was clicked too
       if (e.target === chooseBtn) return;
       openPicker('Dropzone');
     });
@@ -76,7 +69,6 @@ class SimpleUpload {
     input.addEventListener('change', (e) => {
       log('🔔 CHANGE event fired on file input');
       const files = e.target.files;
-      log('📁 files present: ' + (files ? files.length : 'null'));
       if (files && files[0]) {
         const f = files[0];
         log('📁 name=' + f.name + ' type=' + f.type + ' size=' + (f.size/1024/1024).toFixed(2) + 'MB');
@@ -120,12 +112,10 @@ class SimpleUpload {
       }
 
       this.selectedFile = file;
-      log('✅ this.selectedFile set');
 
       let blobUrl;
       try {
         blobUrl = URL.createObjectURL(file);
-        log('✅ Blob URL created OK');
       } catch(e) {
         logErr('createObjectURL threw: ' + e.message);
         Toast.error('Cannot read this video file');
@@ -138,18 +128,16 @@ class SimpleUpload {
 
       stepPick.style.display = 'none';
       stepDetails.style.display = 'flex';
-      log('✅ Switched UI to details step');
 
       preview.addEventListener('error', () => {
         const err = preview.error;
-        logErr('<video> failed to load. code=' + (err ? err.code : '?') + ' message=' + (err ? err.message : '?'));
+        logErr('<video> failed to load. code=' + (err ? err.code : '?'));
       });
       preview.addEventListener('loadedmetadata', () => {
         log('✅ Video preview loaded OK, duration=' + preview.duration.toFixed(1) + 's');
       });
 
       preview.src = blobUrl;
-      log('✅ preview.src assigned');
 
       document.getElementById('change-video-btn').onclick = () => {
         stepPick.style.display = 'flex';
@@ -158,7 +146,7 @@ class SimpleUpload {
         log('🔄 Reset to pick step');
       };
 
-      log('🎉 selectVideo() completed — you should see the preview now');
+      log('🎉 selectVideo() completed — preview should be visible');
 
     } catch(err) {
       logErr('selectVideo() crashed: ' + err.message);
@@ -166,21 +154,85 @@ class SimpleUpload {
     }
   }
 
-  uploadWithProgress(file, fileName, statusBtn) {
+  // ===== EXTRACT THUMBNAIL FROM LOCAL FILE (no CORS issue - it's a blob) =====
+  extractThumbnail(file, seekTime = 1) {
+    return new Promise((resolve) => {
+      log('🖼️ Extracting thumbnail at ' + seekTime + 's...');
+      let done = false;
+      const finish = (result, reason) => {
+        if (done) return;
+        done = true;
+        if (result) log('✅ Thumbnail frame captured');
+        else logWarn('Thumbnail extraction skipped: ' + reason);
+        resolve(result);
+      };
+
+      const safetyTimer = setTimeout(() => finish(null, 'timeout after 8s'), 8000);
+
+      const video = document.createElement('video');
+      video.preload = 'metadata';
+      video.muted = true;
+      video.playsInline = true;
+
+      const url = URL.createObjectURL(file);
+      const cleanup = () => { try { URL.revokeObjectURL(url); } catch(e){} };
+
+      video.onloadedmetadata = () => {
+        try {
+          const target = Math.min(seekTime, (video.duration || 2) / 2 || 0.1);
+          video.currentTime = target;
+        } catch(e) {
+          clearTimeout(safetyTimer);
+          cleanup();
+          finish(null, 'seek threw: ' + e.message);
+        }
+      };
+
+      video.onseeked = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = video.videoWidth || 720;
+          canvas.height = video.videoHeight || 1280;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          canvas.toBlob((blob) => {
+            clearTimeout(safetyTimer);
+            cleanup();
+            finish(blob, blob ? null : 'toBlob returned null');
+          }, 'image/jpeg', 0.85);
+        } catch(e) {
+          clearTimeout(safetyTimer);
+          cleanup();
+          finish(null, 'canvas draw threw: ' + e.message);
+        }
+      };
+
+      video.onerror = () => {
+        clearTimeout(safetyTimer);
+        cleanup();
+        finish(null, 'video element error');
+      };
+
+      video.src = url;
+    });
+  }
+
+  // ===== GENERIC BUNNY UPLOAD (accepts 200 or 201 as success) =====
+  uploadFileToBunny(file, fileName, statusBtn, label) {
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
       const startTime = Date.now();
 
       xhr.upload.addEventListener('progress', (e) => {
-        if (e.lengthComputable) {
+        if (e.lengthComputable && statusBtn) {
           const percent = Math.round((e.loaded / e.total) * 100);
           const elapsed = (Date.now() - startTime) / 1000;
           const rate = e.loaded / elapsed;
           const remaining = (e.total - e.loaded) / rate;
           const mins = Math.floor(remaining / 60);
           const secs = Math.floor(remaining % 60);
-          statusBtn.textContent = `📹 ${percent}% (${mins}m ${secs}s)`;
-          if (percent % 20 === 0) log('Upload progress: ' + percent + '%');
+          statusBtn.textContent = `${label} ${percent}% (${mins}m ${secs}s)`;
+          if (percent % 20 === 0) log(label + ' progress: ' + percent + '%');
         }
       });
 
@@ -188,12 +240,12 @@ class SimpleUpload {
         if (xhr.status === 200 || xhr.status === 201) {
           resolve(`${BUNNY_CONFIG.PULL_ZONE_URL}${fileName}`);
         } else {
-          reject(new Error('Upload status: ' + xhr.status));
+          reject(new Error(label + ' upload status: ' + xhr.status));
         }
       });
 
-      xhr.addEventListener('error', () => reject(new Error('Network error during upload')));
-      xhr.addEventListener('abort', () => reject(new Error('Upload cancelled')));
+      xhr.addEventListener('error', () => reject(new Error(label + ' network error')));
+      xhr.addEventListener('abort', () => reject(new Error(label + ' cancelled')));
 
       xhr.open('PUT', `${BUNNY_CONFIG.STORAGE_ENDPOINT}${BUNNY_CONFIG.STORAGE_ZONE}/${fileName}`);
       xhr.setRequestHeader('AccessKey', BUNNY_CONFIG.API_KEY);
@@ -217,18 +269,38 @@ class SimpleUpload {
 
     try {
       log('🚀 Post started');
+
+      // 1️⃣ UPLOAD VIDEO
       const fileName = `${session.getUserId()}_${Date.now()}_${this.selectedFile.name}`;
       postBtn.textContent = '📹 Uploading video...';
-      const videoUrl = await this.uploadWithProgress(this.selectedFile, fileName, postBtn);
+      const videoUrl = await this.uploadFileToBunny(this.selectedFile, fileName, postBtn, '📹');
       log('✅ Video uploaded: ' + videoUrl);
 
+      // 2️⃣ EXTRACT + UPLOAD THUMBNAIL (non-blocking — falls back to videoUrl on any failure)
+      let thumbnailUrl = videoUrl; // fallback
+      postBtn.textContent = '🖼️ Creating thumbnail...';
+      try {
+        const thumbBlob = await this.extractThumbnail(this.selectedFile, 1);
+        if (thumbBlob) {
+          const thumbFileName = `thumb_${session.getUserId()}_${Date.now()}.jpg`;
+          const uploadedThumbUrl = await this.uploadFileToBunny(thumbBlob, thumbFileName, postBtn, '🖼️');
+          thumbnailUrl = uploadedThumbUrl;
+          log('✅ Thumbnail uploaded: ' + thumbnailUrl);
+        } else {
+          logWarn('No thumbnail blob produced, using video URL as fallback');
+        }
+      } catch (thumbErr) {
+        logWarn('Thumbnail step failed (non-blocking): ' + thumbErr.message);
+      }
+
+      // 3️⃣ SAVE TO DATABASE
       postBtn.textContent = '⏳ Saving...';
       const reelId = ID.unique();
       await db.create(APPWRITE_CONFIG.COLLECTIONS.REELS, {
         reelId,
         creatorId: session.getUserId(),
         videoUrl,
-        thumbnail: videoUrl,
+        thumbnail: thumbnailUrl,
         title,
         description: document.getElementById('post-description').value.trim() || '',
         category: document.getElementById('post-category').value || 'other',
