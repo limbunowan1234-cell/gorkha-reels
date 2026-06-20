@@ -189,7 +189,6 @@
   </div>
 
   <script src="./js/appwrite-config.js"></script>
-  <script src="./js/utils.js"></script>
   <script>
     class SearchPage {
       constructor() {
@@ -261,7 +260,6 @@
           let queries = [Query.equal('isDeleted', false)];
           
           if (this.searchQuery) {
-            // Search in title or description or hashtags
             queries.push(Query.search('title', this.searchQuery));
           }
 
