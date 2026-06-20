@@ -121,6 +121,11 @@ class SimpleUpload {
       const finish = (result) => {
         if (done) return;
         done = true;
+        clearTimeout(safetyTimer);
+        cleanup();
+        // Many mobile browsers only fire metadata/seek events reliably
+        // for video elements that are actually in the DOM.
+        if (video.parentNode) video.parentNode.removeChild(video);
         resolve(result);
       };
 
@@ -130,16 +135,26 @@ class SimpleUpload {
       video.preload = 'metadata';
       video.muted = true;
       video.playsInline = true;
+      video.setAttribute('playsinline', '');
+      // Off-screen but still in the DOM — fixes mobile browsers (notably iOS
+      // Safari) that silently fail to fire loadedmetadata/seeked on a video
+      // element that was never attached to the page.
+      video.style.position = 'fixed';
+      video.style.left = '-9999px';
+      video.style.width = '1px';
+      video.style.height = '1px';
+      video.style.opacity = '0';
+      document.body.appendChild(video);
 
       const url = URL.createObjectURL(file);
       const cleanup = () => { try { URL.revokeObjectURL(url); } catch(e){} };
 
       video.onloadedmetadata = () => {
         try {
-          video.currentTime = Math.min(seekTime, (video.duration || 2) / 2 || 0.1);
+          const dur = video.duration;
+          const safeDur = (isFinite(dur) && dur > 0) ? dur : 2;
+          video.currentTime = Math.min(seekTime, safeDur / 2 || 0.1);
         } catch(e) {
-          clearTimeout(safetyTimer);
-          cleanup();
           finish(null);
         }
       };
@@ -151,25 +166,16 @@ class SimpleUpload {
           canvas.height = video.videoHeight || 1280;
           const ctx = canvas.getContext('2d');
           ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-          canvas.toBlob((blob) => {
-            clearTimeout(safetyTimer);
-            cleanup();
-            finish(blob);
-          }, 'image/jpeg', 0.85);
+          canvas.toBlob((blob) => finish(blob), 'image/jpeg', 0.85);
         } catch(e) {
-          clearTimeout(safetyTimer);
-          cleanup();
           finish(null);
         }
       };
 
-      video.onerror = () => {
-        clearTimeout(safetyTimer);
-        cleanup();
-        finish(null);
-      };
+      video.onerror = () => finish(null);
 
       video.src = url;
+      video.load();
     });
   }
 
