@@ -185,7 +185,7 @@ class SimpleUpload {
       });
 
       xhr.addEventListener('load', () => {
-        if (xhr.status === 200) {
+        if (xhr.status === 200 || xhr.status === 201) {
           resolve(`${BUNNY_CONFIG.PULL_ZONE_URL}${fileName}`);
         } else {
           reject(new Error('Upload status: ' + xhr.status));
