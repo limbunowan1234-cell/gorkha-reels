@@ -228,6 +228,17 @@
   <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
   <script src="js/appwrite-config.js"></script>
   <script>
+    // Returns a safe <img> src for a reel thumbnail. If extraction failed
+    // and `thumbnail` ended up being the raw video file (a known fallback
+    // in upload.js), this avoids handing a video URL to an <img> tag.
+    function getThumbSrc(reel) {
+      const t = reel && reel.thumbnail;
+      const fallback = '/icons/primary/logo-1-app-icon-180x180.png';
+      if (!t) return fallback;
+      if (/\.(mp4|mov|webm|m4v)(\?|$)/i.test(t)) return fallback;
+      return t;
+    }
+
     class ProfileManager {
       constructor() {
         this.creatorId = new URLSearchParams(window.location.search).get('userId') || new URLSearchParams(window.location.search).get('id');
@@ -374,7 +385,7 @@
           }
           grid.innerHTML = response.documents.map(reel => `
             <div class="video-thumb" onclick="window.location.href='./video-modal.html?reelId=${reel.$id}'">
-              <img src="${reel.thumbnail || '/icons/primary/logo-1-app-icon-180x180.png'}" alt="${(reel.title || '').replace(/"/g,'&quot;')}" onerror="this.src='/icons/primary/logo-1-app-icon-180x180.png'">
+              <img src="${getThumbSrc(reel)}" alt="${(reel.title || '').replace(/"/g,'&quot;')}" onerror="this.src='/icons/primary/logo-1-app-icon-180x180.png'">
               <div class="video-views">👁️ ${reel.views || 0}</div>
             </div>
           `).join('');
