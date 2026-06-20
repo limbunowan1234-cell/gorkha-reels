@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - GorkhaReels</title>
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #0f0f0f; color: #fff; font-family: system-ui; }
+
+    /* ===== BRAND BANNER ===== */
+    .banner {
+      position: sticky; top: 0; z-index: 100;
+      background: linear-gradient(120deg, #dc2626 0%, #f97316 100%);
+      padding: 12px 16px;
+      display: flex; align-items: center; justify-content: space-between;
+      box-shadow: 0 2px 14px rgba(0,0,0,0.4);
+    }
+    .banner-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .banner-logo { width: 42px; height: 42px; border-radius: 11px; flex-shrink: 0; background: rgba(255,255,255,0.15); object-fit: cover; }
+    .banner-text { min-width: 0; }
+    .banner-title { font-size: 19px; font-weight: 800; letter-spacing: 0.3px; line-height: 1.1; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.25); }
+    .banner-tagline { font-size: 11.5px; font-weight: 500; color: rgba(255,255,255,0.9); margin-top: 1px; }
+    .banner-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .banner-btn {
+      width: 38px; height: 38px; border: none; border-radius: 50%;
+      background: rgba(255,255,255,0.18); color: #fff; font-size: 19px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+    }
+    .banner-btn:active { background: rgba(255,255,255,0.3); }
+
+    .admin-container { max-width: 1000px; margin: 0 auto; padding: 20px; margin-bottom: 80px; }
+
+    .admin-title { font-size: 28px; font-weight: 800; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+    .admin-title-icon { font-size: 32px; }
+
+    /* ===== TABS ===== */
+    .tabs { display: flex; gap: 8px; border-bottom: 1px solid #2d2d2d; margin-bottom: 24px; overflow-x: auto; }
+    .tab {
+      padding: 12px 16px; background: none; border: none; color: #666; cursor: pointer;
+      font-size: 14px; font-weight: 600; border-bottom: 3px solid transparent; transition: all 0.2s;
+    }
+    .tab.active { color: #dc2626; border-bottom-color: #dc2626; }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* ===== ANALYTICS CARDS ===== */
+    .analytics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .stat-card {
+      background: linear-gradient(135deg, #1a1a1a, #161616);
+      border: 1px solid #2d2d2d; border-radius: 12px; padding: 20px;
+      text-align: center;
+    }
+    .stat-value { font-size: 32px; font-weight: 800; color: #dc2626; margin-bottom: 6px; }
+    .stat-label { font-size: 13px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    /* ===== LIST/TABLE ===== */
+    .list-container { background: #1a1a1a; border: 1px solid #2d2d2d; border-radius: 12px; overflow: hidden; }
+    .list-item {
+      display: flex; align-items: center; gap: 16px; padding: 16px;
+      border-bottom: 1px solid #262626; cursor: pointer;
+    }
+    .list-item:last-child { border-bottom: none; }
+    .list-item:hover { background: #222; }
+    .list-avatar { width: 48px; height: 48px; border-radius: 50%; background: #333; overflow: hidden; flex-shrink: 0; }
+    .list-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .list-info { flex: 1; min-width: 0; }
+    .list-name { font-size: 15px; font-weight: 600; margin-bottom: 2px; }
+    .list-detail { font-size: 12px; color: #888; }
+    .list-actions { display: flex; gap: 8px; flex-shrink: 0; }
+    .list-btn {
+      padding: 8px 14px; border: none; border-radius: 6px; font-size: 12px;
+      font-weight: 600; cursor: pointer; transition: all 0.2s;
+    }
+    .list-btn-approve { background: #059669; color: #fff; }
+    .list-btn-approve:active { opacity: 0.8; }
+    .list-btn-reject { background: #dc2626; color: #fff; }
+    .list-btn-reject:active { opacity: 0.8; }
+    .list-btn-verify { background: #0284c7; color: #fff; }
+    .list-btn-verify:active { opacity: 0.8; }
+    .list-btn-danger { background: #991b1b; color: #fff; }
+    .list-btn-danger:active { opacity: 0.8; }
+
+    .list-empty { text-align: center; padding: 40px; color: #888; }
+
+    /* ===== Modal ===== */
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 200; display: none; }
+    .modal-backdrop.open { display: block; }
+    .modal-box {
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      background: #1a1a1a; border: 1px solid #2d2d2d; border-radius: 12px;
+      padding: 24px; max-width: 500px; width: 90%; z-index: 210;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+    }
+    .modal-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+    .modal-body { margin-bottom: 20px; font-size: 14px; line-height: 1.5; color: #aaa; }
+    .modal-actions { display: flex; gap: 10px; }
+    .modal-btn { flex: 1; padding: 11px; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; }
+    .modal-btn-cancel { background: #262626; color: #fff; }
+    .modal-btn-confirm { background: #dc2626; color: #fff; }
+
+    .loading { text-align: center; padding: 40px; color: #888; }
+
+    /* ===== BOTTOM BAR ===== */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: #1a1a1a; border-top: 1px solid #2d2d2d;
+      display: flex; justify-content: space-around; align-items: center;
+      padding: 8px 0; z-index: 100;
+    }
+    .nav-btn {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      background: none; border: none; color: #666; cursor: pointer;
+      flex: 1; padding: 10px; font-size: 18px;
+    }
+    .nav-btn.active { color: #dc2626; }
+    .nav-label { font-size: 10px; font-weight: 500; }
+  </style>
+</head>
+<body>
+  <!-- ===== BANNER ===== -->
+  <header class="banner">
+    <div class="banner-left">
+      <img class="banner-logo" src="assets/logo.png" alt="GorkhaReels">
+      <div class="banner-text">
+        <div class="banner-title">⚙️ ADMIN</div>
+        <div class="banner-tagline">GorkhaReels Control Center</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="admin-container">
+    <div class="admin-title">
+      <span class="admin-title-icon">🛡️</span>
+      Admin Dashboard
+    </div>
+
+    <!-- ===== TABS ===== -->
+    <div class="tabs">
+      <button class="tab active" data-tab="analytics">📊 Analytics</button>
+      <button class="tab" data-tab="moderation">🚨 Reports</button>
+      <button class="tab" data-tab="creators">👥 Creators</button>
+      <button class="tab" data-tab="withdrawals">💰 Withdrawals</button>
+    </div>
+
+    <!-- ===== ANALYTICS TAB ===== -->
+    <div class="tab-content active" id="analytics">
+      <div class="analytics-grid">
+        <div class="stat-card">
+          <div class="stat-value" id="total-users">0</div>
+          <div class="stat-label">Total Users</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="total-videos">0</div>
+          <div class="stat-label">Videos Uploaded</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="total-views">0</div>
+          <div class="stat-label">Total Views</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="pending-reports">0</div>
+          <div class="stat-label">Pending Reports</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== MODERATION TAB ===== -->
+    <div class="tab-content" id="moderation">
+      <h3 style="margin-bottom: 16px;">Pending Reports</h3>
+      <div class="list-container" id="reports-list">
+        <div class="loading">Loading reports...</div>
+      </div>
+    </div>
+
+    <!-- ===== CREATORS TAB ===== -->
+    <div class="tab-content" id="creators">
+      <h3 style="margin-bottom: 16px;">Creator Management</h3>
+      <div class="list-container" id="creators-list">
+        <div class="loading">Loading creators...</div>
+      </div>
+    </div>
+
+    <!-- ===== WITHDRAWALS TAB ===== -->
+    <div class="tab-content" id="withdrawals">
+      <h3 style="margin-bottom: 16px;">Pending Withdrawals</h3>
+      <div class="list-container" id="withdrawals-list">
+        <div class="loading">Loading withdrawals...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL ===== -->
+  <div class="modal-backdrop" id="modal-backdrop"></div>
+  <div class="modal-box" id="modal-box">
+    <div class="modal-title" id="modal-title">Confirm Action</div>
+    <div class="modal-body" id="modal-body">Are you sure?</div>
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-cancel" id="modal-cancel">Cancel</button>
+      <button class="modal-btn modal-btn-confirm" id="modal-confirm">Confirm</button>
+    </div>
+  </div>
+
+  <!-- ===== BOTTOM NAV ===== -->
+  <nav class="bottom-nav">
+    <button class="nav-btn" onclick="window.location='index.html'">
+      <span>🏠</span><span class="nav-label">Home</span>
+    </button>
+    <button class="nav-btn" onclick="window.location='upload.html'">
+      <span>＋</span><span class="nav-label">Create</span>
+    </button>
+    <button class="nav-btn active">
+      <span>⚙️</span><span class="nav-label">Admin</span>
+    </button>
+  </nav>
+
+  <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
+  <script src="js/appwrite-config.js"></script>
+  <script>
+    let CURRENT_ACTION = null;
+
+    async function init() {
+      await session.refresh();
+      if (!session.isLoggedIn()) { window.location = 'login.html'; return; }
+      
+      // Check if admin
+      try {
+        const user = await db.get(APPWRITE_CONFIG.COLLECTIONS.CREATORS, session.getUserId());
+        if (!user.isAdmin) { alert('Access denied'); window.location = 'index.html'; return; }
+      } catch (e) { alert('Access denied'); window.location = 'index.html'; return; }
+
+      setupTabs();
+      setupModal();
+      loadAnalytics();
+      loadReports();
+      loadCreators();
+      loadWithdrawals();
+    }
+
+    function setupTabs() {
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.onclick = () => {
+          document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+          document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+          tab.classList.add('active');
+          document.getElementById(tab.dataset.tab).classList.add('active');
+        };
+      });
+    }
+
+    function setupModal() {
+      document.getElementById('modal-cancel').onclick = () => closeModal();
+      document.getElementById('modal-backdrop').onclick = () => closeModal();
+      document.getElementById('modal-confirm').onclick = () => {
+        if (CURRENT_ACTION) CURRENT_ACTION();
+        closeModal();
+      };
+    }
+
+    function openModal(title, body, action) {
+      document.getElementById('modal-title').textContent = title;
+      document.getElementById('modal-body').textContent = body;
+      CURRENT_ACTION = action;
+      document.getElementById('modal-backdrop').classList.add('open');
+      document.getElementById('modal-box').classList.add('open');
+    }
+
+    function closeModal() {
+      document.getElementById('modal-backdrop').classList.remove('open');
+      document.getElementById('modal-box').classList.remove('open');
+      CURRENT_ACTION = null;
+    }
+
+    /* ===== ANALYTICS ===== */
+    async function loadAnalytics() {
+      try {
+        const creators = await db.list(APPWRITE_CONFIG.COLLECTIONS.CREATORS, [Query.limit(1000)]);
+        const reels = await db.list(APPWRITE_CONFIG.COLLECTIONS.REELS, [Query.equal('isDeleted', false), Query.limit(1000)]);
+        const reports = await db.list(APPWRITE_CONFIG.COLLECTIONS.REPORTS, [Query.equal('status', 'pending'), Query.limit(1000)]);
+        
+        const totalViews = reels.documents.reduce((s, r) => s + (r.views || 0), 0);
+        
+        document.getElementById('total-users').textContent = creators.total;
+        document.getElementById('total-videos').textContent = reels.total;
+        document.getElementById('total-views').textContent = totalViews;
+        document.getElementById('pending-reports').textContent = reports.total;
+      } catch (e) { console.error('Analytics failed:', e); }
+    }
+
+    /* ===== MODERATION ===== */
+    async function loadReports() {
+      try {
+        const reports = await db.list(APPWRITE_CONFIG.COLLECTIONS.REPORTS, [
+          Query.equal('status', 'pending'),
+          Query.orderDesc('createdAt'),
+          Query.limit(100)
+        ]);
+
+        const list = document.getElementById('reports-list');
+        if (!reports.documents.length) {
+          list.innerHTML = '<div class="list-empty">No pending reports</div>';
+          return;
+        }
+
+        list.innerHTML = '';
+        for (const report of reports.documents) {
+          const reel = await db.get(APPWRITE_CONFIG.COLLECTIONS.REELS, report.reelId).catch(() => null);
+          const creator = reel ? await db.get(APPWRITE_CONFIG.COLLECTIONS.CREATORS, reel.creatorId).catch(() => null) : null;
+          
+          const item = document.createElement('div');
+          item.className = 'list-item';
+          item.innerHTML = `
+            <div class="list-info">
+              <div class="list-name">${reel ? escapeHtml(reel.title) : 'Video'}</div>
+              <div class="list-detail">Reason: ${escapeHtml(report.reason)} • By: ${creator ? escapeHtml(creator.name) : 'Unknown'}</div>
+            </div>
+            <div class="list-actions">
+              <button class="list-btn list-btn-approve">Approve</button>
+              <button class="list-btn list-btn-reject">Reject</button>
+            </div>
+          `;
+          
+          item.querySelector('.list-btn-approve').onclick = () => {
+            openModal('Delete Video?', `Delete "${reel?.title || 'this video'}" and close report?`, async () => {
+              await db.update(APPWRITE_CONFIG.COLLECTIONS.REELS, report.reelId, { isDeleted: true });
+              await db.update(APPWRITE_CONFIG.COLLECTIONS.REPORTS, report.$id, { status: 'resolved' });
+              loadReports();
+              loadAnalytics();
+            });
+          };
+          
+          item.querySelector('.list-btn-reject').onclick = () => {
+            openModal('Reject Report?', 'Mark this report as invalid and close it?', async () => {
+              await db.update(APPWRITE_CONFIG.COLLECTIONS.REPORTS, report.$id, { status: 'rejected' });
+              loadReports();
+              loadAnalytics();
+            });
+          };
+          
+          list.appendChild(item);
+        }
+      } catch (e) { console.error('Reports load failed:', e); }
+    }
+
+    /* ===== CREATORS ===== */
+    async function loadCreators() {
+      try {
+        const creators = await db.list(APPWRITE_CONFIG.COLLECTIONS.CREATORS, [Query.limit(100)]);
+
+        const list = document.getElementById('creators-list');
+        if (!creators.documents.length) {
+          list.innerHTML = '<div class="list-empty">No creators</div>';
+          return;
+        }
+
+        list.innerHTML = '';
+        creators.documents.forEach(creator => {
+          const item = document.createElement('div');
+          item.className = 'list-item';
+          const badge = creator.isVerified ? '✓' : '○';
+          item.innerHTML = `
+            <div class="list-avatar"><img src="${creator.profilePic || 'assets/placeholder.svg'}" onerror="this.src='assets/placeholder.svg'"></div>
+            <div class="list-info">
+              <div class="list-name">${escapeHtml(creator.name)} ${creator.isVerified ? '✓' : ''}</div>
+              <div class="list-detail">Followers: ${creator.followers || 0} • Videos: ${creator.totalReels || 0}</div>
+            </div>
+            <div class="list-actions">
+              <button class="list-btn list-btn-verify">${creator.isVerified ? 'Unverify' : 'Verify'}</button>
+              <button class="list-btn list-btn-danger">Suspend</button>
+            </div>
+          `;
+          
+          item.querySelector('.list-btn-verify').onclick = () => {
+            openModal(
+              creator.isVerified ? 'Unverify?' : 'Verify Creator?',
+              `${creator.isVerified ? 'Remove verification from' : 'Add verification to'} ${escapeHtml(creator.name)}?`,
+              async () => {
+                await db.update(APPWRITE_CONFIG.COLLECTIONS.CREATORS, creator.$id, { isVerified: !creator.isVerified });
+                loadCreators();
+              }
+            );
+          };
+          
+          item.querySelector('.list-btn-danger').onclick = () => {
+            openModal('Suspend Creator?', `Suspend ${escapeHtml(creator.name)}? They won't be able to upload or interact.`, async () => {
+              await db.update(APPWRITE_CONFIG.COLLECTIONS.CREATORS, creator.$id, { isActive: false });
+              loadCreators();
+            });
+          };
+          
+          list.appendChild(item);
+        });
+      } catch (e) { console.error('Creators load failed:', e); }
+    }
+
+    /* ===== WITHDRAWALS ===== */
+    async function loadWithdrawals() {
+      const list = document.getElementById('withdrawals-list');
+      list.innerHTML = '<div class="list-empty">Withdrawal system coming soon</div>';
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
