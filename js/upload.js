@@ -1,5 +1,5 @@
 /**
- * GorkhaReels - Upload with Progress Tracking
+ * GorkhaReels - Upload with Progress Tracking (FIXED)
  * Shows upload speed, percentage, and estimated time remaining
  */
 
@@ -46,31 +46,29 @@ class SimpleUpload {
 
       const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
+      // SIMPLE AND RELIABLE FILE PICKER
       const triggerFilePicker = () => {
-        console.log('Opening file picker...');
+        console.log('📱 Triggering file picker...');
         try {
-          input.style.display = 'block';
-          input.style.opacity = '0.01';
-          input.style.position = 'absolute';
-          input.click();
-          setTimeout(() => { input.style.display = 'none'; }, 100);
+          input.click(); // Direct click - most reliable
+          console.log('✅ File picker triggered');
         } catch(e) {
-          console.warn('⚠️ Click failed:', e.message);
-          input.style.display = 'block';
-          input.style.opacity = '1';
-          input.style.position = 'static';
+          console.error('❌ Click failed:', e.message);
+          Toast.error('Cannot open file picker');
         }
       };
 
       dropzone.onclick = triggerFilePicker;
       
+      // Handle file selection
       input.addEventListener('change', (e) => {
+        console.log('📁 File selected, count:', e.target.files?.length);
         if (e.target.files && e.target.files[0]) {
-          input.style.display = 'none';
           this.handleFile(e.target.files[0]);
         }
       }, { passive: false });
 
+      // Desktop drag and drop
       if (!isMobile) {
         dropzone.ondragover = (e) => {
           e.preventDefault();
@@ -108,7 +106,7 @@ class SimpleUpload {
     video.preload = 'metadata';
 
     video.onloadedmetadata = () => {
-      console.log('✅ Video duration:', video.duration);
+      console.log('✅ Video metadata loaded, duration:', video.duration);
 
       if (video.duration > 120) {
         const m = Math.floor(video.duration / 60);
@@ -122,11 +120,17 @@ class SimpleUpload {
       this.showDetailsStep();
     };
 
-    video.onerror = () => {
+    video.onerror = (err) => {
+      console.error('❌ Video error:', err);
       Toast.error('Invalid video file');
     };
 
-    video.src = URL.createObjectURL(file);
+    try {
+      video.src = URL.createObjectURL(file);
+    } catch(e) {
+      console.error('❌ Cannot create blob URL:', e);
+      Toast.error('Cannot read file');
+    }
   }
 
   showDetailsStep() {
