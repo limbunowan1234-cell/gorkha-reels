@@ -42,6 +42,7 @@
       gap: 8px;
       padding: 12px 16px 0;
       border-bottom: 1px solid #2d2d2d;
+      overflow-x: auto;
     }
 
     .tab {
@@ -54,6 +55,7 @@
       font-weight: 600;
       transition: all 0.2s;
       border-bottom: 2px solid transparent;
+      white-space: nowrap;
     }
 
     .tab.active {
@@ -237,9 +239,49 @@
       color: #ccc;
     }
 
-    .follow-btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
+    /* Hashtag Cards */
+    .hashtags-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 8px;
+      padding: 12px 16px;
+    }
+
+    .hashtag-card {
+      background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+      border: 1px solid #3d3d3d;
+      border-radius: 10px;
+      padding: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+
+    .hashtag-card:hover {
+      border-color: #dc2626;
+      transform: translateY(-2px);
+    }
+
+    .hashtag-card:active { transform: scale(0.95); }
+
+    .hashtag-emoji {
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+
+    .hashtag-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: #dc2626;
+      margin-bottom: 6px;
+    }
+
+    .hashtag-stats {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      font-size: 11px;
+      color: #999;
     }
 
     .loading {
@@ -291,27 +333,6 @@
 
     .nav-item.active { color: #dc2626; }
     .nav-label { font-size: 10px; }
-
-    /* Debug Panel */
-    #debug-panel {
-      background: #000;
-      border-top: 2px solid #dc2626;
-      padding: 10px 12px;
-      font-family: monospace;
-      font-size: 10px;
-      color: #4ade80;
-      max-height: 20vh;
-      overflow-y: auto;
-      white-space: pre-wrap;
-      word-break: break-word;
-      display: none;
-    }
-    #debug-panel.show { display: block; }
-    #debug-log > div { margin-bottom: 2px; }
-
-    @media (max-width: 600px) {
-      .grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
-    }
   </style>
 </head>
 <body>
@@ -321,7 +342,7 @@
         type="text" 
         id="searchInput" 
         class="search-input" 
-        placeholder="Search videos or creators..."
+        placeholder="Search videos, creators, hashtags..."
         onkeyup="debounceSearch()"
       >
     </div>
@@ -329,6 +350,7 @@
     <div class="tabs">
       <button class="tab active" onclick="switchTab('videos')">📹 Videos</button>
       <button class="tab" onclick="switchTab('creators')">👥 Creators</button>
+      <button class="tab" onclick="switchTab('hashtags')">🏷️ Hashtags</button>
     </div>
 
     <div class="categories" id="categories" style="display: none;"></div>
@@ -356,12 +378,17 @@
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Debug Panel (optional, toggle with ?debug=1 in URL) -->
-  <div id="debug-panel">
-    <div style="color:#fff;font-weight:700;margin-bottom:6px;font-size:11px;">🐞 FOLLOW DEBUG</div>
-    <div id="debug-log"></div>
+    <!-- HASHTAGS TAB -->
+    <div id="hashtags-tab" class="tab-content">
+      <div class="section-title">🔥 Trending Hashtags</div>
+      <div class="hashtags-grid" id="hashtagsGrid">
+        <div class="loading">
+          <div class="spinner"></div>
+          <p>Loading hashtags...</p>
+        </div>
+      </div>
+    </div>
   </div>
 
   <nav class="bottom-nav">
@@ -388,26 +415,14 @@
   <script>
     let allReels = [];
     let allCreators = [];
+    let allHashtags = {}; // { #dance: { count: 5, views: 1234 }, ... }
     let searchTimeout;
     let currentTab = 'videos';
     let selectedCategory = 'All';
-    let followingSet = new Set(); // Track who we're following
-    const debugMode = new URLSearchParams(window.location.search).get('debug') === '1';
+    let followingSet = new Set();
+    let selectedHashtag = null;
 
     const categories = ['All', 'Sports', 'Entertainment', 'Music', 'Dance', 'Comedy', 'Education', 'Vlog', 'Other'];
-
-    // Debug logger
-    function dlog(msg, type) {
-      if (!debugMode) return;
-      const panel = document.getElementById('debug-panel');
-      const log = document.getElementById('debug-log');
-      if (!panel.classList.contains('show')) panel.classList.add('show');
-      const line = document.createElement('div');
-      line.style.color = type === 'error' ? '#f87171' : (type === 'warn' ? '#fbbf24' : '#4ade80');
-      line.textContent = '[' + new Date().toLocaleTimeString() + '] ' + msg;
-      log.appendChild(line);
-      log.scrollTop = log.scrollHeight;
-    }
 
     async function init() {
       try {
@@ -417,10 +432,19 @@
         }
         await loadAllData();
         setupCategories();
-        displayTrending();
+        
+        // Check for hashtag URL param
+        const params = new URLSearchParams(window.location.search);
+        const hashtag = params.get('hashtag');
+        if (hashtag) {
+          selectedHashtag = hashtag.toLowerCase();
+          switchTab('videos');
+          displayHashtagVideos(selectedHashtag);
+        } else {
+          displayTrending();
+        }
       } catch (err) {
         console.error('Init error:', err);
-        dlog('Init error: ' + err.message, 'error');
       }
     }
 
@@ -432,23 +456,47 @@
           Query.limit(100)
         ]);
         followingSet = new Set(following.documents.map(f => f.followingId));
-        dlog('Loaded ' + followingSet.size + ' following relationships');
       } catch (err) {
-        dlog('Failed to load following list: ' + err.message, 'error');
+        console.log('Could not load following list');
       }
     }
 
     async function loadAllData() {
       try {
-        const reels = await db.list(APPWRITE_CONFIG.COLLECTIONS.REELS, [Query.orderDesc('uploadedAt'), Query.limit(100)]);
+        const reels = await db.list(APPWRITE_CONFIG.COLLECTIONS.REELS, [
+          Query.equal('isDeleted', false),
+          Query.orderDesc('uploadedAt'),
+          Query.limit(100)
+        ]);
         allReels = reels.documents;
 
-        const creators = await db.list(APPWRITE_CONFIG.COLLECTIONS.CREATORS, [Query.orderDesc('totalViews'), Query.limit(50)]);
+        const creators = await db.list(APPWRITE_CONFIG.COLLECTIONS.CREATORS, [
+          Query.orderDesc('totalViews'),
+          Query.limit(50)
+        ]);
         allCreators = creators.documents;
+
+        // Extract and aggregate hashtags
+        extractHashtags();
       } catch (err) {
         console.error('Load error:', err);
-        dlog('Load error: ' + err.message, 'error');
       }
+    }
+
+    function extractHashtags() {
+      allHashtags = {};
+      allReels.forEach(reel => {
+        const tags = (reel.hastags || '').split(',').map(t => t.trim().toLowerCase()).filter(t => t);
+        tags.forEach(tag => {
+          const normalized = tag.startsWith('#') ? tag : '#' + tag;
+          if (!allHashtags[normalized]) {
+            allHashtags[normalized] = { count: 0, views: 0 };
+          }
+          allHashtags[normalized].count++;
+          allHashtags[normalized].views += reel.views || 0;
+        });
+      });
+      console.log('Extracted hashtags:', allHashtags);
     }
 
     function setupCategories() {
@@ -471,14 +519,17 @@
       const categoriesEl = document.getElementById('categories');
       if (tab === 'videos') {
         categoriesEl.style.display = 'flex';
-        if (!document.getElementById('searchInput').value.trim()) {
+        if (!document.getElementById('searchInput').value.trim() && !selectedHashtag) {
           displayTrending();
         }
-      } else {
+      } else if (tab === 'creators') {
         categoriesEl.style.display = 'none';
         if (!document.getElementById('searchInput').value.trim()) {
           displayCreators(allCreators);
         }
+      } else if (tab === 'hashtags') {
+        categoriesEl.style.display = 'none';
+        displayHashtagCards();
       }
     }
 
@@ -496,20 +547,25 @@
 
     function performSearch() {
       const query = document.getElementById('searchInput').value.trim().toLowerCase();
+      selectedHashtag = null; // Clear hashtag filter on new search
 
       if (!query) {
         if (currentTab === 'videos') {
           displayTrending();
-        } else {
+        } else if (currentTab === 'creators') {
           displayCreators(allCreators);
+        } else if (currentTab === 'hashtags') {
+          displayHashtagCards();
         }
         return;
       }
 
       if (currentTab === 'videos') {
         searchVideos(query);
-      } else {
+      } else if (currentTab === 'creators') {
         searchCreators(query);
+      } else if (currentTab === 'hashtags') {
+        searchHashtags(query);
       }
     }
 
@@ -518,7 +574,7 @@
         const matchesQuery = 
           reel.title.toLowerCase().includes(query) ||
           reel.description.toLowerCase().includes(query) ||
-          reel.hashtags.toLowerCase().includes(query);
+          reel.hastags.toLowerCase().includes(query);
         
         const matchesCategory = selectedCategory === 'All' || reel.category.toLowerCase() === selectedCategory.toLowerCase();
         
@@ -527,6 +583,52 @@
 
       document.getElementById('videoSectionTitle').textContent = `Search Results (${filtered.length})`;
       displayVideos('videosGrid', filtered);
+    }
+
+    function displayHashtagVideos(hashtag) {
+      const normalized = hashtag.startsWith('#') ? hashtag : '#' + hashtag;
+      let filtered = allReels.filter(reel => {
+        const tags = (reel.hastags || '').split(',').map(t => t.trim().toLowerCase());
+        return tags.some(t => t === normalized || t === normalized.substring(1));
+      });
+
+      document.getElementById('videoSectionTitle').textContent = `${normalized} (${filtered.length} videos)`;
+      displayVideos('videosGrid', filtered);
+    }
+
+    function searchHashtags(query) {
+      const matches = Object.keys(allHashtags).filter(tag => tag.toLowerCase().includes(query.toLowerCase()));
+      const sorted = matches.sort((a, b) => (allHashtags[b].views || 0) - (allHashtags[a].views || 0));
+      displayHashtagResults(sorted);
+    }
+
+    function displayHashtagCards() {
+      const sorted = Object.keys(allHashtags).sort((a, b) => (allHashtags[b].views || 0) - (allHashtags[a].views || 0)).slice(0, 30);
+      displayHashtagResults(sorted);
+    }
+
+    function displayHashtagResults(hashtags) {
+      if (!hashtags.length) {
+        document.getElementById('hashtagsGrid').innerHTML = '<div class="loading"><p>No hashtags found</p></div>';
+        return;
+      }
+
+      let html = '';
+      hashtags.forEach(tag => {
+        const data = allHashtags[tag];
+        const emoji = ['💃', '🎭', '🎵', '⚽', '😂', '📚', '🎬', '🌟'][Math.floor(Math.random() * 8)];
+        html += `
+          <div class="hashtag-card" onclick="selectedHashtag='${tag}'; switchTab('videos'); displayHashtagVideos('${tag}')">
+            <div class="hashtag-emoji">${emoji}</div>
+            <div class="hashtag-name">${tag}</div>
+            <div class="hashtag-stats">
+              <div>${data.count} posts</div>
+              <div>👁️ ${formatNumber(data.views)} views</div>
+            </div>
+          </div>
+        `;
+      });
+      document.getElementById('hashtagsGrid').innerHTML = html;
     }
 
     function searchCreators(query) {
@@ -599,23 +701,13 @@
     async function toggleFollow(event, creatorId, btn) {
       event.stopPropagation();
       
-      dlog('👆 Follow button tapped for creatorId=' + creatorId);
-      dlog('session.isLoggedIn() = ' + session.isLoggedIn());
-
       if (!session.isLoggedIn()) {
-        dlog('❌ Not logged in — redirecting', 'error');
         window.location.href = './login.html';
         return;
       }
 
       const userId = session.getUserId();
-      dlog('userId=' + userId);
-
-      if (btn.dataset.busy === '1') {
-        dlog('⚠️ Already busy', 'warn');
-        return;
-      }
-
+      if (btn.dataset.busy === '1') return;
       btn.dataset.busy = '1';
       btn.disabled = true;
       const originalText = btn.textContent;
@@ -623,31 +715,24 @@
 
       try {
         if (followingSet.has(creatorId)) {
-          // Unfollow
-          dlog('Unfollowing...');
           const follows = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [
             Query.equal('followerId', userId),
             Query.equal('followingId', creatorId),
             Query.limit(1)
           ]);
-          dlog('Found ' + follows.total + ' follow docs');
           if (follows.documents.length > 0) {
             await db.remove(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, follows.documents[0].$id);
-            dlog('✅ Unfollowed');
           }
           followingSet.delete(creatorId);
           btn.textContent = 'Follow';
           btn.classList.remove('following');
           if (window.Toast) Toast.success('Unfollowed');
         } else {
-          // Follow
-          dlog('Following...');
           const existing = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [
             Query.equal('followerId', userId),
             Query.equal('followingId', creatorId),
             Query.limit(1)
           ]);
-          dlog('Existing check total=' + existing.total);
           if (existing.total === 0) {
             await db.create(
               APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS,
@@ -659,17 +744,14 @@
                 createdAt: new Date().toISOString()
               }
             );
-            dlog('✅ Follow doc created');
           }
           followingSet.add(creatorId);
           btn.textContent = 'Following';
           btn.classList.add('following');
           if (window.Toast) Toast.success('Following!');
         }
-        dlog('🎉 toggleFollow completed OK');
 
       } catch (error) {
-        dlog('❌ Follow failed: ' + error.message, 'error');
         console.error('Follow failed:', error);
         if (window.Toast) Toast.error('Failed: ' + error.message);
         btn.textContent = originalText;
@@ -681,6 +763,12 @@
 
     function openVideo(reelId) {
       window.location = `video-modal.html?id=${reelId}`;
+    }
+
+    function formatNumber(num) {
+      if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+      if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+      return num.toString();
     }
 
     if (document.readyState === 'loading') {
