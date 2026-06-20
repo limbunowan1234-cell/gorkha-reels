@@ -4,36 +4,40 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Creator Profile - GorkhaReels</title>
-  <!-- ✅ FAVICON & META TAGS -->
-  <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon/logo-3-minimalist-icon-32x32.png">
-  <meta property="og:image" content="/icons/hero/splash-screen-1200x1200.png">
-  <meta name="theme-color" content="#0B5E6B">
+  <link rel="icon" type="image/png" href="/icons/favicon/logo-3-minimalist-icon-32x32.png">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #0f0f0f; color: #fff; font-family: system-ui; }
 
-    /* ===== TEAL HEADER WITH WORDMARK ===== */
+    /* ===== BRAND BANNER (pinned) ===== */
     .banner {
       position: sticky; top: 0; z-index: 100;
       background: linear-gradient(135deg, #0B5E6B 0%, #0D7377 100%);
       padding: 12px 16px;
       display: flex; align-items: center; justify-content: space-between;
-      border-bottom: 1px solid rgba(212, 165, 116, 0.75);
-      box-shadow: 0 1px 0 rgba(232, 196, 160, 0.18), 0 4px 24px rgba(11, 94, 107, 0.3);
+      box-shadow: 0 2px 14px rgba(0,0,0,0.4);
     }
-    .banner-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
-    .banner-logo { width: 40px; height: 40px; border-radius: 8px; flex-shrink: 0; background: rgba(255,255,255,0.15); object-fit: cover; }
+    .banner-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .banner-logo { width: 42px; height: 42px; border-radius: 11px; flex-shrink: 0; background: rgba(255,255,255,0.15); object-fit: cover; }
     .banner-text { min-width: 0; }
-    .banner-title { font-size: 16px; font-weight: 800; letter-spacing: 0.3px; line-height: 1.1; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.25); }
-    .banner-tagline { font-size: 10px; font-weight: 600; color: #D4A574; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0.3px; }
+    .banner-title { font-size: 19px; font-weight: 800; letter-spacing: 0.3px; line-height: 1.1; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.25); }
+    .banner-tagline { font-size: 11.5px; font-weight: 500; color: rgba(255,255,255,0.9); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .banner-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
-    .banner-btn { width: 36px; height: 36px; border: none; border-radius: 50%; background: rgba(255,255,255,0.15); color: #fff; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
-    .banner-btn:active { background: rgba(255,255,255,0.25); }
+    .banner-btn {
+      width: 38px; height: 38px; border: none; border-radius: 50%;
+      background: rgba(255,255,255,0.18); color: #fff; font-size: 19px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+    }
+    .banner-btn:active { background: rgba(255,255,255,0.3); }
 
     .profile-header { padding: 20px; text-align: center; background: transparent; border-bottom: 1px solid #2d2d2d; }
-    .profile-pic-large { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid #D4A574; margin-bottom: 12px; }
+    .profile-pic-large { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid #0B5E6B; margin-bottom: 12px; }
     .profile-name { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
-    .verified-badge { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; background: #0284c7; border-radius: 50%; color: #fff; font-size: 11px; margin-left: 4px; vertical-align: middle; }
+    .verified-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 18px; height: 18px; background: #0284c7; border-radius: 50%;
+      color: #fff; font-size: 11px; margin-left: 4px; vertical-align: middle;
+    }
     .profile-bio { font-size: 14px; color: #aaa; margin-bottom: 15px; }
 
     .profile-stats { display: flex; justify-content: center; gap: 30px; margin: 15px 0; }
@@ -41,8 +45,7 @@
     .stat-number { font-size: 20px; font-weight: 700; color: #fff; }
     .stat-label { font-size: 12px; color: #888; margin-top: 2px; }
 
-    .follow-btn { padding: 12px 40px; background: linear-gradient(135deg, #0B5E6B, #0D7377); color: white; border: none; border-radius: 25px; font-weight: 700; font-size: 15px; cursor: pointer; margin-top: 10px; transition: all 0.2s; box-shadow: 0 4px 15px rgba(11,94,107,.3); }
-    .follow-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(11,94,107,.4); }
+    .follow-btn { padding: 12px 40px; background: #0B5E6B; color: white; border: none; border-radius: 25px; font-weight: 700; font-size: 15px; cursor: pointer; margin-top: 10px; transition: all 0.2s; }
     .follow-btn.following { background: #262626; color: #ccc; }
 
     .videos-section { padding: 15px; border-bottom: 1px solid #2d2d2d; }
@@ -55,46 +58,51 @@
 
     .loading { text-align: center; padding: 40px; color: #888; }
 
+    /* ===== List modal (followers/following) ===== */
     .list-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 200; display: none; }
     .list-backdrop.open { display: block; }
-    .list-sheet { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 210; background: #161616; display: flex; flex-direction: column; transform: translateY(100%); transition: transform 0.25s ease; }
+    .list-sheet {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 210;
+      background: #161616; display: flex; flex-direction: column;
+      transform: translateY(100%); transition: transform 0.25s ease;
+    }
     .list-sheet.open { transform: translateY(0); }
-    .list-header { display: flex; align-items: center; justify-content: space-between; padding: 16px; border-bottom: 1px solid #262626; font-weight: 700; }
+    .list-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px; border-bottom: 1px solid #262626; font-weight: 700;
+    }
     .list-close { background: none; border: none; color: #fff; font-size: 22px; cursor: pointer; }
     .list-body { flex: 1; overflow-y: auto; }
-    .list-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid #1a1a1a; cursor: pointer; }
+    .list-item {
+      display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+      border-bottom: 1px solid #1a1a1a; cursor: pointer;
+    }
     .list-item:active { background: #1a1a1a; }
     .list-avatar { width: 40px; height: 40px; border-radius: 50%; background: #333; overflow: hidden; flex-shrink: 0; }
     .list-avatar img { width: 100%; height: 100%; object-fit: cover; }
     .list-name { font-size: 15px; font-weight: 600; flex: 1; }
     .list-empty { text-align: center; color: #888; padding: 40px 20px; }
 
-    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #1a1a1a; border-top: 1px solid #2d2d2d; display: flex; justify-content: space-around; align-items: center; padding: 8px 0; z-index: 100; }
-    .nav-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; background: none; border: none; color: #666; cursor: pointer; flex: 1; padding: 10px; font-size: 18px; }
+    /* ===== BOTTOM BAR: 3 main buttons ===== */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: #1a1a1a; border-top: 1px solid #2d2d2d;
+      display: flex; justify-content: space-around; align-items: center;
+      padding: 8px 0; z-index: 100;
+    }
+    .nav-btn {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      background: none; border: none; color: #666; cursor: pointer;
+      flex: 1; padding: 10px; font-size: 18px;
+    }
     .nav-btn.active { color: #0B5E6B; }
     .nav-label { font-size: 10px; font-weight: 500; }
 
     .content { margin-bottom: 90px; }
-
-    .drawer-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 150; display: none; }
-    .drawer-backdrop.open { display: block; }
-    .drawer { position: fixed; top: 0; right: 0; bottom: 0; width: 80%; max-width: 320px; background: #161616; z-index: 160; transform: translateX(100%); transition: transform 0.25s ease; display: flex; flex-direction: column; box-shadow: -4px 0 20px rgba(0,0,0,0.5); }
-    .drawer.open { transform: translateX(0); }
-    .drawer-head { background: linear-gradient(135deg, #0B5E6B, #0D7377); padding: 20px 16px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(212, 165, 116, 0.75); }
-    .drawer-head img { width: 40px; height: 40px; border-radius: 10px; background: rgba(255,255,255,0.15); }
-    .drawer-head .dh-title { font-size: 16px; font-weight: 800; }
-    .drawer-head .dh-sub { font-size: 11px; color: #D4A574; font-weight: 600; }
-    .drawer-items { flex: 1; overflow-y: auto; padding: 8px 0; }
-    .drawer-item { width: 100%; display: flex; align-items: center; gap: 14px; padding: 15px 18px; background: none; border: none; color: #fff; font-size: 15px; cursor: pointer; text-align: left; }
-    .drawer-item:active { background: #222; }
-    .drawer-item .di-icon { font-size: 20px; width: 26px; text-align: center; }
-    .drawer-sep { height: 1px; background: #262626; margin: 6px 18px; }
-    .drawer-item-danger { color: #ef4444; }
   </style>
 </head>
 <body>
-
-  <!-- ===== TEAL HEADER WITH WORDMARK ===== -->
+  <!-- ===== BRAND BANNER ===== -->
   <header class="banner">
     <div class="banner-left">
       <img class="banner-logo" src="/icons/wordmark/logo-2-wordmark-300x300.png" alt="GorkhaReels">
@@ -145,6 +153,7 @@
     <div id="loading" class="loading">Loading profile...</div>
   </div>
 
+  <!-- ===== List modal (followers/following) ===== -->
   <div class="list-backdrop" id="list-backdrop"></div>
   <div class="list-sheet" id="list-sheet">
     <div class="list-header">
@@ -154,7 +163,7 @@
     <div class="list-body" id="list-body"></div>
   </div>
 
-  <!-- ===== BOTTOM NAV ===== -->
+  <!-- ===== BOTTOM: 3-button nav ===== -->
   <nav class="bottom-nav">
     <button class="nav-btn" onclick="window.location='index.html'">
       <span>🏠</span><span class="nav-label">Home</span>
@@ -167,11 +176,11 @@
     </button>
   </nav>
 
-  <!-- ===== APP DRAWER ===== -->
+  <!-- ===== App drawer ===== -->
   <div class="drawer-backdrop" id="drawer-backdrop"></div>
   <aside class="drawer" id="drawer">
     <div class="drawer-head">
-      <img src="/icons/wordmark/logo-2-wordmark-300x300.png" alt="GorkhaReels" style="height:36px;width:auto;">
+      <img src="/icons/wordmark/logo-2-wordmark-300x300.png" alt="">
       <div>
         <div class="dh-title">GorkhaReels</div>
         <div class="dh-sub">Gorkha Stories, Global Reach</div>
@@ -186,6 +195,35 @@
       <button class="drawer-item drawer-item-danger" id="drawer-logout"><span class="di-icon">🚪</span> Logout</button>
     </div>
   </aside>
+
+  <style>
+    .drawer-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 150; display: none; }
+    .drawer-backdrop.open { display: block; }
+    .drawer {
+      position: fixed; top: 0; right: 0; bottom: 0; width: 80%; max-width: 320px;
+      background: #161616; z-index: 160; transform: translateX(100%);
+      transition: transform 0.25s ease; display: flex; flex-direction: column;
+      box-shadow: -4px 0 20px rgba(0,0,0,0.5);
+    }
+    .drawer.open { transform: translateX(0); }
+    .drawer-head {
+      background: linear-gradient(135deg, #0B5E6B, #0D7377);
+      padding: 20px 16px; display: flex; align-items: center; gap: 12px;
+    }
+    .drawer-head img { width: 40px; height: 40px; border-radius: 10px; background: rgba(255,255,255,0.15); }
+    .drawer-head .dh-title { font-size: 16px; font-weight: 800; }
+    .drawer-head .dh-sub { font-size: 11px; color: rgba(255,255,255,0.9); }
+    .drawer-items { flex: 1; overflow-y: auto; padding: 8px 0; }
+    .drawer-item {
+      width: 100%; display: flex; align-items: center; gap: 14px;
+      padding: 15px 18px; background: none; border: none; color: #fff;
+      font-size: 15px; cursor: pointer; text-align: left;
+    }
+    .drawer-item:active { background: #222; }
+    .drawer-item .di-icon { font-size: 20px; width: 26px; text-align: center; }
+    .drawer-sep { height: 1px; background: #262626; margin: 6px 18px; }
+    .drawer-item-danger { color: #ef4444; }
+  </style>
 
   <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
   <script src="js/appwrite-config.js"></script>
@@ -294,6 +332,7 @@
           document.getElementById('followers-count').textContent = followers.total;
           document.getElementById('following-count').textContent = following.total;
 
+          // Make stats clickable
           document.getElementById('followers-stat').onclick = () => this.openFollowersList();
           document.getElementById('following-stat').onclick = () => this.openFollowingList();
 
@@ -329,7 +368,6 @@
           const grid = document.getElementById('videos-grid');
           document.getElementById('videos-count').textContent = response.documents.length;
           const totalViews = response.documents.reduce((sum, r) => sum + (r.views || 0), 0);
-          document.getElementById('views-count').textContent = totalViews;
           if (response.documents.length === 0) {
             grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#888">No videos yet</div>';
             return;
