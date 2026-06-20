@@ -205,6 +205,19 @@
     let MY_USER_ID = null;
     let LIKED = new Set();
 
+    // Returns a safe <img> src for a reel thumbnail. If extraction failed
+    // and `thumbnail` ended up being the raw video file (a known fallback
+    // in upload.js), this avoids handing a video URL to an <img> tag —
+    // browsers don't reliably fire onerror for that case, so it can render
+    // as a blank box instead of falling back.
+    function getThumbSrc(reel) {
+      const t = reel && reel.thumbnail;
+      const fallback = '/icons/primary/logo-1-app-icon-180x180.png';
+      if (!t) return fallback;
+      if (/\.(mp4|mov|webm|m4v)(\?|$)/i.test(t)) return fallback;
+      return t;
+    }
+
     async function init() {
       try {
         await session.refresh();
@@ -282,7 +295,7 @@
               <button class="post-more">⋯</button>
             </div>
             <div class="post-thumbnail">
-              <img src="${reel.thumbnail || '/icons/primary/logo-1-app-icon-180x180.png'}" alt="Video" onerror="this.src='/icons/primary/logo-1-app-icon-180x180.png'">
+              <img src="${getThumbSrc(reel)}" alt="Video" onerror="this.src='/icons/primary/logo-1-app-icon-180x180.png'">
               <div class="play-icon">▶️</div>
             </div>
             <div class="post-title">${escapeHtml(reel.title || '')}</div>
