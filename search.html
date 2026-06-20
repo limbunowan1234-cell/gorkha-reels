@@ -139,17 +139,6 @@
       opacity: 0.8;
     }
 
-    .trending-badge {
-      position: absolute;
-      top: 8px;
-      left: 8px;
-      background: linear-gradient(135deg, #dc2626, #991b1b);
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-size: 11px;
-      font-weight: 700;
-    }
-
     .thumbnail-overlay {
       position: absolute;
       bottom: 0;
@@ -183,7 +172,6 @@
       display: flex;
       gap: 12px;
       align-items: center;
-      cursor: pointer;
       transition: all 0.2s;
     }
 
@@ -198,6 +186,7 @@
       background: #2d2d2d;
       overflow: hidden;
       flex-shrink: 0;
+      cursor: pointer;
     }
 
     .creator-avatar img {
@@ -208,6 +197,7 @@
 
     .creator-info {
       flex: 1;
+      cursor: pointer;
     }
 
     .creator-name {
@@ -237,12 +227,19 @@
       border-radius: 4px;
       cursor: pointer;
       transition: background 0.2s;
+      flex-shrink: 0;
     }
 
     .follow-btn:active { background: #b91c1c; }
     .follow-btn.following {
       background: transparent;
       border: 1px solid #999;
+      color: #ccc;
+    }
+
+    .follow-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
     }
 
     .loading {
@@ -295,6 +292,23 @@
     .nav-item.active { color: #dc2626; }
     .nav-label { font-size: 10px; }
 
+    /* Debug Panel */
+    #debug-panel {
+      background: #000;
+      border-top: 2px solid #dc2626;
+      padding: 10px 12px;
+      font-family: monospace;
+      font-size: 10px;
+      color: #4ade80;
+      max-height: 20vh;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      display: none;
+    }
+    #debug-panel.show { display: block; }
+    #debug-log > div { margin-bottom: 2px; }
+
     @media (max-width: 600px) {
       .grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
     }
@@ -344,6 +358,12 @@
     </div>
   </div>
 
+  <!-- Debug Panel (optional, toggle with ?debug=1 in URL) -->
+  <div id="debug-panel">
+    <div style="color:#fff;font-weight:700;margin-bottom:6px;font-size:11px;">🐞 FOLLOW DEBUG</div>
+    <div id="debug-log"></div>
+  </div>
+
   <nav class="bottom-nav">
     <button class="nav-item" onclick="window.location='index.html'">
       <span>🏠</span>
@@ -371,18 +391,50 @@
     let searchTimeout;
     let currentTab = 'videos';
     let selectedCategory = 'All';
+    let followingSet = new Set(); // Track who we're following
+    const debugMode = new URLSearchParams(window.location.search).get('debug') === '1';
 
-    // Upload categories (the source of truth)
     const categories = ['All', 'Sports', 'Entertainment', 'Music', 'Dance', 'Comedy', 'Education', 'Vlog', 'Other'];
+
+    // Debug logger
+    function dlog(msg, type) {
+      if (!debugMode) return;
+      const panel = document.getElementById('debug-panel');
+      const log = document.getElementById('debug-log');
+      if (!panel.classList.contains('show')) panel.classList.add('show');
+      const line = document.createElement('div');
+      line.style.color = type === 'error' ? '#f87171' : (type === 'warn' ? '#fbbf24' : '#4ade80');
+      line.textContent = '[' + new Date().toLocaleTimeString() + '] ' + msg;
+      log.appendChild(line);
+      log.scrollTop = log.scrollHeight;
+    }
 
     async function init() {
       try {
         await session.refresh();
+        if (session.isLoggedIn()) {
+          await loadFollowingList();
+        }
         await loadAllData();
         setupCategories();
         displayTrending();
       } catch (err) {
         console.error('Init error:', err);
+        dlog('Init error: ' + err.message, 'error');
+      }
+    }
+
+    async function loadFollowingList() {
+      try {
+        const userId = session.getUserId();
+        const following = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [
+          Query.equal('followerId', userId),
+          Query.limit(100)
+        ]);
+        followingSet = new Set(following.documents.map(f => f.followingId));
+        dlog('Loaded ' + followingSet.size + ' following relationships');
+      } catch (err) {
+        dlog('Failed to load following list: ' + err.message, 'error');
       }
     }
 
@@ -395,6 +447,7 @@
         allCreators = creators.documents;
       } catch (err) {
         console.error('Load error:', err);
+        dlog('Load error: ' + err.message, 'error');
       }
     }
 
@@ -522,21 +575,108 @@
 
       let html = '';
       creators.forEach(creator => {
+        const isFollowing = followingSet.has(creator.$id);
+        const followClass = isFollowing ? 'following' : '';
+        const followText = isFollowing ? 'Following' : 'Follow';
+        
         html += `
-          <div class="creator-card" onclick="window.location='creator-profile.html?id=${creator.$id}'">
-            <div class="creator-avatar">
+          <div class="creator-card">
+            <div class="creator-avatar" onclick="window.location='creator-profile.html?id=${creator.$id}'">
               <img src="${creator.profilePic || 'assets/placeholder.svg'}" onerror="this.src='assets/placeholder.svg'">
             </div>
-            <div class="creator-info">
+            <div class="creator-info" onclick="window.location='creator-profile.html?id=${creator.$id}'">
               <div class="creator-name">${creator.name}</div>
               <div class="creator-username">@${creator.username || creator.name.toLowerCase().replace(/\s/g, '')}</div>
               <div class="creator-stats">${creator.followers || 0} followers • ${creator.totalReels || 0} videos</div>
             </div>
-            <button class="follow-btn" onclick="event.stopPropagation(); alert('Follow coming soon')">Follow</button>
+            <button class="follow-btn ${followClass}" id="follow-${creator.$id}" onclick="toggleFollow(event, '${creator.$id}', this)">${followText}</button>
           </div>
         `;
       });
       document.getElementById('creatorsGrid').innerHTML = html;
+    }
+
+    async function toggleFollow(event, creatorId, btn) {
+      event.stopPropagation();
+      
+      dlog('👆 Follow button tapped for creatorId=' + creatorId);
+      dlog('session.isLoggedIn() = ' + session.isLoggedIn());
+
+      if (!session.isLoggedIn()) {
+        dlog('❌ Not logged in — redirecting', 'error');
+        window.location.href = './login.html';
+        return;
+      }
+
+      const userId = session.getUserId();
+      dlog('userId=' + userId);
+
+      if (btn.dataset.busy === '1') {
+        dlog('⚠️ Already busy', 'warn');
+        return;
+      }
+
+      btn.dataset.busy = '1';
+      btn.disabled = true;
+      const originalText = btn.textContent;
+      btn.textContent = '...';
+
+      try {
+        if (followingSet.has(creatorId)) {
+          // Unfollow
+          dlog('Unfollowing...');
+          const follows = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [
+            Query.equal('followerId', userId),
+            Query.equal('followingId', creatorId),
+            Query.limit(1)
+          ]);
+          dlog('Found ' + follows.total + ' follow docs');
+          if (follows.documents.length > 0) {
+            await db.remove(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, follows.documents[0].$id);
+            dlog('✅ Unfollowed');
+          }
+          followingSet.delete(creatorId);
+          btn.textContent = 'Follow';
+          btn.classList.remove('following');
+          if (window.Toast) Toast.success('Unfollowed');
+        } else {
+          // Follow
+          dlog('Following...');
+          const existing = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [
+            Query.equal('followerId', userId),
+            Query.equal('followingId', creatorId),
+            Query.limit(1)
+          ]);
+          dlog('Existing check total=' + existing.total);
+          if (existing.total === 0) {
+            await db.create(
+              APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS,
+              {
+                followId: ID.unique(),
+                followerId: userId,
+                followingId: creatorId,
+                CreatorId: creatorId,
+                createdAt: new Date().toISOString()
+              }
+            );
+            dlog('✅ Follow doc created');
+          }
+          followingSet.add(creatorId);
+          btn.textContent = 'Following';
+          btn.classList.add('following');
+          if (window.Toast) Toast.success('Following!');
+        }
+        dlog('🎉 toggleFollow completed OK');
+
+      } catch (error) {
+        dlog('❌ Follow failed: ' + error.message, 'error');
+        console.error('Follow failed:', error);
+        if (window.Toast) Toast.error('Failed: ' + error.message);
+        btn.textContent = originalText;
+      } finally {
+        btn.disabled = false;
+        btn.dataset.busy = '0';
+      }
     }
 
     function openVideo(reelId) {
