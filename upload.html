@@ -4,38 +4,53 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>New Reel - GorkhaReels</title>
-  <meta name="theme-color" content="#121212">
-  <link rel="icon" type="image/png" href="assets/logo.png">
+  <meta name="theme-color" content="#0B5E6B">
+  <!-- ✅ UPDATED FAVICON -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon/logo-3-minimalist-icon-32x32.png">
   <link rel="stylesheet" href="css/styles.css">
 
   <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #0f0f0f; overflow-x: hidden; }
 
+    /* ===== BRAND BANNER (TEAL + GOLD CARD) ===== */
     .upload-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 14px 16px;
-      background: rgba(10,10,10,0.98);
+      padding: 12px 16px;
+      background: linear-gradient(135deg, #0B5E6B 0%, #0D7377 100%);
       position: sticky;
       top: 0;
       z-index: 100;
-      border-bottom: 1px solid #1a1a1a;
+      border-bottom: 3px solid #D4A574;
+      box-shadow: 0 4px 16px rgba(11, 94, 107, 0.4);
     }
 
     .upload-back {
       width: 36px; height: 36px;
       border-radius: 50%;
-      background: rgba(255,255,255,0.08);
-      border: none; color: #fff;
-      font-size: 22px; cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: #fff;
+      font-size: 22px; 
+      cursor: pointer;
+      display: flex; 
+      align-items: center; 
+      justify-content: center;
+      backdrop-filter: blur(8px);
     }
 
+    .upload-back:active { background: rgba(255,255,255,0.25); }
+
+    /* ===== CARD STYLING ===== */
     #upload-header-title {
       font-size: 17px;
       font-weight: 700;
       color: #fff;
+      flex: 1;
+      text-align: center;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.4);
     }
 
     .header-spacer { width: 36px; }
@@ -53,7 +68,7 @@
       width: 100%;
       max-width: 340px;
       aspect-ratio: 9/16;
-      border: 2px dashed #3f3f3f;
+      border: 2px dashed #0B5E6B;
       border-radius: 20px;
       display: flex;
       flex-direction: column;
@@ -61,13 +76,14 @@
       justify-content: center;
       gap: 16px;
       cursor: pointer;
-      background: #1a1a1a;
-      transition: border-color 0.2s;
+      background: rgba(11, 94, 107, 0.08);
+      transition: all 0.2s;
     }
 
     #dropzone.drag-over {
-      border-color: var(--primary-red);
-      background: rgba(220,38,38,0.05);
+      border-color: #D4A574;
+      background: rgba(212, 165, 116, 0.12);
+      box-shadow: 0 8px 24px rgba(11, 94, 107, 0.2);
     }
 
     .dropzone-icon { font-size: 56px; }
@@ -77,14 +93,17 @@
     .select-btn {
       margin-top: 8px;
       padding: 12px 32px;
-      background: var(--primary-red);
+      background: linear-gradient(135deg, #0B5E6B, #0D7377);
       border: none;
       border-radius: 10px;
       color: #fff;
       font-size: 15px;
       font-weight: 700;
       cursor: pointer;
+      box-shadow: 0 4px 12px rgba(11, 94, 107, 0.3);
     }
+
+    .select-btn:active { opacity: 0.9; }
 
     #step-details {
       display: none;
@@ -152,7 +171,8 @@
 
     .form-input:focus, .form-textarea:focus, .form-select:focus {
       outline: none;
-      border-color: var(--primary-red);
+      border-color: #0B5E6B;
+      box-shadow: 0 0 8px rgba(11, 94, 107, 0.3);
     }
 
     .form-textarea { resize: none; }
@@ -201,13 +221,13 @@
     }
 
     .hashtag-btn:hover {
-      border-color: var(--primary-red);
-      color: var(--primary-red);
+      border-color: #0B5E6B;
+      color: #0B5E6B;
     }
 
     .hashtag-btn.active {
-      background: var(--primary-red);
-      border-color: var(--primary-red);
+      background: #0B5E6B;
+      border-color: #0B5E6B;
       color: #fff;
     }
 
@@ -221,7 +241,7 @@
     }
 
     .hashtag-badge {
-      background: var(--primary-red);
+      background: #0B5E6B;
       color: #fff;
       padding: 6px 10px;
       border-radius: 16px;
@@ -253,14 +273,14 @@
     #post-btn {
       width: 100%;
       padding: 16px;
-      background: linear-gradient(135deg, var(--primary-red), #f97316);
+      background: linear-gradient(135deg, #0B5E6B, #0D7377);
       border: none;
       border-radius: 12px;
       color: #fff;
       font-size: 17px;
       font-weight: 800;
       cursor: pointer;
-      box-shadow: 0 4px 20px rgba(220,38,38,0.4);
+      box-shadow: 0 4px 16px rgba(11, 94, 107, 0.4);
     }
 
     #post-btn:active { transform: scale(0.98); }
@@ -366,15 +386,14 @@
     function extractHashtagsFromText(text) {
       if (!text) return [];
       
-      // Remove existing hashtags and special chars
       const words = text
         .toLowerCase()
-        .replace(/#\S+/g, '') // Remove existing hashtags
+        .replace(/#\S+/g, '')
         .split(/[\s\-_.,:;!?()]+/)
         .filter(w => w.length >= 3 && !COMMON_WORDS.has(w))
-        .slice(0, 8); // Max 8 suggestions
+        .slice(0, 8);
 
-      return [...new Set(words)]; // Remove duplicates
+      return [...new Set(words)];
     }
 
     function updateHashtagSuggestions() {
@@ -385,14 +404,12 @@
       const suggestions = extractHashtagsFromText(combined);
       const categoryVal = document.getElementById('post-category').value.toLowerCase();
       
-      // Add category as suggestion
       if (!suggestions.includes(categoryVal)) {
         suggestions.unshift(categoryVal);
       }
 
       renderHashtagSuggestions(suggestions);
 
-      // Update char counts
       document.getElementById('title-count').textContent = title.length + '/100';
       document.getElementById('desc-count').textContent = desc.length + '/300';
     }
@@ -442,7 +459,6 @@
       document.getElementById('hashtag-count').textContent = selected.size;
     }
 
-    // Update suggestions when category changes
     document.getElementById('post-category').addEventListener('change', updateHashtagSuggestions);
   </script>
 </body>
