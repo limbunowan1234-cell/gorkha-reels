@@ -47,6 +47,11 @@
     .creator-avatar { width: 40px; height: 40px; border-radius: 50%; background: #2d2d2d; overflow: hidden; flex-shrink: 0; }
     .creator-avatar img { width: 100%; height: 100%; object-fit: cover; }
     .creator-name { font-size: 13px; font-weight: 600; flex: 1; }
+    .verified-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 14px; height: 14px; background: #0284c7; border-radius: 50%;
+      color: #fff; font-size: 9px; margin-left: 3px; vertical-align: middle;
+    }
 
     /* per-post ⋯ */
     .post-more {
@@ -250,11 +255,22 @@
           return;
         }
 
+        // Batch-fetch verified status for unique creators (avoids one query per post)
+        const VERIFIED = new Set();
+        const uniqueCreatorIds = [...new Set(reels.documents.map(r => r.creatorId))];
+        try {
+          const creatorDocs = await Promise.all(
+            uniqueCreatorIds.map(id => db.get(APPWRITE_CONFIG.COLLECTIONS.CREATORS, id).catch(() => null))
+          );
+          creatorDocs.forEach(c => { if (c && c.isVerified) VERIFIED.add(c.$id); });
+        } catch (e) {}
+
         const feed = document.getElementById('feed');
         feed.innerHTML = '';
         reels.documents.forEach(reel => {
           const liked = LIKED.has(reel.$id);
           const isOwner = MY_USER_ID && MY_USER_ID === reel.creatorId;
+          const isVerified = VERIFIED.has(reel.creatorId);
           const post = document.createElement('div');
           post.className = 'post';
           post.innerHTML = `
@@ -262,7 +278,7 @@
               <div class="creator-avatar">
                 <img src="${reel.creatorProfilePic || 'assets/placeholder.svg'}" onerror="this.src='assets/placeholder.svg'">
               </div>
-              <div class="creator-name">${escapeHtml(reel.creatorName || 'Creator')}</div>
+              <div class="creator-name">${escapeHtml(reel.creatorName || 'Creator')}${isVerified ? ' <span class="verified-badge">✓</span>' : ''}</div>
               <button class="post-more">⋯</button>
             </div>
             <div class="post-thumbnail">
