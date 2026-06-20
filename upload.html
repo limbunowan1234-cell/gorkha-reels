@@ -7,17 +7,36 @@
   <meta name="theme-color" content="#121212">
   <link rel="icon" type="image/png" href="assets/logo.png">
   <link rel="stylesheet" href="css/styles.css">
-  
-  <!-- ERUDA BLOCKER - Disable Eruda before it loads -->
+
+  <!-- ============================================ -->
+  <!-- HARDENED ERUDA BLOCKER                        -->
+  <!-- Permanently locks window.eruda so no script   -->
+  <!-- (bookmarklet, extension, etc) can reinit it   -->
+  <!-- on THIS page. Eruda was confirmed to break    -->
+  <!-- the native iOS file picker interaction.       -->
+  <!-- ============================================ -->
   <script>
-    // Prevent Eruda from initializing or hooking into events
-    window._erudaDisabled = true;
-    if (window.eruda) {
-      console.log('Eruda detected, disabling...');
-      window.eruda = null;
-    }
+    (function() {
+      try {
+        Object.defineProperty(window, 'eruda', {
+          get: function() { return undefined; },
+          set: function() { /* silently ignore */ },
+          configurable: false
+        });
+        console.log('🛡️ Eruda permanently locked out on this page');
+      } catch(e) {
+        console.warn('⚠️ Could not lock eruda:', e.message);
+      }
+
+      window.addEventListener('error', function(e) {
+        if (e.message && e.message.indexOf('eruda') !== -1) {
+          e.stopImmediatePropagation();
+          return true;
+        }
+      }, true);
+    })();
   </script>
-  
+
   <style>
     body { background: #0f0f0f; overflow-x: hidden; }
 
@@ -221,7 +240,7 @@
       <div class="dropzone-icon">🎬</div>
       <div class="dropzone-text">Select a video</div>
       <div class="dropzone-sub">MP4, WebM, MOV<br>Max 500MB • Max 2 minutes</div>
-      <button class="select-btn" onclick="document.getElementById('video-file-input').click()">
+      <button class="select-btn" type="button" onclick="document.getElementById('video-file-input').click()">
         📱 Choose from Phone
       </button>
     </div>
@@ -231,7 +250,7 @@
   <div id="step-details">
     <div class="details-preview">
       <video id="video-preview" playsinline muted loop autoplay></video>
-      <button class="change-video-btn" id="change-video-btn">✏️ Change</button>
+      <button class="change-video-btn" id="change-video-btn" type="button">✏️ Change</button>
     </div>
 
     <div class="details-form">
@@ -251,26 +270,29 @@
         <div class="form-field">
           <label class="form-label">Category</label>
           <select id="post-category" class="form-select">
-            <option value="entertainment">Entertainment</option>
-            <option value="music">Music</option>
-            <option value="dance">Dance</option>
-            <option value="comedy">Comedy</option>
-            <option value="other" selected>Other</option>
+            <option value="sports">⚽ Sports</option>
+            <option value="entertainment" selected>🎭 Entertainment</option>
+            <option value="music">🎵 Music</option>
+            <option value="dance">💃 Dance</option>
+            <option value="comedy">😂 Comedy</option>
+            <option value="education">📚 Education</option>
+            <option value="vlog">📹 Vlog</option>
+            <option value="other">✨ Other</option>
           </select>
         </div>
         <div class="form-field">
           <label class="form-label">Language</label>
           <select id="post-language" class="form-select">
-            <option value="Nepali" selected>Nepali</option>
-            <option value="Hindi">Hindi</option>
-            <option value="English">English</option>
+            <option value="Nepali" selected>🇳🇵 Nepali</option>
+            <option value="Hindi">🇮🇳 Hindi</option>
+            <option value="English">🇬🇧 English</option>
           </select>
         </div>
       </div>
     </div>
 
     <div class="post-btn-container">
-      <button id="post-btn" onclick="window.uploader && window.uploader.post()">🚀 Post Reel</button>
+      <button id="post-btn" type="button" onclick="window.uploader && window.uploader.post()">🚀 Post Reel</button>
     </div>
   </div>
 
