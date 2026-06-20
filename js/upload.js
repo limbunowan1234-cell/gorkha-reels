@@ -1,10 +1,11 @@
 /**
- * GorkhaReels - FAST Upload (Skip validation & thumbnails for MVP)
+ * GorkhaReels - FINAL Upload
+ * Smart Auto-Thumbnail + Fast Upload
  */
 
 class SimpleUpload {
   constructor() {
-    console.log('🚀 SimpleUpload loaded');
+    console.log('🚀 GorkhaReels Upload v2 loaded');
     this.selectedFile = null;
     this.init();
   }
@@ -17,6 +18,7 @@ class SimpleUpload {
         return;
       }
       this.setupUI();
+      console.log('✅ Upload ready');
     } catch(err) {
       console.error('❌ Init:', err.message);
       Toast.error('Init failed');
@@ -50,12 +52,10 @@ class SimpleUpload {
         this.selectVideo(e.dataTransfer.files[0]);
       }
     };
-
-    console.log('✅ Upload ready');
   }
 
   selectVideo(file) {
-    console.log('📹 Selected:', file.name);
+    console.log('📹 Selected:', file.name, (file.size / 1024 / 1024).toFixed(2) + 'MB');
 
     // Basic check
     if (!file.type.startsWith('video/')) {
@@ -68,23 +68,93 @@ class SimpleUpload {
       return;
     }
 
-    // QUICK: No validation, just show preview
+    // Save and show preview
     this.selectedFile = file;
     const blobUrl = URL.createObjectURL(file);
     
     document.getElementById('step-pick').style.display = 'none';
     document.getElementById('step-details').style.display = 'flex';
     document.getElementById('video-preview').src = blobUrl;
+    
     document.getElementById('change-video-btn').onclick = () => {
       document.getElementById('step-pick').style.display = 'flex';
       document.getElementById('step-details').style.display = 'none';
       this.selectedFile = null;
     };
 
-    Toast.success('✅ Video selected');
+    console.log('✅ Video ready');
   }
 
-  uploadWithProgress(file, fileName) {
+  // ===== EXTRACT THUMBNAIL =====
+  async extractThumbnail(videoFile, timestamp = 1) {
+    return new Promise((resolve) => {
+      console.log('🖼️ Extracting thumbnail at', timestamp + 's...');
+      
+      let completed = false;
+      const timeout = setTimeout(() => {
+        if (!completed) {
+          console.warn('⚠️ Thumbnail timeout, skipping');
+          completed = true;
+          resolve(null);
+        }
+      }, 8000);
+
+      const video = document.createElement('video');
+      video.preload = 'metadata';
+      video.muted = true;
+
+      const url = URL.createObjectURL(videoFile);
+
+      video.onloadedmetadata = () => {
+        try {
+          video.currentTime = Math.min(timestamp, video.duration * 0.5);
+        } catch(e) {
+          clearTimeout(timeout);
+          completed = true;
+          URL.revokeObjectURL(url);
+          resolve(null);
+        }
+      };
+
+      video.onseeked = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = video.videoWidth || 720;
+          canvas.height = video.videoHeight || 1280;
+          
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          
+          canvas.toBlob((blob) => {
+            if (!completed) {
+              clearTimeout(timeout);
+              completed = true;
+              URL.revokeObjectURL(url);
+              console.log('✅ Thumbnail extracted');
+              resolve(blob);
+            }
+          }, 'image/jpeg', 0.85);
+        } catch(e) {
+          clearTimeout(timeout);
+          completed = true;
+          URL.revokeObjectURL(url);
+          resolve(null);
+        }
+      };
+
+      video.onerror = () => {
+        clearTimeout(timeout);
+        completed = true;
+        URL.revokeObjectURL(url);
+        resolve(null);
+      };
+
+      video.src = url;
+    });
+  }
+
+  // ===== UPLOAD WITH PROGRESS =====
+  uploadWithProgress(file, fileName, statusBtn) {
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
       const startTime = Date.now();
@@ -98,9 +168,8 @@ class SimpleUpload {
           const mins = Math.floor(remaining / 60);
           const secs = Math.floor(remaining % 60);
 
-          document.getElementById('post-btn').textContent = 
-            `📹 ${percent}% (${mins}m ${secs}s)`;
-          console.log(`${percent}% - ${(rate/1024/1024).toFixed(2)}MB/s`);
+          statusBtn.textContent = `📹 ${percent}% (${mins}m ${secs}s)`;
+          console.log(`${percent}%`);
         }
       });
 
@@ -137,22 +206,52 @@ class SimpleUpload {
     postBtn.disabled = true;
 
     try {
-      console.log('🚀 Uploading...');
+      console.log('🚀 Starting upload...');
       
-      // Upload video
+      // 1️⃣ UPLOAD VIDEO
       const fileName = `${session.getUserId()}_${Date.now()}_${this.selectedFile.name}`;
-      const videoUrl = await this.uploadWithProgress(this.selectedFile, fileName);
+      postBtn.textContent = '📹 Uploading video...';
+      const videoUrl = await this.uploadWithProgress(this.selectedFile, fileName, postBtn);
       console.log('✅ Video uploaded');
 
-      postBtn.textContent = '⏳ Saving...';
+      // 2️⃣ EXTRACT THUMBNAIL
+      let thumbnailUrl = '';
+      postBtn.textContent = '🖼️ Creating thumbnail...';
+      try {
+        const thumbBlob = await this.extractThumbnail(this.selectedFile, 1);
+        if (thumbBlob) {
+          const thumbFileName = `thumb_${session.getUserId()}_${Date.now()}.jpg`;
+          thumbnailUrl = await this.uploadWithProgress(thumbFileName, `thumb_${Date.now()}.jpg`, postBtn);
+          
+          // Actually upload the blob
+          const thumbXhr = new XMLHttpRequest();
+          await new Promise((resolve, reject) => {
+            thumbXhr.addEventListener('load', () => {
+              if (thumbXhr.status === 200) {
+                thumbnailUrl = `${BUNNY_CONFIG.PULL_ZONE_URL}thumb_${Date.now()}.jpg`;
+                console.log('✅ Thumbnail uploaded');
+                resolve();
+              } else reject();
+            });
+            thumbXhr.addEventListener('error', reject);
+            thumbXhr.open('PUT', `${BUNNY_CONFIG.STORAGE_ENDPOINT}${BUNNY_CONFIG.STORAGE_ZONE}/thumb_${Date.now()}.jpg`);
+            thumbXhr.setRequestHeader('AccessKey', BUNNY_CONFIG.API_KEY);
+            thumbXhr.send(thumbBlob);
+          });
+        }
+      } catch(err) {
+        console.warn('⚠️ Thumbnail failed (non-blocking):', err.message);
+        thumbnailUrl = videoUrl; // Fallback to video URL
+      }
 
-      // Save to DB
+      // 3️⃣ SAVE TO DATABASE
+      postBtn.textContent = '⏳ Saving...';
       const reelId = ID.unique();
       await db.create(APPWRITE_CONFIG.COLLECTIONS.REELS, {
         reelId,
         creatorId: session.getUserId(),
         videoUrl,
-        thumbnail: videoUrl, // Use video URL as placeholder (show real thumb later)
+        thumbnail: thumbnailUrl || videoUrl,
         title,
         description: document.getElementById('post-description').value.trim() || '',
         category: document.getElementById('post-category').value || 'other',
@@ -171,6 +270,7 @@ class SimpleUpload {
         isDeleted: false
       }, reelId);
 
+      console.log('✅ Reel saved!');
       Toast.success('🎉 Reel posted!');
       setTimeout(() => {
         window.location.href = './creator-dashboard.html';
@@ -185,7 +285,7 @@ class SimpleUpload {
   }
 }
 
-console.log('Upload script ready');
+console.log('📦 Upload script loaded');
 document.readyState === 'loading' 
   ? document.addEventListener('DOMContentLoaded', () => { window.uploader = new SimpleUpload(); })
   : (window.uploader = new SimpleUpload());
