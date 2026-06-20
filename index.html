@@ -18,8 +18,41 @@
   <meta name="theme-color" content="#0B5E6B">
   
   <link rel="stylesheet" href="css/styles.css">
+  
+  <!-- 🚨 ERUDA BLOCKER - MUST BE FIRST -->
+  <script>
+    if (typeof window !== 'undefined') {
+      window.eruda = null;
+      window.Eruda = null;
+      const origFetch = window.fetch;
+      window.fetch = function(...args) {
+        if (args[0] && args[0].includes && args[0].includes('eruda')) {
+          return Promise.reject(new Error('Eruda blocked'));
+        }
+        return origFetch.apply(this, args);
+      };
+    }
+  </script>
 </head>
 <body>
+  <!-- 🚨 GLOBAL ERROR HANDLER -->
+  <script>
+    window.addEventListener('error', (e) => {
+      console.error('❌ GLOBAL ERROR:', e.error || e.message);
+      if (document.getElementById('feed')) {
+        document.getElementById('feed').innerHTML = `
+          <div style="padding:20px;color:#888;text-align:center;">
+            <p>❌ Error loading feed: ${(e.error || e.message || 'Unknown error').substring(0, 100)}</p>
+            <button onclick="location.reload()" style="padding:8px 16px;background:#0B5E6B;color:#fff;border:none;border-radius:6px;margin-top:10px;cursor:pointer;">Retry</button>
+          </div>
+        `;
+      }
+    });
+
+    window.addEventListener('unhandledrejection', (e) => {
+      console.error('❌ UNHANDLED PROMISE:', e.reason);
+    });
+  </script>
 
   <!-- ===== TEAL HEADER WITH WORDMARK ===== -->
   <header>
@@ -118,56 +151,75 @@
 
     // ===== FEED LOADING =====
     async function loadFeed() {
+      const feed = document.getElementById('feed');
       try {
+        console.log('📺 Loading feed...');
+        feed.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+
+        if (!db) {
+          throw new Error('Database not initialized');
+        }
+
         const reels = await db.list(APPWRITE_CONFIG.COLLECTIONS.REELS, [
           Query.equal('isDeleted', false),
           Query.orderDesc('uploadedAt'),
           Query.limit(20)
         ]);
 
-        const feed = document.getElementById('feed');
+        console.log('✅ Fetched', reels.documents.length, 'reels');
         feed.innerHTML = '';
 
         if (!reels.documents.length) {
-          feed.innerHTML = '<div style="text-align:center;padding:40px;color:#888">No reels yet. Be the first to upload!</div>';
+          feed.innerHTML = '<div style="text-align:center;padding:40px;color:#888">📹 No reels yet. Be the first to upload!</div>';
           return;
         }
 
         for (const reel of reels.documents) {
-          const creator = await db.get(APPWRITE_CONFIG.COLLECTIONS.CREATORS, reel.creatorId);
-          const likes = await db.list(APPWRITE_CONFIG.COLLECTIONS.LIKES, [
-            Query.equal('reelId', reel.$id)
-          ]);
+          try {
+            const creator = await db.get(APPWRITE_CONFIG.COLLECTIONS.CREATORS, reel.creatorId);
+            const likes = await db.list(APPWRITE_CONFIG.COLLECTIONS.LIKES, [
+              Query.equal('reelId', reel.$id)
+            ]);
 
-          const post = document.createElement('div');
-          post.className = 'post';
-          post.innerHTML = `
-            <div class="post-header">
-              <div class="creator-avatar">
-                <img src="${creator.profilePic || '/icons/primary/logo-1-app-icon-180x180.png'}" alt="${creator.name}" onerror="this.src='/icons/primary/logo-1-app-icon-180x180.png'">
+            const post = document.createElement('div');
+            post.className = 'post';
+            post.innerHTML = `
+              <div class="post-header">
+                <div class="creator-avatar">
+                  <img src="${creator.profilePic || '/icons/primary/logo-1-app-icon-180x180.png'}" alt="${creator.name}" onerror="this.src='/icons/primary/logo-1-app-icon-180x180.png'">
+                </div>
+                <div class="creator-name">
+                  ${escapeHtml(creator.name || 'Creator')}
+                  ${creator.isVerified ? '<span class="verified-badge">✓</span>' : ''}
+                </div>
+                <button class="post-more" onclick="openPostMenu(event, '${reel.$id}')">⋯</button>
               </div>
-              <div class="creator-name">
-                ${escapeHtml(creator.name || 'Creator')}
-                ${creator.isVerified ? '<span class="verified-badge">✓</span>' : ''}
+              <div class="post-thumbnail" onclick="window.location.href='./video-modal.html?reelId=${reel.$id}'">
+                <img src="${reel.thumbnail || '/icons/primary/logo-1-app-icon-180x180.png'}" alt="${reel.title}" onerror="this.src='/icons/primary/logo-1-app-icon-180x180.png'">
+                <div class="play-icon">▶️</div>
               </div>
-              <button class="post-more" onclick="openPostMenu(event, '${reel.$id}')">⋯</button>
-            </div>
-            <div class="post-thumbnail" onclick="window.location.href='./video-modal.html?reelId=${reel.$id}'">
-              <img src="${reel.thumbnail || '/icons/primary/logo-1-app-icon-180x180.png'}" alt="${reel.title}" onerror="this.src='/icons/primary/logo-1-app-icon-180x180.png'">
-              <div class="play-icon">▶️</div>
-            </div>
-            <div class="post-title">${escapeHtml(reel.title || 'Untitled')}</div>
-            <div class="post-actions">
-              <button class="action-btn"><span class="action-icon">❤️</span> ${likes.total} Likes</button>
-              <button class="action-btn" onclick="window.location.href='./video-modal.html?reelId=${reel.$id}'"><span class="action-icon">💬</span> Comments</button>
-              <button class="action-btn"><span class="action-icon">👁️</span> ${reel.views || 0} Views</button>
-            </div>
-          `;
-          feed.appendChild(post);
+              <div class="post-title">${escapeHtml(reel.title || 'Untitled')}</div>
+              <div class="post-actions">
+                <button class="action-btn"><span class="action-icon">❤️</span> ${likes.total} Likes</button>
+                <button class="action-btn" onclick="window.location.href='./video-modal.html?reelId=${reel.$id}'"><span class="action-icon">💬</span> Comments</button>
+                <button class="action-btn"><span class="action-icon">👁️</span> ${reel.views || 0} Views</button>
+              </div>
+            `;
+            feed.appendChild(post);
+          } catch (err) {
+            console.error('Error rendering reel:', reel.$id, err);
+          }
         }
+        console.log('✅ Feed loaded successfully');
       } catch (error) {
-        console.error('Feed load failed:', error);
-        document.getElementById('feed').innerHTML = '<div style="text-align:center;padding:40px;color:#888">Failed to load feed</div>';
+        console.error('❌ Feed load failed:', error);
+        feed.innerHTML = `
+          <div style="text-align:center;padding:40px;color:#888;">
+            <p>❌ Failed to load feed</p>
+            <p style="font-size:12px;margin-top:8px;color:#666;">${error.message || 'Unknown error'}</p>
+            <button onclick="location.reload()" style="margin-top:12px;padding:8px 16px;background:#0B5E6B;color:#fff;border:none;border-radius:6px;cursor:pointer;">Retry</button>
+          </div>
+        `;
       }
     }
 
@@ -193,7 +245,17 @@
       document.getElementById('post-menu').classList.remove('open');
     });
 
-    document.addEventListener('DOMContentLoaded', loadFeed);
+    document.addEventListener('DOMContentLoaded', async () => {
+      console.log('🚀 Page loaded, initializing...');
+      try {
+        console.log('✅ Appwrite config loaded');
+        console.log('✅ Session initialized');
+        await loadFeed();
+        console.log('✅ Feed initialization complete');
+      } catch (err) {
+        console.error('❌ Init error:', err);
+      }
+    });
   </script>
 </body>
 </html>
