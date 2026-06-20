@@ -1,24 +1,22 @@
 /**
- * GorkhaReels - Upload with ON-SCREEN debug logging + Auto Thumbnail
+ * GorkhaReels - Upload with Hashtag Support
  */
 
 function log(msg, type) {
   console.log(msg);
-  if (window.dlog) window.dlog(msg, type);
 }
 function logErr(msg) {
   console.error(msg);
-  if (window.dlog) window.dlog('❌ ' + msg, 'error');
 }
 function logWarn(msg) {
   console.warn(msg);
-  if (window.dlog) window.dlog('⚠️ ' + msg, 'warn');
 }
 
 class SimpleUpload {
   constructor() {
     log('🚀 SimpleUpload constructor running');
     this.selectedFile = null;
+    this.selectedHashtags = new Set(); // Track user-selected hashtags
     this.init();
   }
 
@@ -35,7 +33,7 @@ class SimpleUpload {
 
       log('✅ User logged in');
       this.setupUI();
-      log('✅ Upload ready - tap the button to select a video');
+      log('✅ Upload ready');
     } catch(err) {
       logErr('Init failed: ' + err.message);
       if (window.Toast) Toast.error('Init failed: ' + err.message);
@@ -74,7 +72,7 @@ class SimpleUpload {
         log('📁 name=' + f.name + ' type=' + f.type + ' size=' + (f.size/1024/1024).toFixed(2) + 'MB');
         this.selectVideo(f);
       } else {
-        logWarn('change fired but no file present (user may have cancelled)');
+        logWarn('change fired but no file present (user cancelled)');
       }
     });
 
@@ -131,7 +129,7 @@ class SimpleUpload {
 
       preview.addEventListener('error', () => {
         const err = preview.error;
-        logErr('<video> failed to load. code=' + (err ? err.code : '?'));
+        logErr('<video> failed to load');
       });
       preview.addEventListener('loadedmetadata', () => {
         log('✅ Video preview loaded OK, duration=' + preview.duration.toFixed(1) + 's');
@@ -143,10 +141,11 @@ class SimpleUpload {
         stepPick.style.display = 'flex';
         stepDetails.style.display = 'none';
         this.selectedFile = null;
+        this.selectedHashtags.clear();
         log('🔄 Reset to pick step');
       };
 
-      log('🎉 selectVideo() completed — preview should be visible');
+      log('🎉 selectVideo() completed');
 
     } catch(err) {
       logErr('selectVideo() crashed: ' + err.message);
@@ -154,7 +153,6 @@ class SimpleUpload {
     }
   }
 
-  // ===== EXTRACT THUMBNAIL FROM LOCAL FILE (no CORS issue - it's a blob) =====
   extractThumbnail(file, seekTime = 1) {
     return new Promise((resolve) => {
       log('🖼️ Extracting thumbnail at ' + seekTime + 's...');
@@ -217,7 +215,6 @@ class SimpleUpload {
     });
   }
 
-  // ===== GENERIC BUNNY UPLOAD (accepts 200 or 201 as success) =====
   uploadFileToBunny(file, fileName, statusBtn, label) {
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
@@ -276,8 +273,8 @@ class SimpleUpload {
       const videoUrl = await this.uploadFileToBunny(this.selectedFile, fileName, postBtn, '📹');
       log('✅ Video uploaded: ' + videoUrl);
 
-      // 2️⃣ EXTRACT + UPLOAD THUMBNAIL (non-blocking — falls back to videoUrl on any failure)
-      let thumbnailUrl = videoUrl; // fallback
+      // 2️⃣ EXTRACT + UPLOAD THUMBNAIL
+      let thumbnailUrl = videoUrl;
       postBtn.textContent = '🖼️ Creating thumbnail...';
       try {
         const thumbBlob = await this.extractThumbnail(this.selectedFile, 1);
@@ -296,6 +293,10 @@ class SimpleUpload {
       // 3️⃣ SAVE TO DATABASE
       postBtn.textContent = '⏳ Saving...';
       const reelId = ID.unique();
+      
+      // Format hashtags: join selected hashtags, remove duplicates, save as comma-separated
+      const hashtagsString = Array.from(this.selectedHashtags).join(',');
+      
       await db.create(APPWRITE_CONFIG.COLLECTIONS.REELS, {
         reelId,
         creatorId: session.getUserId(),
@@ -305,7 +306,7 @@ class SimpleUpload {
         description: document.getElementById('post-description').value.trim() || '',
         category: document.getElementById('post-category').value || 'other',
         language: document.getElementById('post-language').value || 'Nepali',
-        hashtags: '',
+        hastags: hashtagsString, // IMPORTANT: field name has typo "hastags"
         views: 0, likes: 0, comments: 0, shares: 0, duration: 0,
         creatorName: session.currentUser?.name || 'Creator',
         creatorProfilePic: session.currentUser?.prefs?.avatar || '',
@@ -314,7 +315,7 @@ class SimpleUpload {
         isDeleted: false
       }, reelId);
 
-      log('✅ Reel saved to database!');
+      log('✅ Reel saved to database with hashtags: ' + hashtagsString);
       Toast.success('🎉 Reel posted!');
       setTimeout(() => { window.location.href = './creator-dashboard.html'; }, 1500);
 
