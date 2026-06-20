@@ -2,102 +2,78 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Video</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Video - GorkhaReels</title>
   <link rel="icon" type="image/png" href="assets/logo.png">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #000; color: #fff; font-family: system-ui; overflow: hidden; }
+    body { background: #0f0f0f; color: #fff; font-family: system-ui; }
 
-    .modal-container {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: #000;
-      z-index: 1000;
+    .modal-header {
       display: flex;
+      align-items: center;
+      padding: 12px 16px;
+      background: #1a1a1a;
+      border-bottom: 1px solid #2d2d2d;
+      gap: 12px;
     }
 
-    /* Video Section */
-    .video-section {
+    .back-btn {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 24px;
+      cursor: pointer;
+      padding: 8px;
+    }
+
+    .header-title {
+      font-size: 15px;
+      font-weight: 600;
       flex: 1;
+    }
+
+    .video-container {
+      width: 100%;
+      max-width: 100%;
+      background: #000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 300px;
       position: relative;
-      overflow: hidden;
-      touch-action: pan-y;
     }
 
     video {
       width: 100%;
-      height: 100%;
+      height: auto;
+      max-height: 80vh;
       object-fit: contain;
-      background: #000;
     }
 
-    /* Header */
-    .video-header {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      padding: 16px;
-      background: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent);
-      z-index: 10;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .back-btn {
-      background: rgba(255,255,255,0.15);
-      border: none;
-      color: #fff;
-      font-size: 20px;
-      padding: 8px 10px;
-      border-radius: 50%;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-
-    .back-btn:active {
-      background: rgba(255,255,255,0.25);
-    }
-
-    .video-title-header {
-      font-size: 13px;
-      font-weight: 600;
-      flex: 1;
-      text-align: center;
-      margin: 0 12px;
-      overflow: hidden;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-    }
-
-    /* Info Overlay */
     .video-info {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.95));
-      padding: 24px 16px 100px;
-      z-index: 10;
+      padding: 16px;
     }
 
-    .creator-info {
+    .video-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: #fff;
+    }
+
+    .video-creator {
       display: flex;
       align-items: center;
-      gap: 12px;
-      margin-bottom: 16px;
+      gap: 10px;
+      margin-bottom: 12px;
+      cursor: pointer;
     }
 
     .creator-avatar {
-      width: 44px;
-      height: 44px;
+      width: 36px;
+      height: 36px;
       border-radius: 50%;
-      background: #333;
       overflow: hidden;
       flex-shrink: 0;
     }
@@ -113,414 +89,537 @@
     }
 
     .creator-name {
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 600;
-      margin-bottom: 2px;
+      color: #fff;
     }
 
-    .creator-username {
-      font-size: 11px;
+    .creator-stats {
+      font-size: 12px;
       color: #999;
     }
 
-    .follow-btn {
+    .follow-creator-btn {
       padding: 6px 14px;
       background: #dc2626;
       border: none;
       color: #fff;
-      font-size: 11px;
-      font-weight: 600;
-      border-radius: 4px;
+      border-radius: 6px;
       cursor: pointer;
-      transition: background 0.2s;
-    }
-
-    .follow-btn:active {
-      background: #b91c1c;
-    }
-
-    .follow-btn.following {
-      background: transparent;
-      border: 1px solid #fff;
-      color: #fff;
-    }
-
-    .video-desc {
+      font-weight: 600;
       font-size: 12px;
-      color: #e5e5e5;
-      margin-bottom: 12px;
-      line-height: 1.4;
     }
 
-    /* Actions */
-    .post-actions {
+    .follow-creator-btn.following {
+      background: transparent;
+      border: 1px solid #666;
+      color: #ccc;
+    }
+
+    .video-description {
+      font-size: 14px;
+      color: #ccc;
+      line-height: 1.5;
+      margin-bottom: 12px;
+      word-break: break-word;
+    }
+
+    /* Hashtag styling */
+    .hashtag-link {
+      color: #dc2626;
+      text-decoration: none;
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    .hashtag-link:hover {
+      text-decoration: underline;
+    }
+
+    .video-stats {
       display: flex;
       gap: 16px;
-      margin-top: 12px;
+      padding: 12px 0;
+      border-top: 1px solid #2d2d2d;
+      border-bottom: 1px solid #2d2d2d;
+      margin: 12px 0;
     }
 
-    .action-item {
+    .stat {
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 4px;
-      cursor: pointer;
     }
 
-    .action-icon {
-      font-size: 24px;
-      width: 40px;
-      height: 40px;
-      background: rgba(255,255,255,0.1);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border: none;
-      cursor: pointer;
-      transition: background 0.2s;
+    .stat-num {
+      font-size: 16px;
+      font-weight: 700;
     }
 
-    .action-icon:active {
-      background: rgba(255,255,255,0.2);
-    }
-
-    .action-icon.liked {
-      color: #dc2626;
-    }
-
-    .action-count {
+    .stat-label {
       font-size: 11px;
-      color: #ccc;
+      color: #999;
     }
 
-    /* Comments Section */
-    .comments-section {
-      width: 100%;
-      max-width: 400px;
+    .action-buttons {
+      display: flex;
+      gap: 8px;
+      margin: 12px 0;
+    }
+
+    .action-btn {
+      flex: 1;
+      padding: 10px;
       background: #1a1a1a;
-      border-left: 1px solid #2d2d2d;
+      border: 1px solid #2d2d2d;
+      border-radius: 8px;
+      color: #fff;
+      cursor: pointer;
+      font-size: 12px;
       display: flex;
       flex-direction: column;
-      overflow: hidden;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s;
     }
 
-    .comments-header {
-      padding: 12px 16px;
-      border-bottom: 1px solid #2d2d2d;
+    .action-btn:active {
+      background: #2d2d2d;
+    }
+
+    .action-btn-icon {
+      font-size: 20px;
+    }
+
+    .action-btn-label {
+      font-size: 10px;
+    }
+
+    .hashtags-section {
+      margin: 12px 0;
+      padding: 12px 0;
+      border-top: 1px solid #2d2d2d;
+    }
+
+    .hashtags-label {
+      font-size: 12px;
+      color: #999;
+      margin-bottom: 8px;
       font-weight: 600;
-      font-size: 13px;
     }
 
-    .comments-list {
-      flex: 1;
-      overflow-y: auto;
-      padding: 8px 0;
+    .hashtags-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .hashtag-tag {
+      background: #1a1a1a;
+      border: 1px solid #2d2d2d;
+      padding: 6px 10px;
+      border-radius: 14px;
+      font-size: 12px;
+      color: #dc2626;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .hashtag-tag:hover {
+      border-color: #dc2626;
+      background: #2d2d2d;
+    }
+
+    .comments-section {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid #2d2d2d;
+    }
+
+    .comments-title {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 12px;
     }
 
     .comment {
-      padding: 8px 16px;
-      border-bottom: 1px solid #2d2d2d;
-      font-size: 11px;
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .comment-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .comment-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .comment-content {
+      flex: 1;
     }
 
     .comment-author {
+      font-size: 12px;
       font-weight: 600;
       margin-bottom: 2px;
     }
 
     .comment-text {
+      font-size: 13px;
       color: #ccc;
-      line-height: 1.3;
     }
 
-    .comment-time {
-      font-size: 9px;
-      color: #666;
-      margin-top: 2px;
-    }
-
-    .comment-input-box {
-      padding: 12px 16px;
-      border-top: 1px solid #2d2d2d;
-      display: flex;
-      gap: 8px;
-    }
-
-    .comment-input-box input {
-      flex: 1;
-      background: #2d2d2d;
-      border: none;
-      border-radius: 20px;
-      padding: 8px 12px;
-      color: #fff;
-      font-size: 12px;
-      outline: none;
-    }
-
-    .comment-input-box input::placeholder {
-      color: #666;
-    }
-
-    .comment-send {
-      background: none;
-      border: none;
-      color: #dc2626;
-      font-size: 14px;
-      cursor: pointer;
-      padding: 4px 8px;
-      font-weight: 600;
-    }
-
-    @media (max-width: 600px) {
-      .comments-section {
-        display: none;
-      }
-    }
-
-    .swipe-hint {
-      position: absolute;
-      bottom: 16px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 11px;
-      color: #999;
-      z-index: 5;
+    .bottom-space {
+      height: 40px;
     }
   </style>
 </head>
 <body>
-  <div class="modal-container">
-    <!-- Video Section -->
-    <div class="video-section" id="videoSection">
-      <video id="mainVideo" playsinline controls autoplay></video>
+  <div class="modal-header">
+    <button class="back-btn" onclick="history.back()">←</button>
+    <div class="header-title" id="headerTitle">Video</div>
+  </div>
 
-      <!-- Header -->
-      <div class="video-header">
-        <button class="back-btn" onclick="history.back()">←</button>
-        <div class="video-title-header" id="videoTitle">Video</div>
-        <button class="back-btn" style="visibility: hidden;">←</button>
+  <div class="video-container">
+    <video id="videoPlayer" playsinline controls></video>
+  </div>
+
+  <div class="video-info">
+    <h1 class="video-title" id="videoTitle">Loading...</h1>
+
+    <div class="video-creator" id="creatorCard" onclick="openCreatorProfile()">
+      <div class="creator-avatar">
+        <img id="creatorAvatar" src="assets/logo.png" alt="Creator">
       </div>
-
-      <!-- Info Overlay -->
-      <div class="video-info" id="videoInfo">
-        <div class="creator-info">
-          <div class="creator-avatar">
-            <img id="creatorAvatar" src="assets/placeholder.svg" onerror="this.src='assets/placeholder.svg'">
-          </div>
-          <div class="creator-details">
-            <div class="creator-name" id="creatorName">Creator</div>
-            <div class="creator-username" id="creatorUsername">@user</div>
-          </div>
-          <button class="follow-btn" id="followBtn" onclick="toggleFollow()">Follow</button>
-        </div>
-
-        <div class="video-desc" id="videoDesc"></div>
-
-        <!-- Actions -->
-        <div class="post-actions">
-          <div class="action-item">
-            <button class="action-icon" id="likeBtn" onclick="toggleLike()">❤️</button>
-            <div class="action-count" id="likeCount">0</div>
-          </div>
-          <div class="action-item">
-            <button class="action-icon" onclick="toggleComments()">💬</button>
-            <div class="action-count" id="commentCount">0</div>
-          </div>
-          <div class="action-item">
-            <button class="action-icon" onclick="shareVideo()">↗️</button>
-            <div class="action-count">Share</div>
-          </div>
-        </div>
+      <div class="creator-details">
+        <div class="creator-name" id="creatorName">Creator</div>
+        <div class="creator-stats" id="creatorStats">0 followers</div>
       </div>
-
-      <div class="swipe-hint">⬆️ Swipe up for more</div>
+      <button class="follow-creator-btn" id="followBtn" onclick="event.stopPropagation(); toggleFollowCreator()">Follow</button>
     </div>
 
-    <!-- Comments Section -->
-    <div class="comments-section" id="commentsSection" style="display: none;">
-      <div class="comments-header">Comments</div>
-      <div class="comments-list" id="commentsList"></div>
-      <div class="comment-input-box">
-        <input type="text" id="commentInput" placeholder="Add a comment...">
-        <button class="comment-send" onclick="postComment()">Post</button>
+    <div class="video-description" id="videoDescription"></div>
+
+    <!-- HASHTAGS SECTION -->
+    <div class="hashtags-section" id="hashtagsSection" style="display:none;">
+      <div class="hashtags-label">🏷️ Hashtags</div>
+      <div class="hashtags-list" id="hashtagsList"></div>
+    </div>
+
+    <div class="video-stats">
+      <div class="stat">
+        <div class="stat-num" id="viewCount">0</div>
+        <div class="stat-label">Views</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num" id="likeCount">0</div>
+        <div class="stat-label">Likes</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num" id="commentCount">0</div>
+        <div class="stat-label">Comments</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num" id="shareCount">0</div>
+        <div class="stat-label">Shares</div>
       </div>
     </div>
+
+    <div class="action-buttons">
+      <button class="action-btn" id="likeBtn" onclick="likeVideo()">
+        <span class="action-btn-icon">👍</span>
+        <span class="action-btn-label">Like</span>
+      </button>
+      <button class="action-btn" onclick="shareVideo()">
+        <span class="action-btn-icon">📤</span>
+        <span class="action-btn-label">Share</span>
+      </button>
+    </div>
+
+    <div class="comments-section" id="commentsSection">
+      <div class="comments-title">Comments</div>
+      <div id="commentsList" style="margin-bottom:20px;"></div>
+      <input type="text" id="commentInput" placeholder="Add a comment..." style="width:100%;background:#1a1a1a;border:1px solid #2d2d2d;border-radius:8px;padding:10px;color:#fff;font-size:14px;box-sizing:border-box;">
+    </div>
+
+    <div class="bottom-space"></div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
   <script src="js/appwrite-config.js"></script>
+  <script src="js/utils.js"></script>
+
   <script>
-    let currentVideo = null;
-    let currentUser = null;
-    let isLiked = false;
-    let allReels = [];
-    let currentIndex = 0;
+    let currentReel = null;
+    let currentCreator = null;
+    let userLiked = false;
+    let isFollowingCreator = false;
 
     async function init() {
       try {
         await session.refresh();
-        currentUser = session.currentUser;
 
-        const params = new URLSearchParams(window.location.search);
-        const reelId = params.get('id');
-
-        const reels = await db.list(APPWRITE_CONFIG.COLLECTIONS.REELS, [Query.orderDesc('uploadedAt')]);
-        allReels = reels.documents;
-
-        if (reelId) {
-          currentIndex = allReels.findIndex(r => r.$id === reelId);
-        }
-
-        loadVideo(currentIndex);
-      } catch (err) {
-        console.error('Init error:', err);
-      }
-    }
-
-    function loadVideo(index) {
-      if (index < 0 || index >= allReels.length) return;
-
-      currentIndex = index;
-      currentVideo = allReels[index];
-
-      const video = document.getElementById('mainVideo');
-      video.src = currentVideo.videoUrl;
-      video.play();
-
-      document.getElementById('videoTitle').textContent = currentVideo.title;
-      document.getElementById('creatorName').textContent = currentVideo.creatorName;
-      document.getElementById('creatorUsername').textContent = '@' + (currentVideo.creatorName || 'user').toLowerCase();
-      document.getElementById('creatorAvatar').src = currentVideo.creatorProfilePic || 'assets/placeholder.svg';
-      document.getElementById('videoDesc').textContent = currentVideo.description || '';
-      document.getElementById('likeCount').textContent = (currentVideo.likes || 0) >= 1000 ? Math.floor(currentVideo.likes / 1000) + 'K' : (currentVideo.likes || 0);
-      document.getElementById('commentCount').textContent = (currentVideo.comments || 0) >= 1000 ? Math.floor(currentVideo.comments / 1000) + 'K' : (currentVideo.comments || 0);
-
-      loadComments();
-      checkIfLiked();
-    }
-
-    // Swipe detection
-    let touchStart = 0;
-    document.getElementById('videoSection').addEventListener('touchstart', (e) => {
-      touchStart = e.touches[0].clientY;
-    });
-
-    document.getElementById('videoSection').addEventListener('touchend', (e) => {
-      const touchEnd = e.changedTouches[0].clientY;
-      const diff = touchStart - touchEnd;
-
-      if (diff > 50) {
-        loadVideo(currentIndex + 1);
-      } else if (diff < -50) {
-        loadVideo(currentIndex - 1);
-      }
-    });
-
-    async function toggleLike() {
-      try {
-        if (!currentUser) {
-          alert('Login first');
+        const reelId = new URLSearchParams(window.location.search).get('id');
+        if (!reelId) {
+          alert('No video found');
+          history.back();
           return;
         }
 
-        const btn = document.getElementById('likeBtn');
-        isLiked = !isLiked;
-        btn.classList.toggle('liked');
+        currentReel = await db.get(APPWRITE_CONFIG.COLLECTIONS.REELS, reelId);
+        currentCreator = await db.get(APPWRITE_CONFIG.COLLECTIONS.CREATORS, currentReel.creatorId);
 
-        const newLikes = isLiked ? (currentVideo.likes || 0) + 1 : Math.max(0, (currentVideo.likes || 1) - 1);
-        currentVideo.likes = newLikes;
-        document.getElementById('likeCount').textContent = newLikes >= 1000 ? Math.floor(newLikes / 1000) + 'K' : newLikes;
+        displayVideo();
+        displayCreator();
+        displayHashtags();
+        loadLikeStatus();
+        loadComments();
+        checkFollowStatus();
 
-        await db.update(APPWRITE_CONFIG.COLLECTIONS.REELS, currentVideo.$id, { likes: newLikes });
       } catch (err) {
-        console.error(err);
+        console.error('Init failed:', err);
+        document.body.innerHTML = '<div style="padding:20px;color:#fff;text-align:center;">Video not found</div>';
       }
     }
 
-    function checkIfLiked() {
-      isLiked = false;
-      document.getElementById('likeBtn').classList.remove('liked');
+    function displayVideo() {
+      document.getElementById('videoPlayer').src = currentReel.videoUrl;
+      document.getElementById('videoTitle').textContent = currentReel.title;
+      document.getElementById('videoDescription').innerHTML = formatTextWithHashtags(currentReel.description);
+      document.getElementById('viewCount').textContent = formatNumber(currentReel.views || 0);
+      document.getElementById('likeCount').textContent = formatNumber(currentReel.likes || 0);
+      document.getElementById('commentCount').textContent = formatNumber(currentReel.comments || 0);
+      document.getElementById('shareCount').textContent = formatNumber(currentReel.shares || 0);
+      document.getElementById('headerTitle').textContent = currentReel.title.substring(0, 20) + '...';
     }
 
+    function displayCreator() {
+      document.getElementById('creatorAvatar').src = currentCreator.profilePic || 'assets/logo.png';
+      document.getElementById('creatorName').textContent = currentCreator.name;
+      document.getElementById('creatorStats').textContent = formatNumber(currentCreator.followers || 0) + ' followers';
+    }
+
+    // ===== HASHTAG DISPLAY =====
+    function displayHashtags() {
+      const hashtags = (currentReel.hastags || '').split(',').map(h => h.trim()).filter(h => h);
+      
+      if (!hashtags.length) {
+        document.getElementById('hashtagsSection').style.display = 'none';
+        return;
+      }
+
+      document.getElementById('hashtagsSection').style.display = 'block';
+      const html = hashtags.map(tag => {
+        const normalized = tag.startsWith('#') ? tag : '#' + tag;
+        return `<div class="hashtag-tag" onclick="searchHashtag('${tag}')">${normalized}</div>`;
+      }).join('');
+
+      document.getElementById('hashtagsList').innerHTML = html;
+    }
+
+    function formatTextWithHashtags(text) {
+      if (!text) return '';
+      // Make hashtags clickable in description
+      return escapeHtml(text).replace(/#(\w+)/g, (match, tag) => {
+        return `<a class="hashtag-link" onclick="searchHashtag('${tag}')">#${tag}</a>`;
+      });
+    }
+
+    function searchHashtag(tag) {
+      const normalized = tag.startsWith('#') ? tag : '#' + tag;
+      window.location.href = `search.html?hashtag=${encodeURIComponent(tag)}`;
+    }
+
+    // ===== LIKE SYSTEM =====
+    async function likeVideo() {
+      if (!session.isLoggedIn()) {
+        window.location.href = './login.html';
+        return;
+      }
+
+      const btn = document.getElementById('likeBtn');
+      btn.disabled = true;
+
+      try {
+        const userId = session.getUserId();
+        const likeId = `${userId}-${currentReel.$id}`;
+
+        if (userLiked) {
+          // Unlike
+          await db.remove(APPWRITE_CONFIG.COLLECTIONS.LIKES, likeId);
+          userLiked = false;
+          currentReel.likes = Math.max(0, (currentReel.likes || 0) - 1);
+          btn.style.opacity = '0.7';
+        } else {
+          // Like
+          await db.create(APPWRITE_CONFIG.COLLECTIONS.LIKES, {
+            userId,
+            reelId: currentReel.$id,
+            createdAt: new Date().toISOString()
+          }, likeId);
+          userLiked = true;
+          currentReel.likes = (currentReel.likes || 0) + 1;
+          btn.style.opacity = '1';
+        }
+
+        document.getElementById('likeCount').textContent = formatNumber(currentReel.likes || 0);
+      } catch (err) {
+        console.error('Like failed:', err);
+        Toast.error('Failed to like');
+        btn.disabled = false;
+      }
+    }
+
+    async function loadLikeStatus() {
+      if (!session.isLoggedIn()) return;
+
+      try {
+        const userId = session.getUserId();
+        const likeId = `${userId}-${currentReel.$id}`;
+        await db.get(APPWRITE_CONFIG.COLLECTIONS.LIKES, likeId);
+        userLiked = true;
+        document.getElementById('likeBtn').style.opacity = '1';
+      } catch (err) {
+        userLiked = false;
+        document.getElementById('likeBtn').style.opacity = '0.7';
+      }
+    }
+
+    // ===== FOLLOW CREATOR =====
+    async function checkFollowStatus() {
+      if (!session.isLoggedIn() || session.getUserId() === currentReel.creatorId) {
+        document.getElementById('followBtn').style.display = 'none';
+        return;
+      }
+
+      try {
+        const userId = session.getUserId();
+        const following = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [
+          Query.equal('followerId', userId),
+          Query.equal('followingId', currentReel.creatorId),
+          Query.limit(1)
+        ]);
+        isFollowingCreator = following.total > 0;
+        updateFollowButton();
+      } catch (err) {
+        isFollowingCreator = false;
+      }
+    }
+
+    async function toggleFollowCreator() {
+      if (!session.isLoggedIn()) {
+        window.location.href = './login.html';
+        return;
+      }
+
+      const btn = document.getElementById('followBtn');
+      btn.disabled = true;
+
+      try {
+        const userId = session.getUserId();
+
+        if (isFollowingCreator) {
+          const follows = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [
+            Query.equal('followerId', userId),
+            Query.equal('followingId', currentReel.creatorId),
+            Query.limit(1)
+          ]);
+          if (follows.documents.length > 0) {
+            await db.remove(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, follows.documents[0].$id);
+          }
+          isFollowingCreator = false;
+        } else {
+          await db.create(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, {
+            followId: ID.unique(),
+            followerId: userId,
+            followingId: currentReel.creatorId,
+            CreatorId: currentReel.creatorId,
+            createdAt: new Date().toISOString()
+          });
+          isFollowingCreator = true;
+        }
+
+        updateFollowButton();
+      } catch (err) {
+        console.error('Follow failed:', err);
+        Toast.error('Failed');
+        btn.disabled = false;
+      }
+    }
+
+    function updateFollowButton() {
+      const btn = document.getElementById('followBtn');
+      if (isFollowingCreator) {
+        btn.textContent = 'Following';
+        btn.classList.add('following');
+      } else {
+        btn.textContent = 'Follow';
+        btn.classList.remove('following');
+      }
+      btn.disabled = false;
+    }
+
+    function openCreatorProfile() {
+      window.location.href = `creator-profile.html?id=${currentReel.creatorId}`;
+    }
+
+    // ===== COMMENTS =====
     async function loadComments() {
       try {
         const comments = await db.list(APPWRITE_CONFIG.COLLECTIONS.COMMENTS, [
-          Query.equal('reelId', currentVideo.$id),
+          Query.equal('reelId', currentReel.$id),
           Query.orderDesc('createdAt'),
           Query.limit(10)
         ]);
 
-        let html = '';
-        comments.documents.forEach(comment => {
-          html += `
-            <div class="comment">
-              <div class="comment-author">${comment.creatorName}</div>
-              <div class="comment-text">${comment.text}</div>
-              <div class="comment-time">${new Date(comment.createdAt).toLocaleDateString()}</div>
+        const html = comments.documents.map(c => `
+          <div class="comment">
+            <div class="comment-avatar"><img src="${c.userProfilePic || 'assets/logo.png'}" onerror="this.src='assets/logo.png'"></div>
+            <div class="comment-content">
+              <div class="comment-author">${escapeHtml(c.userName)}</div>
+              <div class="comment-text">${escapeHtml(c.text)}</div>
             </div>
-          `;
-        });
+          </div>
+        `).join('');
 
-        document.getElementById('commentsList').innerHTML = html || '<div style="padding: 16px; text-align: center; color: #666;">No comments yet</div>';
+        document.getElementById('commentsList').innerHTML = html || '<div style="color:#666;text-align:center;padding:20px;">No comments yet</div>';
       } catch (err) {
-        console.error('Load comments error:', err);
+        console.log('Comments not available');
       }
-    }
-
-    async function postComment() {
-      try {
-        if (!currentUser) {
-          alert('Login first');
-          return;
-        }
-
-        const text = document.getElementById('commentInput').value.trim();
-        if (!text) return;
-
-        const commentId = `${currentVideo.$id}_${Date.now()}`;
-        await db.create(APPWRITE_CONFIG.COLLECTIONS.COMMENTS, {
-          commentId,
-          reelId: currentVideo.$id,
-          creatorId: currentUser.$id,
-          creatorName: currentUser.name,
-          text,
-          createdAt: new Date().toISOString()
-        }, commentId);
-
-        document.getElementById('commentInput').value = '';
-        const newComments = (currentVideo.comments || 0) + 1;
-        currentVideo.comments = newComments;
-        document.getElementById('commentCount').textContent = newComments >= 1000 ? Math.floor(newComments / 1000) + 'K' : newComments;
-
-        loadComments();
-      } catch (err) {
-        console.error('Post comment error:', err);
-      }
-    }
-
-    function toggleComments() {
-      const section = document.getElementById('commentsSection');
-      section.style.display = section.style.display === 'none' ? 'flex' : 'none';
     }
 
     function shareVideo() {
+      const url = window.location.href;
       if (navigator.share) {
         navigator.share({
-          title: currentVideo.title,
-          text: currentVideo.description,
-          url: window.location.href
-        }).catch(err => console.error(err));
+          title: currentReel.title,
+          url: url
+        });
       } else {
-        alert('Share: ' + currentVideo.title);
+        Toast.info('Share via: ' + url);
       }
     }
 
-    function toggleFollow() {
-      alert('Follow coming soon');
+    function formatNumber(num) {
+      if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+      if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+      return num.toString();
     }
 
-    init();
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
   </script>
 </body>
 </html>
