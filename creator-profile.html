@@ -16,7 +16,7 @@
     .follow-btn.following { background: var(--dark-bg); border: 1px solid var(--border-color); color: var(--text-secondary); }
     .videos-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2px; padding: 0; background: var(--dark-bg); }
     .video-thumb { position: relative; aspect-ratio: 9/16; background: #000; cursor: pointer; overflow: hidden; }
-    .video-thumb video { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .video-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .video-views { position: absolute; bottom: 6px; left: 6px; font-size: 12px; color: white; background: rgba(0,0,0,0.6); padding: 2px 6px; border-radius: 4px; }
   </style>
 </head>
@@ -60,6 +60,23 @@
   <div id="videos-grid" class="videos-grid"></div>
 
   <div id="loading" style="text-align:center;padding:40px;color:var(--text-secondary)">Loading profile...</div>
+
+  <!-- ===== ON-SCREEN DEBUG PANEL (no console needed) ===== -->
+  <div id="debug-panel" style="background:#000;border-top:2px solid #dc2626;padding:10px 12px;font-family:monospace;font-size:11px;color:#4ade80;max-height:25vh;overflow-y:auto;white-space:pre-wrap;word-break:break-word;">
+    <div style="color:#fff;font-weight:700;margin-bottom:6px;">🐞 LIVE DEBUG</div>
+    <div id="debug-log"></div>
+  </div>
+  <script>
+    window.dlog = function(msg, type) {
+      const el = document.getElementById('debug-log');
+      if (!el) return;
+      const line = document.createElement('div');
+      line.style.color = type === 'error' ? '#f87171' : (type === 'warn' ? '#fbbf24' : '#4ade80');
+      line.textContent = '[' + new Date().toLocaleTimeString() + '] ' + msg;
+      el.appendChild(line);
+      el.scrollTop = el.scrollHeight;
+    };
+  </script>
 
   <script src="https://cdn.jsdelivr.net/npm/appwrite@18.2.0/dist/iife/sdk.min.js"></script>
   <script src="js/appwrite-config.js"></script>
@@ -139,7 +156,7 @@
           const grid = document.getElementById('videos-grid');
           document.getElementById('videos-count').textContent = response.documents.length;
 
-          // FIX: Calculate total views from all reels (not from creator doc)
+          // Calculate total views from all reels
           const totalViews = response.documents.reduce((sum, reel) => sum + (reel.views || 0), 0);
           document.getElementById('views-count').textContent = totalViews;
 
@@ -148,12 +165,17 @@
             return;
           }
 
-          grid.innerHTML = response.documents.map(reel => `
-            <div class="video-thumb" onclick="window.location.href='./index.html?reel=${reel.$id}'">
-              <video src="${reel.videoUrl}#t=0.5" muted playsinline preload="metadata" style="width:100%;height:100%;object-fit:cover;display:block;"></video>
-              <div class="video-views">👁️ ${reel.views || 0}</div>
-            </div>
-          `).join('');
+          // Use real thumbnail field (generated at upload) instead of loading
+          // the whole video file just to render a grid tile — faster, cheaper.
+          grid.innerHTML = response.documents.map(reel => {
+            const thumb = reel.thumbnail || 'assets/placeholder.svg';
+            return `
+              <div class="video-thumb" onclick="window.location.href='./index.html?reel=${reel.$id}'">
+                <img src="${thumb}" alt="${(reel.title || '').replace(/"/g,'&quot;')}" loading="lazy" onerror="this.src='assets/placeholder.svg'">
+                <div class="video-views">👁️ ${reel.views || 0}</div>
+              </div>
+            `;
+          }).join('');
         } catch (e) {
           console.error('Videos load failed:', e);
         }
