@@ -3,103 +3,187 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GorkhaReels - Gorkha Stories, Global Reach</title>
-  
-  <!-- ✅ FAVICON -->
-  <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon/logo-3-minimalist-icon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon/logo-3-minimalist-icon-16x16.png">
-  <link rel="apple-touch-icon" href="/icons/favicon/logo-3-minimalist-icon-64x64.png">
-  
-  <!-- ✅ SOCIAL PREVIEW -->
-  <meta property="og:title" content="GorkhaReels - Gorkha Stories, Global Reach">
-  <meta property="og:description" content="Watch short videos from the Gorkha community. Upload, share, and earn money.">
-  <meta property="og:image" content="/icons/hero/splash-screen-1200x1200.png">
-  <meta property="og:type" content="website">
-  <meta name="theme-color" content="#0B5E6B">
-  
-  <link rel="stylesheet" href="css/styles.css">
-  
-  <!-- 🚨 ERUDA BLOCKER - MUST BE FIRST -->
-  <script>
-    if (typeof window !== 'undefined') {
-      window.eruda = null;
-      window.Eruda = null;
-      const origFetch = window.fetch;
-      window.fetch = function(...args) {
-        if (args[0] && args[0].includes && args[0].includes('eruda')) {
-          return Promise.reject(new Error('Eruda blocked'));
-        }
-        return origFetch.apply(this, args);
-      };
+  <title>GorkhaReels</title>
+  <link rel="icon" type="image/png" href="/icons/favicon/logo-3-minimalist-icon-32x32.png">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body { background: #0f0f0f; color: #fff; font-family: system-ui; }
+
+    /* ===== BRAND BANNER (pinned) ===== */
+    .banner {
+      position: sticky; top: 0; z-index: 100;
+      background: linear-gradient(135deg, #0B5E6B 0%, #0D7377 100%);
+      padding: 12px 16px;
+      display: flex; align-items: center; justify-content: space-between;
+      box-shadow: 0 2px 14px rgba(0,0,0,0.4);
     }
-  </script>
+    .banner-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .banner-logo {
+      width: 42px; height: 42px; border-radius: 11px; flex-shrink: 0;
+      background: rgba(255,255,255,0.15); object-fit: cover;
+    }
+    .banner-text { min-width: 0; }
+    .banner-title {
+      font-size: 19px; font-weight: 800; letter-spacing: 0.3px; line-height: 1.1;
+      color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.25);
+    }
+    .banner-tagline {
+      font-size: 11.5px; font-weight: 500; color: rgba(255,255,255,0.9);
+      margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .banner-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .banner-btn {
+      width: 38px; height: 38px; border: none; border-radius: 50%;
+      background: rgba(255,255,255,0.18); color: #fff; font-size: 19px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+    }
+    .banner-btn:active { background: rgba(255,255,255,0.3); }
+
+    .feed { max-width: 100%; margin-bottom: 90px; }
+
+    .post { padding: 16px; border-bottom: 1px solid #2d2d2d; cursor: pointer; transition: background 0.2s; }
+    .post:active { background: rgba(255,255,255,0.05); }
+    .post-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+    .creator-avatar { width: 40px; height: 40px; border-radius: 50%; background: #2d2d2d; overflow: hidden; flex-shrink: 0; }
+    .creator-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .creator-name { font-size: 13px; font-weight: 600; flex: 1; }
+    .verified-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 14px; height: 14px; background: #0284c7; border-radius: 50%;
+      color: #fff; font-size: 9px; margin-left: 3px; vertical-align: middle;
+    }
+
+    /* per-post ⋯ */
+    .post-more {
+      background: none; border: none; color: #666; font-size: 14px;
+      cursor: pointer; padding: 2px 4px; line-height: 1; margin-left: auto;
+    }
+    .post-more:active { color: #999; }
+
+    .post-thumbnail { position: relative; aspect-ratio: 1; border-radius: 8px; overflow: hidden; background: #1a1a1a; margin-bottom: 12px; }
+    .post-thumbnail img { width: 100%; height: 100%; object-fit: cover; }
+    .play-icon { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 48px; opacity: 0.8; }
+    .post-title { font-size: 13px; font-weight: 600; margin-bottom: 12px; }
+    .post-actions { display: flex; gap: 12px; }
+    .action-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; background: rgba(255,255,255,0.1); border: none; color: #fff; padding: 8px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; transition: background 0.2s; }
+    .action-btn:active { background: rgba(255,255,255,0.2); }
+    .action-btn.liked { background: rgba(11,94,107,0.3); }
+    .action-icon { font-size: 16px; }
+
+    .loading { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 400px; gap: 12px; }
+    .spinner { width: 40px; height: 40px; border: 3px solid #2d2d2d; border-top-color: #0B5E6B; border-radius: 50%; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ===== BOTTOM BAR: 3 main buttons ===== */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: #1a1a1a; border-top: 1px solid #2d2d2d;
+      display: flex; justify-content: space-around; align-items: center;
+      padding: 8px 0; z-index: 100;
+    }
+    .nav-btn {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      background: none; border: none; color: #666; cursor: pointer;
+      flex: 1; padding: 10px; font-size: 18px;
+    }
+    .nav-btn.active { color: #0B5E6B; }
+    .nav-label { font-size: 10px; font-weight: 500; }
+
+    /* ===== App drawer (top ⋯) ===== */
+    .drawer-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: none; }
+    .drawer-backdrop.open { display: block; }
+    .drawer {
+      position: fixed; top: 0; right: 0; bottom: 0; width: 80%; max-width: 320px;
+      background: #161616; z-index: 210; transform: translateX(100%);
+      transition: transform 0.25s ease; display: flex; flex-direction: column;
+      box-shadow: -4px 0 20px rgba(0,0,0,0.5);
+    }
+    .drawer.open { transform: translateX(0); }
+    .drawer-head {
+      background: linear-gradient(135deg, #0B5E6B, #0D7377);
+      padding: 20px 16px; display: flex; align-items: center; gap: 12px;
+    }
+    .drawer-head img { width: 40px; height: 40px; border-radius: 10px; background: rgba(255,255,255,0.15); }
+    .drawer-head .dh-title { font-size: 16px; font-weight: 800; }
+    .drawer-head .dh-sub { font-size: 11px; color: rgba(255,255,255,0.9); }
+    .drawer-items { flex: 1; overflow-y: auto; padding: 8px 0; }
+    .drawer-item {
+      width: 100%; display: flex; align-items: center; gap: 14px;
+      padding: 15px 18px; background: none; border: none; color: #fff;
+      font-size: 15px; cursor: pointer; text-align: left;
+    }
+    .drawer-item:active { background: #222; }
+    .drawer-item .di-icon { font-size: 20px; width: 26px; text-align: center; }
+    .drawer-sep { height: 1px; background: #262626; margin: 6px 18px; }
+    .post-menu-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 300; display: none; }
+    .post-menu-backdrop.open { display: block; }
+    .post-menu {
+      position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 310;
+      max-width: 476px; margin: 0 auto;
+      transform: translateY(140%); transition: transform 0.25s ease;
+    }
+    .post-menu.open { transform: translateY(0); }
+    .post-menu-items { background: #1c1c1e; border-radius: 14px; overflow: hidden; margin-bottom: 8px; }
+    .post-menu-item {
+      width: 100%; padding: 16px; background: none; border: none; color: #fff;
+      font-size: 15px; cursor: pointer; text-align: left; border-bottom: 1px solid #2c2c2e;
+    }
+    .post-menu-item:last-child { border-bottom: none; }
+    .post-menu-item.danger { color: #ff453a; }
+    .post-menu-cancel {
+      width: 100%; padding: 16px; background: #1c1c1e; border: none; border-radius: 14px;
+      color: #fff; font-size: 15px; font-weight: 600; cursor: pointer;
+    }
+  </style>
 </head>
 <body>
-  <!-- 🚨 GLOBAL ERROR HANDLER -->
-  <script>
-    window.addEventListener('error', (e) => {
-      console.error('❌ GLOBAL ERROR:', e.error || e.message);
-      if (document.getElementById('feed')) {
-        document.getElementById('feed').innerHTML = `
-          <div style="padding:20px;color:#888;text-align:center;">
-            <p>❌ Error loading feed: ${(e.error || e.message || 'Unknown error').substring(0, 100)}</p>
-            <button onclick="location.reload()" style="padding:8px 16px;background:#0B5E6B;color:#fff;border:none;border-radius:6px;margin-top:10px;cursor:pointer;">Retry</button>
-          </div>
-        `;
-      }
-    });
-
-    window.addEventListener('unhandledrejection', (e) => {
-      console.error('❌ UNHANDLED PROMISE:', e.reason);
-    });
-  </script>
-
-  <!-- ===== TEAL HEADER WITH WORDMARK ===== -->
-  <header>
-    <div class="header-logo">
-      <!-- ✅ WORDMARK LOGO -->
-      <img src="/icons/wordmark/logo-2-wordmark-300x300.png" alt="GorkhaReels">
-      <div>
-        <div class="header-logo-text">GorkhaReels</div>
-        <div class="header-tagline">Gorkha Stories, Global Reach</div>
+  <!-- ===== BRAND BANNER ===== -->
+  <header class="banner">
+    <div class="banner-left">
+      <img class="banner-logo" src="/icons/wordmark/logo-2-wordmark-300x300.png" alt="GorkhaReels">
+      <div class="banner-text">
+        <div class="banner-title">GorkhaReels</div>
+        <div class="banner-tagline">Gorkha Stories, Global Reach</div>
       </div>
     </div>
-
-    <div class="header-actions">
-      <button class="header-btn" onclick="window.location='search.html'" aria-label="Search">🔍</button>
-      <button class="header-btn" id="open-drawer" aria-label="Menu">☰</button>
+    <div class="banner-right">
+      <button class="banner-btn" onclick="window.location='search.html'" aria-label="Search">🔍</button>
+      <button class="banner-btn" id="open-drawer" aria-label="Menu">☰</button>
     </div>
   </header>
 
-  <!-- ===== FEED ===== -->
-  <div class="feed-container" id="feed">
+  <div class="feed" id="feed">
     <div class="loading">
       <div class="spinner"></div>
+      <p>Loading videos...</p>
     </div>
   </div>
 
-  <!-- ===== BOTTOM NAV ===== -->
+  <!-- ===== BOTTOM: 3-button nav ===== -->
   <nav class="bottom-nav">
-    <button class="nav-item active" onclick="window.location='index.html'">
-      <span>🏠</span>
-      <span class="nav-label">Home</span>
+    <button class="nav-btn active" onclick="window.location='index.html'">
+      <span>🏠</span><span class="nav-label">Home</span>
     </button>
-    <button class="nav-item nav-create">
-      <div class="nav-create-btn" onclick="window.location='upload.html'">+</div>
-      <span class="nav-label">Create</span>
+    <button class="nav-btn" onclick="window.location='upload.html'">
+      <span>＋</span><span class="nav-label">Create</span>
     </button>
-    <button class="nav-item" onclick="window.location='creator-dashboard.html'">
-      <span>👤</span>
-      <span class="nav-label">Profile</span>
+    <button class="nav-btn" onclick="window.location='creator-dashboard.html'">
+      <span>👤</span><span class="nav-label">Profile</span>
     </button>
   </nav>
 
-  <!-- ===== APP DRAWER ===== -->
+  <!-- ===== Per-post menu ===== -->
+  <div class="post-menu-backdrop" id="post-menu-backdrop"></div>
+  <div class="post-menu" id="post-menu">
+    <div class="post-menu-items" id="post-menu-items"></div>
+    <button class="post-menu-cancel" id="post-menu-cancel">Cancel</button>
+  </div>
+
+  <!-- ===== App drawer ===== -->
   <div class="drawer-backdrop" id="drawer-backdrop"></div>
   <aside class="drawer" id="drawer">
     <div class="drawer-head">
-      <!-- ✅ WORDMARK LOGO -->
-      <img src="/icons/wordmark/logo-2-wordmark-300x300.png" alt="GorkhaReels" style="height:36px;width:auto;">
+      <img src="/icons/wordmark/logo-2-wordmark-300x300.png" alt="">
       <div>
         <div class="dh-title">GorkhaReels</div>
         <div class="dh-sub">Gorkha Stories, Global Reach</div>
@@ -115,147 +199,203 @@
     </div>
   </aside>
 
-  <!-- ===== POST MENU ===== -->
-  <div class="post-menu-backdrop" id="post-menu-backdrop"></div>
-  <div class="post-menu" id="post-menu">
-    <div class="post-menu-items" id="post-menu-items"></div>
-    <button class="post-menu-cancel" id="post-menu-cancel">Cancel</button>
-  </div>
-
   <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
   <script src="js/appwrite-config.js"></script>
   <script>
-    // ===== DRAWER CONTROLS =====
-    function openDrawer() {
-      document.getElementById('drawer').classList.add('open');
-      document.getElementById('drawer-backdrop').classList.add('open');
-    }
+    let MY_USER_ID = null;
+    let LIKED = new Set();
 
-    function closeDrawer() {
-      document.getElementById('drawer').classList.remove('open');
-      document.getElementById('drawer-backdrop').classList.remove('open');
-    }
-
-    document.getElementById('open-drawer').addEventListener('click', openDrawer);
-    document.getElementById('drawer-backdrop').addEventListener('click', closeDrawer);
-    document.querySelectorAll('.drawer-item').forEach(item => {
-      item.addEventListener('click', closeDrawer);
-    });
-
-    document.getElementById('drawer-logout').addEventListener('click', async () => {
+    async function init() {
       try {
-        await session.logout();
-      } catch (e) {}
-      window.location = 'login.html';
-    });
-
-    // ===== FEED LOADING =====
-    async function loadFeed() {
-      const feed = document.getElementById('feed');
-      try {
-        console.log('📺 Loading feed...');
-        feed.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
-
-        if (!db) {
-          throw new Error('Database not initialized');
-        }
-
-        const reels = await db.list(APPWRITE_CONFIG.COLLECTIONS.REELS, [
-          Query.equal('isDeleted', false),
-          Query.orderDesc('uploadedAt'),
-          Query.limit(20)
-        ]);
-
-        console.log('✅ Fetched', reels.documents.length, 'reels');
-        feed.innerHTML = '';
-
-        if (!reels.documents.length) {
-          feed.innerHTML = '<div style="text-align:center;padding:40px;color:#888">📹 No reels yet. Be the first to upload!</div>';
-          return;
-        }
-
-        for (const reel of reels.documents) {
+        await session.refresh();
+        if (session.isLoggedIn()) {
+          MY_USER_ID = session.getUserId();
           try {
-            const creator = await db.get(APPWRITE_CONFIG.COLLECTIONS.CREATORS, reel.creatorId);
-            const likes = await db.list(APPWRITE_CONFIG.COLLECTIONS.LIKES, [
-              Query.equal('reelId', reel.$id)
-            ]);
-
-            const post = document.createElement('div');
-            post.className = 'post';
-            post.innerHTML = `
-              <div class="post-header">
-                <div class="creator-avatar">
-                  <img src="${creator.profilePic || '/icons/primary/logo-1-app-icon-180x180.png'}" alt="${creator.name}" onerror="this.src='/icons/primary/logo-1-app-icon-180x180.png'">
-                </div>
-                <div class="creator-name">
-                  ${escapeHtml(creator.name || 'Creator')}
-                  ${creator.isVerified ? '<span class="verified-badge">✓</span>' : ''}
-                </div>
-                <button class="post-more" onclick="openPostMenu(event, '${reel.$id}')">⋯</button>
-              </div>
-              <div class="post-thumbnail" onclick="window.location.href='./video-modal.html?reelId=${reel.$id}'">
-                <img src="${reel.thumbnail || '/icons/primary/logo-1-app-icon-180x180.png'}" alt="${reel.title}" onerror="this.src='/icons/primary/logo-1-app-icon-180x180.png'">
-                <div class="play-icon">▶️</div>
-              </div>
-              <div class="post-title">${escapeHtml(reel.title || 'Untitled')}</div>
-              <div class="post-actions">
-                <button class="action-btn"><span class="action-icon">❤️</span> ${likes.total} Likes</button>
-                <button class="action-btn" onclick="window.location.href='./video-modal.html?reelId=${reel.$id}'"><span class="action-icon">💬</span> Comments</button>
-                <button class="action-btn"><span class="action-icon">👁️</span> ${reel.views || 0} Views</button>
-              </div>
-            `;
-            feed.appendChild(post);
-          } catch (err) {
-            console.error('Error rendering reel:', reel.$id, err);
-          }
+            const likes = await db.list(APPWRITE_CONFIG.COLLECTIONS.LIKES, [Query.equal('userId', MY_USER_ID), Query.limit(100)]);
+            likes.documents.forEach(l => LIKED.add(l.reelId));
+          } catch (e) {}
         }
-        console.log('✅ Feed loaded successfully');
-      } catch (error) {
-        console.error('❌ Feed load failed:', error);
-        feed.innerHTML = `
-          <div style="text-align:center;padding:40px;color:#888;">
-            <p>❌ Failed to load feed</p>
-            <p style="font-size:12px;margin-top:8px;color:#666;">${error.message || 'Unknown error'}</p>
-            <button onclick="location.reload()" style="margin-top:12px;padding:8px 16px;background:#0B5E6B;color:#fff;border:none;border-radius:6px;cursor:pointer;">Retry</button>
-          </div>
-        `;
+        setupDrawer();
+        loadVideos();
+      } catch (err) {
+        console.error('Init error:', err);
+        setupDrawer();
+        loadVideos();
       }
     }
 
-    function openPostMenu(e, reelId) {
-      e.stopPropagation();
+    function setupDrawer() {
+      const open = () => { document.getElementById('drawer').classList.add('open'); document.getElementById('drawer-backdrop').classList.add('open'); };
+      const close = () => { document.getElementById('drawer').classList.remove('open'); document.getElementById('drawer-backdrop').classList.remove('open'); };
+      document.getElementById('open-drawer').onclick = open;
+      document.getElementById('drawer-backdrop').onclick = close;
+      // Close drawer when clicking items
+      document.querySelectorAll('.drawer-item').forEach(btn => {
+        btn.addEventListener('click', close);
+      });
+      document.getElementById('drawer-logout').onclick = async () => {
+        try { await session.logout(); } catch (e) {}
+        window.location = 'login.html';
+      };
+      
+      // Post menu handlers
+      document.getElementById('post-menu-cancel').onclick = closePostMenu;
+      document.getElementById('post-menu-backdrop').onclick = closePostMenu;
+    }
+
+    async function loadVideos() {
+      try {
+        const reels = await db.list(
+          APPWRITE_CONFIG.COLLECTIONS.REELS,
+          [Query.equal('isDeleted', false), Query.orderDesc('uploadedAt'), Query.limit(50)]
+        );
+
+        if (!reels.documents.length) {
+          document.getElementById('feed').innerHTML = '<div class="loading"><p>No videos yet</p></div>';
+          return;
+        }
+
+        // Batch-fetch verified status for unique creators (avoids one query per post)
+        const VERIFIED = new Set();
+        const uniqueCreatorIds = [...new Set(reels.documents.map(r => r.creatorId))];
+        try {
+          const creatorDocs = await Promise.all(
+            uniqueCreatorIds.map(id => db.get(APPWRITE_CONFIG.COLLECTIONS.CREATORS, id).catch(() => null))
+          );
+          creatorDocs.forEach(c => { if (c && c.isVerified) VERIFIED.add(c.$id); });
+        } catch (e) {}
+
+        const feed = document.getElementById('feed');
+        feed.innerHTML = '';
+        reels.documents.forEach(reel => {
+          const liked = LIKED.has(reel.$id);
+          const isOwner = MY_USER_ID && MY_USER_ID === reel.creatorId;
+          const isVerified = VERIFIED.has(reel.creatorId);
+          const post = document.createElement('div');
+          post.className = 'post';
+          post.innerHTML = `
+            <div class="post-header">
+              <div class="creator-avatar">
+                <img src="${reel.creatorProfilePic || '/icons/primary/logo-1-app-icon-180x180.png'}" onerror="this.src='/icons/primary/logo-1-app-icon-180x180.png'">
+              </div>
+              <div class="creator-name">${escapeHtml(reel.creatorName || 'Creator')}${isVerified ? ' <span class="verified-badge">✓</span>' : ''}</div>
+              <button class="post-more">⋯</button>
+            </div>
+            <div class="post-thumbnail">
+              <img src="${reel.thumbnail || '/icons/primary/logo-1-app-icon-180x180.png'}" alt="Video" onerror="this.src='/icons/primary/logo-1-app-icon-180x180.png'">
+              <div class="play-icon">▶️</div>
+            </div>
+            <div class="post-title">${escapeHtml(reel.title || '')}</div>
+            <div class="post-actions">
+              <button class="action-btn like-btn ${liked ? 'liked' : ''}">
+                <span class="action-icon">${liked ? '❤️' : '🤍'}</span>
+                <span class="like-count">${reel.likes || 0}</span>
+              </button>
+              <button class="action-btn comment-btn">
+                <span class="action-icon">💬</span>
+                <span>${reel.comments || 0}</span>
+              </button>
+              <button class="action-btn share-btn">
+                <span class="action-icon">↗️</span>
+                <span>Share</span>
+              </button>
+            </div>
+          `;
+          // open reel
+          post.onclick = () => window.location = `video-modal.html?reelId=${reel.$id}`;
+          // stop propagation on action buttons
+          post.querySelector('.like-btn').onclick = (e) => { e.stopPropagation(); toggleLike(reel, post); };
+          post.querySelector('.comment-btn').onclick = (e) => { e.stopPropagation(); window.location = `video-modal.html?reelId=${reel.$id}`; };
+          post.querySelector('.share-btn').onclick = (e) => { e.stopPropagation(); shareReel(reel); };
+          post.querySelector('.post-more').onclick = (e) => { e.stopPropagation(); openPostMenu(reel, post, isOwner); };
+          feed.appendChild(post);
+        });
+      } catch (err) {
+        console.error('Load error:', err);
+        document.getElementById('feed').innerHTML = '<div class="loading"><p>Error loading videos</p></div>';
+      }
+    }
+
+    async function toggleLike(reel, post) {
+      if (!MY_USER_ID) { window.location = 'login.html'; return; }
+      const btn = post.querySelector('.like-btn');
+      const icon = btn.querySelector('.action-icon');
+      const countEl = btn.querySelector('.like-count');
+      try {
+        if (LIKED.has(reel.$id)) {
+          const likes = await db.list(APPWRITE_CONFIG.COLLECTIONS.LIKES, [Query.equal('reelId', reel.$id), Query.equal('userId', MY_USER_ID)]);
+          if (likes.documents.length) await db.remove(APPWRITE_CONFIG.COLLECTIONS.LIKES, likes.documents[0].$id);
+          LIKED.delete(reel.$id);
+          reel.likes = Math.max(0, (reel.likes || 1) - 1);
+          btn.classList.remove('liked'); icon.textContent = '🤍';
+        } else {
+          const likeId = ID.unique();
+          await db.create(APPWRITE_CONFIG.COLLECTIONS.LIKES, {
+            likeId, reelId: reel.$id, creatorId: reel.creatorId, userId: MY_USER_ID, createdAt: new Date().toISOString()
+          }, likeId);
+          LIKED.add(reel.$id);
+          reel.likes = (reel.likes || 0) + 1;
+          btn.classList.add('liked'); icon.textContent = '❤️';
+        }
+        await db.update(APPWRITE_CONFIG.COLLECTIONS.REELS, reel.$id, { likes: reel.likes });
+        countEl.textContent = reel.likes;
+      } catch (err) {
+        console.error('Like failed:', err);
+      }
+    }
+
+    async function shareReel(reel) {
+      const url = `${location.origin}/video-modal.html?reelId=${reel.$id}`;
+      try {
+        if (navigator.share) { await navigator.share({ title: reel.title, url }); }
+        else { await navigator.clipboard.writeText(url); alert('Link copied!'); }
+      } catch (e) {}
+    }
+
+    /* per-post ⋯ — owner vs viewer */
+    function openPostMenu(reel, post, isOwner) {
       const items = document.getElementById('post-menu-items');
-      items.innerHTML = `
-        <button class="post-menu-item" onclick="window.location='./video-modal.html?reelId=${reelId}'">▶️ Watch</button>
-        <button class="post-menu-item" onclick="window.location='./creator-profile.html?userId=${reelId}'">👤 Creator</button>
-        <button class="post-menu-item">🔗 Share</button>
-      `;
+      items.innerHTML = '';
+
+      const add = (label, handler, danger) => {
+        const b = document.createElement('button');
+        b.className = 'post-menu-item' + (danger ? ' danger' : '');
+        b.textContent = label;
+        b.onclick = () => { closePostMenu(); handler(); };
+        items.appendChild(b);
+      };
+
+      if (isOwner) {
+        add('✏️ Edit', () => window.location = `video-modal.html?reelId=${reel.$id}`);
+        add('🗑️ Delete', () => deletePost(reel, post), true);
+      } else {
+        add('↗️ Share', () => shareReel(reel));
+        add('🔗 Copy link', async () => {
+          try { await navigator.clipboard.writeText(`${location.origin}/video-modal.html?reelId=${reel.$id}`); }
+          catch (e) {}
+        });
+      }
+
       document.getElementById('post-menu-backdrop').classList.add('open');
       document.getElementById('post-menu').classList.add('open');
     }
 
-    document.getElementById('post-menu-backdrop').addEventListener('click', () => {
+    function closePostMenu() {
       document.getElementById('post-menu-backdrop').classList.remove('open');
       document.getElementById('post-menu').classList.remove('open');
-    });
+    }
 
-    document.getElementById('post-menu-cancel').addEventListener('click', () => {
-      document.getElementById('post-menu-backdrop').classList.remove('open');
-      document.getElementById('post-menu').classList.remove('open');
-    });
-
-    document.addEventListener('DOMContentLoaded', async () => {
-      console.log('🚀 Page loaded, initializing...');
+    async function deletePost(reel, post) {
+      if (!confirm('Delete this reel? This cannot be undone easily.')) return;
       try {
-        console.log('✅ Appwrite config loaded');
-        console.log('✅ Session initialized');
-        await loadFeed();
-        console.log('✅ Feed initialization complete');
-      } catch (err) {
-        console.error('❌ Init error:', err);
-      }
-    });
+        await db.update(APPWRITE_CONFIG.COLLECTIONS.REELS, reel.$id, { isDeleted: true });
+        post.remove();
+      } catch (e) { alert('Could not delete'); }
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
   </script>
 </body>
 </html>
+
+
