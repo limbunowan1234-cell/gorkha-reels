@@ -2,203 +2,179 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Search - GorkhaReels</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Discover - GorkhaReels</title>
+  <meta name="theme-color" content="#000000">
+  <link rel="icon" type="image/png" href="assets/logo.png">
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #000; color: #fff; }
-    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #000; color: #fff; padding-bottom: 70px;
+    }
 
-    .header { text-align: center; margin-bottom: 20px; }
-    .header h1 { font-size: 24px; margin-bottom: 10px; }
+    .page { max-width: 640px; margin: 0 auto; }
 
+    /* Search bar */
+    .search-wrap { padding: 12px 12px 10px; position: sticky; top: 0; background: #000; z-index: 50; }
+    .search-bar {
+      display: flex; align-items: center; gap: 10px;
+      background: #1c1c1e; border-radius: 12px; padding: 11px 14px;
+    }
+    .search-bar svg { flex-shrink: 0; }
     .search-input {
-      width: 100%;
-      padding: 12px 16px;
-      background: #1a1a1a;
-      border: 1px solid #333;
-      border-radius: 8px;
-      color: #fff;
-      font-size: 14px;
-      margin-bottom: 20px;
+      flex: 1; background: none; border: none; color: #fff;
+      font-size: 15px; outline: none;
     }
+    .search-input::placeholder { color: #8e8e93; }
 
-    .tabs {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
-      border-bottom: 1px solid #333;
-    }
-
+    /* Tabs */
+    .tabs { display: flex; border-bottom: 1px solid #1a1a1a; }
     .tab-btn {
-      flex: 1;
-      padding: 12px;
-      background: none;
-      border: none;
-      color: #888;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 500;
+      flex: 1; padding: 12px; background: none; border: none; color: #8e8e93;
+      font-size: 14px; font-weight: 600; cursor: pointer;
       border-bottom: 2px solid transparent;
-      transition: color 0.2s;
     }
-
-    .tab-btn.active {
-      color: #fff;
-      border-bottom-color: #ff6b35;
-    }
+    .tab-btn.active { color: #fff; border-bottom-color: #f97316; }
 
     .tab-content { display: none; }
     .tab-content.active { display: block; }
 
-    /* Videos Tab */
-    .video-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-      margin-bottom: 20px;
+    /* Explore grid (Instagram-style 3 columns) */
+    .explore-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px;
     }
-
-    .video-card {
-      aspect-ratio: 9/16;
-      background: #1a1a1a;
-      border-radius: 8px;
-      overflow: hidden;
-      cursor: pointer;
-      position: relative;
+    .grid-cell {
+      position: relative; aspect-ratio: 3/4; background: #1a1a1a;
+      overflow: hidden; cursor: pointer;
     }
-
-    .video-card img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
+    .grid-cell img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
     }
-
-    .video-overlay {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
-      padding: 12px;
-      color: #fff;
-      font-size: 12px;
+    .cell-views {
+      position: absolute; bottom: 8px; left: 8px;
+      display: flex; align-items: center; gap: 4px;
+      font-size: 13px; font-weight: 700;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+      pointer-events: none;
     }
+    .cell-views svg { filter: drop-shadow(0 1px 2px rgba(0,0,0,0.8)); }
 
-    /* Creators Tab */
-    .creator-list { display: flex; flex-direction: column; gap: 12px; }
-
+    /* Creators list */
+    .creator-list { display: flex; flex-direction: column; padding: 8px 0; }
     .creator-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px;
-      background: #1a1a1a;
-      border-radius: 8px;
-      cursor: pointer;
+      display: flex; align-items: center; gap: 12px; padding: 10px 14px; cursor: pointer;
     }
-
     .creator-avatar {
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      background: #333;
-      flex-shrink: 0;
-      overflow: hidden;
+      width: 48px; height: 48px; border-radius: 50%; background: #333;
+      flex-shrink: 0; overflow: hidden;
     }
-
-    .creator-avatar img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .creator-info { flex: 1; }
+    .creator-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .creator-info { flex: 1; min-width: 0; }
     .creator-name { font-weight: 600; font-size: 14px; }
-    .creator-stats { font-size: 12px; color: #888; }
-
+    .creator-stats { font-size: 12px; color: #8e8e93; }
     .follow-btn {
-      padding: 8px 16px;
-      background: #ff6b35;
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 12px;
-      font-weight: 600;
+      padding: 7px 16px; background: #f97316; color: #fff; border: none;
+      border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 700;
     }
+    .follow-btn.following { background: #262626; }
 
-    .follow-btn.following {
-      background: #333;
-      color: #fff;
-    }
-
-    /* Hashtags Tab */
-    .hashtag-list { display: flex; flex-direction: column; gap: 12px; }
-
+    /* Hashtags list */
+    .hashtag-list { display: flex; flex-direction: column; padding: 8px 0; }
     .hashtag-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 12px;
-      background: #1a1a1a;
-      border-radius: 8px;
-      cursor: pointer;
+      display: flex; align-items: center; gap: 14px; padding: 12px 14px; cursor: pointer;
     }
+    .hashtag-hash {
+      width: 48px; height: 48px; border-radius: 50%;
+      background: #1c1c1e; display: flex; align-items: center; justify-content: center;
+      font-size: 22px; flex-shrink: 0;
+    }
+    .hashtag-name { font-weight: 700; font-size: 15px; }
+    .hashtag-stats { font-size: 12px; color: #8e8e93; }
 
-    .hashtag-name { font-weight: 600; font-size: 16px; }
-    .hashtag-stats { font-size: 12px; color: #888; }
+    /* States */
+    .state { text-align: center; color: #8e8e93; padding: 60px 20px; }
+    .state-icon { font-size: 40px; margin-bottom: 12px; }
+    .error { color: #ff6b35; }
 
-    .loading { text-align: center; color: #888; padding: 20px; }
-    .error { color: #ff6b35; padding: 12px; background: rgba(255,107,53,0.1); border-radius: 8px; }
+    /* Bottom nav */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0; height: 60px;
+      background: rgba(0,0,0,0.96); border-top: 1px solid #1a1a1a;
+      display: flex; align-items: center; justify-content: space-around;
+      z-index: 100; max-width: 640px; margin: 0 auto;
+    }
+    .nav-item {
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+      color: #8e8e93; text-decoration: none; font-size: 22px;
+    }
+    .nav-item.active { color: #fff; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <h1>Search</h1>
-      <input type="text" class="search-input" id="search-input" placeholder="Search videos, creators...">
+  <div class="page">
+    <!-- Search -->
+    <div class="search-wrap">
+      <div class="search-bar">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2">
+          <circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/>
+        </svg>
+        <input type="text" class="search-input" id="search-input" placeholder="Search videos, creators…">
+      </div>
     </div>
 
+    <!-- Tabs -->
     <div class="tabs">
-      <button class="tab-btn active" data-tab="videos">Videos</button>
+      <button class="tab-btn active" data-tab="videos">Explore</button>
       <button class="tab-btn" data-tab="creators">Creators</button>
       <button class="tab-btn" data-tab="hashtags">Hashtags</button>
     </div>
 
-    <!-- Videos Tab -->
+    <!-- Explore -->
     <div id="videos" class="tab-content active">
-      <div class="video-grid" id="video-grid"></div>
-      <div class="loading" id="videos-loading" style="display:none;">Loading videos...</div>
-      <div class="error" id="videos-error" style="display:none;"></div>
+      <div class="explore-grid" id="explore-grid"></div>
+      <div class="state" id="videos-state" style="display:none;"></div>
     </div>
 
-    <!-- Creators Tab -->
+    <!-- Creators -->
     <div id="creators" class="tab-content">
       <div class="creator-list" id="creator-list"></div>
-      <div class="loading" id="creators-loading" style="display:none;">Loading creators...</div>
-      <div class="error" id="creators-error" style="display:none;"></div>
+      <div class="state" id="creators-state" style="display:none;"></div>
     </div>
 
-    <!-- Hashtags Tab -->
+    <!-- Hashtags -->
     <div id="hashtags" class="tab-content">
       <div class="hashtag-list" id="hashtag-list"></div>
-      <div class="loading" id="hashtags-loading" style="display:none;">Loading hashtags...</div>
-      <div class="error" id="hashtags-error" style="display:none;"></div>
+      <div class="state" id="hashtags-state" style="display:none;"></div>
     </div>
   </div>
 
-  <!-- Load Appwrite SDK FIRST -->
-  <script src="https://cdn.jsdelivr.net/npm/appwrite@13.0.0/dist/sdk.min.js"></script>
-  <!-- Then load config -->
-  <script src="./js/appwrite-config.js"></script>
-  <!-- Then load page logic -->
+  <!-- Bottom nav -->
+  <nav class="bottom-nav">
+    <a class="nav-item" href="index.html" title="Home">🏠</a>
+    <a class="nav-item active" href="search.html" title="Discover">🔍</a>
+    <a class="nav-item" href="upload.html" title="Upload">➕</a>
+    <a class="nav-item" href="creator-dashboard.html" title="Dashboard">👤</a>
+  </nav>
+
+  <!-- Appwrite SDK v18 (matches working upload.html) -->
+  <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
+  <script src="js/appwrite-config.js"></script>
   <script>
-    class SearchPage {
+    function formatNum(n) {
+      n = n || 0;
+      if (n >= 1000000) return (n / 1000000).toFixed(1).replace('.0', '') + 'M';
+      if (n >= 1000) return (n / 1000).toFixed(1).replace('.0', '') + 'K';
+      return String(n);
+    }
+    const EYE = '<svg width="15" height="15" viewBox="0 0 24 24" fill="#fff"><path d="M12 5C5 5 1 12 1 12s4 7 11 7 11-7 11-7-4-7-11-7zm0 11a4 4 0 110-8 4 4 0 010 8z"/></svg>';
+
+    class DiscoverPage {
       constructor() {
         this.currentTab = 'videos';
         this.searchQuery = '';
         this.followingSet = new Set();
+        this.allReels = [];
         this.init();
       }
 
@@ -208,271 +184,221 @@
           await this.loadFollowing();
           this.setupListeners();
           await this.loadVideos();
-        } catch(err) {
+        } catch (err) {
           console.error('Init failed:', err);
+          this.setState('videos', '⚠️', 'Could not load: ' + err.message, true);
         }
       }
 
       setupListeners() {
         document.querySelectorAll('.tab-btn').forEach(btn => {
-          btn.addEventListener('click', (e) => {
+          btn.addEventListener('click', e => {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             e.target.classList.add('active');
+            document.getElementById(e.target.dataset.tab).classList.add('active');
             this.currentTab = e.target.dataset.tab;
-            this.handleTabChange();
+            this.refreshTab();
           });
         });
-
-        document.getElementById('search-input').addEventListener('input', (e) => {
+        document.getElementById('search-input').addEventListener('input', e => {
           this.searchQuery = e.target.value.trim().toLowerCase();
-          this.handleSearch();
+          this.refreshTab();
         });
       }
+
+      refreshTab() {
+        if (this.currentTab === 'videos') this.loadVideos();
+        else if (this.currentTab === 'creators') this.loadCreators();
+        else this.loadHashtags();
+      }
+
+      setState(tab, icon, msg, isError) {
+        const el = document.getElementById(tab + '-state');
+        el.style.display = 'block';
+        el.className = 'state' + (isError ? ' error' : '');
+        el.innerHTML = `<div class="state-icon">${icon}</div>${msg}`;
+      }
+      clearState(tab) { document.getElementById(tab + '-state').style.display = 'none'; }
 
       async loadFollowing() {
         try {
           if (!session.isLoggedIn()) return;
-          const userId = session.getUserId();
-          const followers = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [
-            Query.equal('followerId', userId)
+          const f = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [
+            Query.equal('followerId', session.getUserId())
           ]);
-          followers.documents.forEach(doc => {
-            this.followingSet.add(doc.followingId);
-          });
-        } catch(err) {
-          console.log('Could not load following:', err);
-        }
-      }
-
-      handleTabChange() {
-        if (this.currentTab === 'videos') this.loadVideos();
-        else if (this.currentTab === 'creators') this.loadCreators();
-        else if (this.currentTab === 'hashtags') this.loadHashtags();
-      }
-
-      async handleSearch() {
-        if (this.currentTab === 'videos') this.loadVideos();
-        else if (this.currentTab === 'creators') this.loadCreators();
+          f.documents.forEach(d => this.followingSet.add(d.followingId));
+        } catch (e) {}
       }
 
       async loadVideos() {
+        const grid = document.getElementById('explore-grid');
+        this.clearState('videos');
         try {
-          document.getElementById('videos-loading').style.display = 'block';
-          document.getElementById('videos-error').style.display = 'none';
-
-          let queries = [Query.equal('isDeleted', false)];
-          
-          if (this.searchQuery) {
-            queries.push(Query.search('title', this.searchQuery));
+          if (!this.allReels.length) {
+            const res = await db.list(APPWRITE_CONFIG.COLLECTIONS.REELS, [
+              Query.equal('isDeleted', false)
+            ]);
+            this.allReels = res.documents;
           }
 
-          const reels = await db.list(APPWRITE_CONFIG.COLLECTIONS.REELS, queries);
+          let list = this.allReels.slice();
 
-          let filtered = reels.documents;
-          if (this.searchQuery) {
-            filtered = filtered.filter(r => 
-              r.title.toLowerCase().includes(this.searchQuery) ||
-              r.description.toLowerCase().includes(this.searchQuery) ||
-              (r.hashtags && r.hashtags.toLowerCase().includes(this.searchQuery))
-            );
-          }
-
-          // If searching for hashtag via URL param
-          const urlParams = new URLSearchParams(window.location.search);
-          const hashtagFilter = urlParams.get('hashtag');
+          // URL ?hashtag= filter
+          const hashtagFilter = new URLSearchParams(location.search).get('hashtag');
           if (hashtagFilter) {
-            filtered = filtered.filter(r => 
-              r.hashtags && r.hashtags.toLowerCase().includes(hashtagFilter.toLowerCase())
+            list = list.filter(r => r.hashtags && r.hashtags.toLowerCase().includes(hashtagFilter.toLowerCase()));
+          }
+
+          // Text search
+          if (this.searchQuery) {
+            list = list.filter(r =>
+              (r.title || '').toLowerCase().includes(this.searchQuery) ||
+              (r.description || '').toLowerCase().includes(this.searchQuery) ||
+              (r.hashtags || '').toLowerCase().includes(this.searchQuery)
             );
           }
 
-          // Sort by views (trending)
-          filtered.sort((a, b) => (b.views || 0) - (a.views || 0));
+          // Trending: most viewed first
+          list.sort((a, b) => (b.views || 0) - (a.views || 0));
 
-          const grid = document.getElementById('video-grid');
+          if (!list.length) {
+            grid.innerHTML = '';
+            this.setState('videos', '🎬', this.searchQuery || hashtagFilter ? 'No videos found' : 'No videos yet — be the first to upload!');
+            return;
+          }
+
           grid.innerHTML = '';
-
-          filtered.forEach(reel => {
-            const card = document.createElement('div');
-            card.className = 'video-card';
-            card.innerHTML = `
-              <img src="${reel.thumbnail || 'assets/placeholder.svg'}" alt="${escapeHtml(reel.title)}">
-              <div class="video-overlay">
-                <div style="font-weight:600;margin-bottom:4px;">${escapeHtml(reel.title.substring(0, 20))}</div>
-                <div>👁️ ${reel.views || 0}</div>
-              </div>
+          list.forEach(reel => {
+            const cell = document.createElement('div');
+            cell.className = 'grid-cell';
+            cell.innerHTML = `
+              <img src="${reel.thumbnail || reel.videoUrl || 'assets/placeholder.svg'}" loading="lazy" alt="${escapeHtml(reel.title || '')}">
+              <div class="cell-views">${EYE}${formatNum(reel.views)}</div>
             `;
-            card.addEventListener('click', () => {
-              window.location.href = `./video-modal.html?reelId=${reel.$id}`;
-            });
-            grid.appendChild(card);
+            cell.onclick = () => location.href = `video-modal.html?reelId=${reel.$id}`;
+            grid.appendChild(cell);
           });
-
-          document.getElementById('videos-loading').style.display = 'none';
-        } catch(err) {
-          document.getElementById('videos-loading').style.display = 'none';
-          document.getElementById('videos-error').style.display = 'block';
-          document.getElementById('videos-error').textContent = 'Error loading videos: ' + err.message;
+        } catch (err) {
+          grid.innerHTML = '';
+          this.setState('videos', '⚠️', 'Error: ' + err.message, true);
         }
       }
 
       async loadCreators() {
+        const listEl = document.getElementById('creator-list');
+        this.clearState('creators');
         try {
-          document.getElementById('creators-loading').style.display = 'block';
-          document.getElementById('creators-error').style.display = 'none';
-
-          const creators = await db.list(APPWRITE_CONFIG.COLLECTIONS.CREATORS);
-          let filtered = creators.documents;
-
+          const res = await db.list(APPWRITE_CONFIG.COLLECTIONS.CREATORS);
+          let list = res.documents;
           if (this.searchQuery) {
-            filtered = filtered.filter(c =>
-              c.name.toLowerCase().includes(this.searchQuery) ||
-              (c.username && c.username.toLowerCase().includes(this.searchQuery))
+            list = list.filter(c =>
+              (c.name || '').toLowerCase().includes(this.searchQuery) ||
+              (c.username || '').toLowerCase().includes(this.searchQuery)
             );
           }
-
-          const list = document.getElementById('creator-list');
-          list.innerHTML = '';
-
-          filtered.forEach(creator => {
+          if (!list.length) {
+            listEl.innerHTML = '';
+            this.setState('creators', '🔍', 'No creators found');
+            return;
+          }
+          listEl.innerHTML = '';
+          list.forEach(creator => {
             const isFollowing = this.followingSet.has(creator.userId);
             const item = document.createElement('div');
             item.className = 'creator-item';
             item.innerHTML = `
-              <div class="creator-avatar">
-                <img src="${creator.profilePic || 'assets/placeholder.svg'}" alt="${escapeHtml(creator.name)}">
-              </div>
+              <div class="creator-avatar"><img src="${creator.profilePic || 'assets/placeholder.svg'}" alt=""></div>
               <div class="creator-info">
-                <div class="creator-name">${escapeHtml(creator.name)}</div>
-                <div class="creator-stats">${creator.followers || 0} followers • ${creator.totalReels || 0} reels</div>
+                <div class="creator-name">${escapeHtml(creator.name || 'Creator')}</div>
+                <div class="creator-stats">${formatNum(creator.followers)} followers · ${formatNum(creator.totalReels)} reels</div>
               </div>
-              <button class="follow-btn ${isFollowing ? 'following' : ''}">
-                ${isFollowing ? 'Following' : 'Follow'}
-              </button>
+              <button class="follow-btn ${isFollowing ? 'following' : ''}">${isFollowing ? 'Following' : 'Follow'}</button>
             `;
-
-            const followBtn = item.querySelector('.follow-btn');
-            followBtn.addEventListener('click', (e) => {
-              e.stopPropagation();
-              this.toggleFollow(creator.userId, creator.name, followBtn);
-            });
-
-            item.addEventListener('click', () => {
-              window.location.href = `./creator-profile.html?userId=${creator.userId}`;
-            });
-
-            list.appendChild(item);
+            const btn = item.querySelector('.follow-btn');
+            btn.onclick = e => { e.stopPropagation(); this.toggleFollow(creator.userId, btn); };
+            item.onclick = () => location.href = `creator-profile.html?userId=${creator.userId}`;
+            listEl.appendChild(item);
           });
-
-          document.getElementById('creators-loading').style.display = 'none';
-        } catch(err) {
-          document.getElementById('creators-loading').style.display = 'none';
-          document.getElementById('creators-error').style.display = 'block';
-          document.getElementById('creators-error').textContent = 'Error loading creators: ' + err.message;
+        } catch (err) {
+          listEl.innerHTML = '';
+          this.setState('creators', '⚠️', 'Error: ' + err.message, true);
         }
       }
 
       async loadHashtags() {
+        const listEl = document.getElementById('hashtag-list');
+        this.clearState('hashtags');
         try {
-          document.getElementById('hashtags-loading').style.display = 'block';
-          document.getElementById('hashtags-error').style.display = 'none';
-
-          const reels = await db.list(APPWRITE_CONFIG.COLLECTIONS.REELS, [
-            Query.equal('isDeleted', false)
-          ]);
-
-          const hashtagMap = {};
-          reels.documents.forEach(reel => {
+          if (!this.allReels.length) {
+            const res = await db.list(APPWRITE_CONFIG.COLLECTIONS.REELS, [Query.equal('isDeleted', false)]);
+            this.allReels = res.documents;
+          }
+          const map = {};
+          this.allReels.forEach(reel => {
             if (reel.hashtags) {
-              const tags = reel.hashtags.split(',').map(t => t.trim().toLowerCase()).filter(t => t);
-              tags.forEach(tag => {
-                if (!hashtagMap[tag]) {
-                  hashtagMap[tag] = { count: 0, views: 0 };
-                }
-                hashtagMap[tag].count++;
-                hashtagMap[tag].views += reel.views || 0;
+              reel.hashtags.split(',').map(t => t.trim().toLowerCase().replace(/^#/, '')).filter(Boolean).forEach(tag => {
+                if (!map[tag]) map[tag] = { count: 0, views: 0 };
+                map[tag].count++; map[tag].views += reel.views || 0;
               });
             }
           });
+          const tags = Object.entries(map).map(([name, d]) => ({ name, ...d }))
+            .sort((a, b) => b.views - a.views).slice(0, 50);
 
-          const hashtags = Object.entries(hashtagMap)
-            .map(([name, data]) => ({ name, ...data }))
-            .sort((a, b) => b.views - a.views)
-            .slice(0, 50);
-
-          const list = document.getElementById('hashtag-list');
-          list.innerHTML = '';
-
-          hashtags.forEach(ht => {
+          if (!tags.length) {
+            listEl.innerHTML = '';
+            this.setState('hashtags', '🏷️', 'No hashtags yet');
+            return;
+          }
+          listEl.innerHTML = '';
+          tags.forEach(ht => {
             const item = document.createElement('div');
             item.className = 'hashtag-item';
             item.innerHTML = `
+              <div class="hashtag-hash">#</div>
               <div>
                 <div class="hashtag-name">#${escapeHtml(ht.name)}</div>
-                <div class="hashtag-stats">${ht.count} videos • ${ht.views} views</div>
+                <div class="hashtag-stats">${formatNum(ht.count)} videos · ${formatNum(ht.views)} views</div>
               </div>
             `;
-            item.addEventListener('click', () => {
-              window.location.href = `./search.html?hashtag=${encodeURIComponent(ht.name)}`;
-            });
-            list.appendChild(item);
+            item.onclick = () => location.href = `search.html?hashtag=${encodeURIComponent(ht.name)}`;
+            listEl.appendChild(item);
           });
-
-          document.getElementById('hashtags-loading').style.display = 'none';
-        } catch(err) {
-          document.getElementById('hashtags-loading').style.display = 'none';
-          document.getElementById('hashtags-error').style.display = 'block';
-          document.getElementById('hashtags-error').textContent = 'Error loading hashtags: ' + err.message;
+        } catch (err) {
+          listEl.innerHTML = '';
+          this.setState('hashtags', '⚠️', 'Error: ' + err.message, true);
         }
       }
 
-      async toggleFollow(targetUserId, targetName, btn) {
+      async toggleFollow(targetUserId, btn) {
+        if (!session.isLoggedIn()) { location.href = 'login.html'; return; }
+        const userId = session.getUserId();
+        if (userId === targetUserId) return;
         try {
-          if (!session.isLoggedIn()) {
-            window.location.href = './login.html';
-            return;
-          }
-
-          const userId = session.getUserId();
-          if (userId === targetUserId) return;
-
           if (this.followingSet.has(targetUserId)) {
-            // Unfollow
-            const followers = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [
-              Query.equal('followerId', userId),
-              Query.equal('followingId', targetUserId)
+            const f = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [
+              Query.equal('followerId', userId), Query.equal('followingId', targetUserId)
             ]);
-            if (followers.documents.length > 0) {
-              await db.delete(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, followers.documents[0].$id);
-            }
+            if (f.documents.length) await db.remove(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, f.documents[0].$id);
             this.followingSet.delete(targetUserId);
-            btn.classList.remove('following');
-            btn.textContent = 'Follow';
+            btn.classList.remove('following'); btn.textContent = 'Follow';
           } else {
-            // Follow
             const followId = ID.unique();
             await db.create(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, {
-              followId,
-              followerId: userId,
-              followingId: targetUserId,
-              createdAt: new Date().toISOString(),
-              CreatorId: targetUserId
+              followId, followerId: userId, followingId: targetUserId,
+              createdAt: new Date().toISOString(), CreatorId: targetUserId
             }, followId);
             this.followingSet.add(targetUserId);
-            btn.classList.add('following');
-            btn.textContent = 'Following';
+            btn.classList.add('following'); btn.textContent = 'Following';
           }
-        } catch(err) {
-          console.error('Follow toggle failed:', err);
-          Toast.error('Action failed');
+        } catch (err) {
+          console.error('Follow failed:', err);
         }
       }
     }
 
-    window.addEventListener('load', () => {
-      new SearchPage();
-    });
+    window.addEventListener('load', () => new DiscoverPage());
   </script>
 </body>
 </html>
