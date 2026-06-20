@@ -93,7 +93,9 @@
       background: #1a1a1a; border: 1px solid #2d2d2d; border-radius: 12px;
       padding: 24px; max-width: 500px; width: 90%; z-index: 210;
       box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+      display: none;
     }
+    .modal-box.open { display: block; }
     .modal-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
     .modal-body { margin-bottom: 20px; font-size: 14px; line-height: 1.5; color: #aaa; }
     .modal-actions { display: flex; gap: 10px; }
@@ -373,9 +375,10 @@
           `;
           
           item.querySelector('.list-btn-verify').onclick = () => {
+            const action = creator.isVerified ? 'Unverify' : 'Verify';
             openModal(
-              creator.isVerified ? 'Unverify?' : 'Verify Creator?',
-              `${creator.isVerified ? 'Remove verification from' : 'Add verification to'} ${escapeHtml(creator.name)}?`,
+              `${action} ${escapeHtml(creator.name)}?`,
+              `${action} this creator${creator.isVerified ? ' (remove badge)' : ' (add checkmark badge)'}?`,
               async () => {
                 await db.update(APPWRITE_CONFIG.COLLECTIONS.CREATORS, creator.$id, { isVerified: !creator.isVerified });
                 loadCreators();
@@ -384,10 +387,14 @@
           };
           
           item.querySelector('.list-btn-danger').onclick = () => {
-            openModal('Suspend Creator?', `Suspend ${escapeHtml(creator.name)}? They won't be able to upload or interact.`, async () => {
-              await db.update(APPWRITE_CONFIG.COLLECTIONS.CREATORS, creator.$id, { isActive: false });
-              loadCreators();
-            });
+            openModal(
+              `Suspend ${escapeHtml(creator.name)}?`,
+              `This creator will not be able to upload, comment, or like videos.`,
+              async () => {
+                await db.update(APPWRITE_CONFIG.COLLECTIONS.CREATORS, creator.$id, { isActive: false });
+                loadCreators();
+              }
+            );
           };
           
           list.appendChild(item);
