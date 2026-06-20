@@ -205,7 +205,11 @@
     </div>
   </div>
 
+  <!-- Load Appwrite SDK FIRST -->
+  <script src="https://cdn.jsdelivr.net/npm/appwrite@13.0.0/dist/sdk.min.js"></script>
+  <!-- Then load config -->
   <script src="./js/appwrite-config.js"></script>
+  <!-- Then load page logic -->
   <script>
     class VideoModal {
       constructor() {
