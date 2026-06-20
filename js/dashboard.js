@@ -7,6 +7,7 @@
  * ✅ DISPLAY USER VIDEOS: Show uploaded videos in dashboard
  * ✅ FIXED: bankUpiId spelling (was bankUpild)
  * ✅ ADDED: Real totalViews aggregation from reels
+ * ✅ NEW: DELETE OWN VIDEOS with confirmation
  */
 
 class DashboardManager {
@@ -104,6 +105,7 @@ class DashboardManager {
     try {
       const response = await db.list(APPWRITE_CONFIG.COLLECTIONS.REELS, [
         Query.equal('creatorId', this.user.$id),
+        Query.equal('isDeleted', false),
         Query.orderDesc('uploadedAt'),
         Query.limit(50)
       ]);
@@ -163,7 +165,7 @@ class DashboardManager {
 
   renderReelCard(reel) {
     return `
-      <div style="position:relative;aspect-ratio:9/16;border-radius:6px;overflow:hidden;background:var(--dark-secondary);cursor:pointer;" onclick="window.location.href='./index.html?reel=${reel.$id}'">
+      <div style="position:relative;aspect-ratio:9/16;border-radius:6px;overflow:hidden;background:var(--dark-secondary);cursor:pointer;group" onclick="window.location.href='./index.html?reel=${reel.$id}'">
         <video
           src="${reel.videoUrl}#t=0.5"
           style="width:100%;height:100%;object-fit:cover;"
@@ -178,8 +180,66 @@ class DashboardManager {
             <span>👁️</span><span>${this.formatNumber(reel.views || 0)}</span>
           </div>
         </div>
+        <button style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,0.6);border:none;color:#fff;width:28px;height:28px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:background 0.2s;" onmouseover="this.style.background='rgba(220,38,38,0.8)'" onmouseout="this.style.background='rgba(0,0,0,0.6)'" onclick="event.stopPropagation(); window.dashboardManager.confirmDelete('${reel.$id}', '${(reel.title || 'Video').replace(/'/g, "\\'")}');" title="Delete video">🗑️</button>
       </div>
     `;
+  }
+
+  // ===== DELETE REEL FUNCTIONALITY =====
+  confirmDelete(reelId, title) {
+    const modal = document.createElement('div');
+    modal.id = 'delete-confirm-modal';
+    modal.style.cssText = `position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;`;
+    modal.innerHTML = `
+      <div style="background:var(--dark-card,#1a1a1a);border-radius:16px;width:100%;max-width:320px;border:1px solid #ef4444;">
+        <div style="padding:20px;text-align:center;">
+          <div style="font-size:40px;margin-bottom:12px;">⚠️</div>
+          <h3 style="color:#fff;margin:0 0 8px;font-size:18px;">Delete Video?</h3>
+          <p style="color:var(--text-secondary,#888);margin:0 0 20px;font-size:14px;">
+            <strong>"${escapeHtml(title)}"</strong> will be permanently deleted.
+          </p>
+          <div style="display:flex;gap:12px;">
+            <button onclick="document.getElementById('delete-confirm-modal').remove()" style="flex:1;background:var(--dark-bg,#000);border:1px solid var(--border-color,#333);border-radius:8px;padding:12px;color:var(--text-primary,#fff);font-weight:600;cursor:pointer;">Cancel</button>
+            <button id="confirm-delete-btn" onclick="window.dashboardManager.deleteReel('${reelId}')" style="flex:1;background:#ef4444;border:none;border-radius:8px;padding:12px;color:#fff;font-weight:600;cursor:pointer;">Delete</button>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  }
+
+  async deleteReel(reelId) {
+    const btn = document.getElementById('confirm-delete-btn');
+    const modal = document.getElementById('delete-confirm-modal');
+    
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = '⏳ Deleting...';
+    }
+
+    try {
+      // Soft delete — set isDeleted flag instead of removing document
+      await db.update(APPWRITE_CONFIG.COLLECTIONS.REELS, reelId, {
+        isDeleted: true
+      });
+
+      console.log('✅ Video deleted (soft delete)');
+      Toast.success('🗑️ Video deleted');
+      
+      // Remove from UI
+      if (modal) modal.remove();
+      
+      // Reload videos
+      await this.loadMyReels();
+
+    } catch (error) {
+      console.error('Delete failed:', error);
+      Toast.error('Failed to delete video');
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = 'Delete';
+      }
+    }
   }
 
   setupEventListeners() {
@@ -597,4 +657,4 @@ if (document.readyState === 'loading') {
   window.dashboardManager = new DashboardManager();
 }
 
-console.log('✅ Dashboard Manager Loaded (with bankUpiId fix + real views)');
+console.log('✅ Dashboard Manager Loaded (with delete videos + bankUpiId fix + real views)');
