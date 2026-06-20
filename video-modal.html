@@ -2,460 +2,890 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Watch Reel - GorkhaReels</title>
-  <meta name="theme-color" content="#0B5E6B">
-  <!-- ✅ FAVICON -->
-  <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon/logo-3-minimalist-icon-32x32.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Reels - GorkhaReels</title>
+  <meta name="theme-color" content="#000000">
+  <link rel="icon" type="image/png" href="/icons/favicon/logo-3-minimalist-icon-32x32.png">
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; background: #000; }
-    body { display: flex; flex-direction: column; overflow: hidden; font-family: system-ui; }
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html { touch-action: manipulation; }   /* kills double-tap zoom delay + zoom */
+    html, body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #000; color: #fff; height: 100%; width: 100%;
+      overflow: hidden; overscroll-behavior: none;
+    }
 
-    .video-header {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 50;
-      background: linear-gradient(135deg, #0B5E6B 0%, #0D7377 100%);
-      padding: 12px 16px;
+    /* Vertical snap feed */
+    .feed {
+      position: fixed; inset: 0;
+      overflow-y: scroll; scroll-snap-type: y mandatory;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-y;                 /* allow vertical pan, block pinch */
+      scrollbar-width: none;
+    }
+    .feed::-webkit-scrollbar { display: none; }
+
+    .slide {
+      position: relative;
+      height: 100%; width: 100%;
+      scroll-snap-align: start; scroll-snap-stop: always;
+      display: flex; align-items: center; justify-content: center;
+      background: #000;
+    }
+    .slide-frame { position: relative; width: 100%; height: 100%; max-width: 500px; overflow: hidden; }
+
+    .slide-video {
+      width: 100%; height: 100%; object-fit: contain; background: #000;
+    }
+
+    .tap-zone { position: absolute; inset: 0; z-index: 5; }
+    .play-overlay {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+      width: 76px; height: 76px; border-radius: 50%; background: rgba(0,0,0,0.4);
+      display: none; align-items: center; justify-content: center;
+      z-index: 6; pointer-events: none; font-size: 34px; padding-left: 4px;
+    }
+    .play-overlay.show { display: flex; }
+
+    /* Top bar (fixed, above feed) */
+    .top-bar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 30;
       display: flex; align-items: center; justify-content: space-between;
-      border-bottom: 1px solid rgba(212, 165, 116, 0.75);
-      box-shadow: 0 1px 0 rgba(232, 196, 160, 0.18), 0 4px 24px rgba(11, 94, 107, 0.3);
+      padding: 14px 14px 30px; max-width: 500px; margin: 0 auto;
+      background: linear-gradient(rgba(0,0,0,0.45), transparent); pointer-events: none;
     }
-    .header-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
-    .header-logo { width: 40px; height: 40px; border-radius: 8px; flex-shrink: 0; background: rgba(255,255,255,0.15); object-fit: cover; }
-    .header-text { min-width: 0; }
-    .header-title { font-size: 16px; font-weight: 800; letter-spacing: 0.3px; line-height: 1.1; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.25); }
-    .header-tagline { font-size: 10px; font-weight: 600; color: #D4A574; margin-top: 1px; letter-spacing: 0.3px; }
-    .header-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
-    .header-btn { width: 36px; height: 36px; border: none; border-radius: 50%; background: rgba(255,255,255,0.15); color: #fff; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
-    .header-btn:active { background: rgba(255,255,255,0.25); }
-
-    .video-container {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-      background: #000;
-      margin-top: 60px;
+    .top-bar button { pointer-events: auto; }
+    .top-back, .top-mute {
+      width: 40px; height: 40px; border: none; border-radius: 50%;
+      background: rgba(0,0,0,0.3); color: #fff; font-size: 22px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
     }
+    .top-back { font-size: 26px; }
+    .top-title { font-size: 16px; font-weight: 700; }
 
-    video {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      background: #000;
-      display: block;
+    /* Right rail */
+    .right-rail {
+      position: absolute; right: 10px; bottom: 130px; z-index: 10;
+      display: flex; flex-direction: column; gap: 20px; align-items: center;
     }
-
-    .watermark {
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      width: 80px;
-      height: 80px;
-      opacity: 0.7;
-      pointer-events: none;
-      z-index: 10;
+    .rail-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; background: none; border: none; color: #fff; cursor: pointer; }
+    .rail-icon {
+      width: 46px; height: 46px; border-radius: 50%; background: rgba(0,0,0,0.28);
+      display: flex; align-items: center; justify-content: center; font-size: 26px; transition: transform 0.15s;
     }
+    .rail-btn:active .rail-icon { transform: scale(0.82); }
+    .rail-count { font-size: 12px; font-weight: 600; text-shadow: 0 1px 3px rgba(0,0,0,0.6); }
+    .rail-btn.liked .rail-icon { background: rgba(11,94,107,0.3); }
+    .rail-avatar { width: 46px; height: 46px; border-radius: 50%; border: 2px solid #fff; overflow: hidden; background: #333; }
+    .rail-avatar img { width: 100%; height: 100%; object-fit: cover; }
 
-    .video-info {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      z-index: 40;
-      background: linear-gradient(transparent, rgba(0,0,0,0.9) 40%);
-      color: #fff;
-      padding: 60px 16px 16px;
-      max-height: 40vh;
-      overflow-y: auto;
+    /* Bottom info */
+    .bottom-info {
+      position: absolute; left: 0; right: 70px; bottom: 0; z-index: 9;
+      padding: 14px 16px 26px; background: linear-gradient(transparent, rgba(0,0,0,0.75) 60%);
     }
+    .creator-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .creator-avatar { width: 38px; height: 38px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.5); overflow: hidden; background: #333; flex-shrink: 0; }
+    .creator-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .creator-name { font-size: 15px; font-weight: 700; text-shadow: 0 1px 3px rgba(0,0,0,0.6); }
+    .follow-btn { margin-left: 4px; padding: 5px 14px; background: transparent; border: 1px solid #fff; border-radius: 8px; color: #fff; font-size: 13px; font-weight: 700; cursor: pointer; }
+    .follow-btn.following { border-color: rgba(255,255,255,0.4); color: rgba(255,255,255,0.7); }
+    .caption { font-size: 14px; line-height: 1.4; margin-bottom: 8px; text-shadow: 0 1px 3px rgba(0,0,0,0.7); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .caption.expanded { -webkit-line-clamp: unset; }
+    .caption-title { font-weight: 700; }
+    .hashtag-row { display: flex; flex-wrap: wrap; gap: 8px; }
+    .hashtag { font-size: 13px; font-weight: 600; color: #D4A574; cursor: pointer; text-shadow: 0 1px 3px rgba(0,0,0,0.7); }
 
-    .creator-card {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 16px;
-      cursor: pointer;
+    /* Comment sheet */
+    .sheet-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 90; display: none; }
+    .sheet-backdrop.open { display: block; }
+    .comment-sheet {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 100;
+      max-width: 500px; margin: 0 auto; height: 65vh;
+      background: #161616; border-radius: 16px 16px 0 0;
+      transform: translateY(100%); transition: transform 0.28s ease;
+      display: flex; flex-direction: column;
     }
+    .comment-sheet.open { transform: translateY(0); }
+    .sheet-header { display: flex; align-items: center; justify-content: space-between; padding: 16px; border-bottom: 1px solid #262626; font-weight: 700; }
+    .sheet-close { background: none; border: none; color: #fff; font-size: 22px; cursor: pointer; }
+    .comment-list { flex: 1; overflow-y: auto; padding: 8px 16px; }
+    .comment { display: flex; gap: 10px; padding: 10px 0; }
+    .comment-avatar { width: 36px; height: 36px; border-radius: 50%; background: #333; overflow: hidden; flex-shrink: 0; }
+    .comment-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .comment-body { flex: 1; min-width: 0; }
+    .comment-name { font-size: 13px; font-weight: 700; }
+    .comment-time { font-size: 11px; color: #8e8e93; margin-left: 6px; font-weight: 400; }
+    .comment-text { font-size: 14px; line-height: 1.4; margin-top: 2px; word-wrap: break-word; }
+    .comment-empty { text-align: center; color: #8e8e93; padding: 40px 20px; }
+    .comment-input-row { display: flex; gap: 10px; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); border-top: 1px solid #262626; }
+    .comment-input { flex: 1; background: #262626; border: none; border-radius: 20px; padding: 11px 16px; color: #fff; font-size: 14px; outline: none; }
+    .comment-send { background: none; border: none; color: #0D7377; font-weight: 700; font-size: 14px; cursor: pointer; padding: 0 6px; }
+    .comment-send:disabled { color: #555; }
 
-    .creator-avatar {
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      object-fit: cover;
-      flex-shrink: 0;
-      border: 2px solid #D4A574;
+    /* Action menu (⋯) */
+    .menu-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 110; display: none; }
+    .menu-backdrop.open { display: block; }
+    .action-menu {
+      position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 120;
+      max-width: 476px; margin: 0 auto;
+      transform: translateY(140%); transition: transform 0.25s ease;
     }
-
-    .creator-info { flex: 1; min-width: 0; }
-    .creator-name { font-size: 15px; font-weight: 700; }
-    .verified-badge {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 16px;
-      height: 16px;
-      background: #0284c7;
-      border-radius: 50%;
-      color: #fff;
-      font-size: 10px;
-      margin-left: 4px;
-      vertical-align: middle;
+    .action-menu.open { transform: translateY(0); }
+    .menu-items { background: #1c1c1e; border-radius: 14px; overflow: hidden; margin-bottom: 8px; }
+    .menu-item {
+      width: 100%; padding: 16px; background: none; border: none; color: #fff;
+      font-size: 16px; cursor: pointer; display: flex; align-items: center; gap: 12px;
+      border-bottom: 1px solid #2c2c2e; text-align: left;
     }
-    .creator-stats { font-size: 12px; color: #aaa; }
-
-    .reel-title {
-      font-size: 16px;
-      font-weight: 700;
-      margin-bottom: 10px;
-      line-height: 1.3;
-    }
-
-    .reel-description {
-      font-size: 13px;
-      color: #ccc;
-      margin-bottom: 12px;
-      line-height: 1.4;
+    .menu-item:last-child { border-bottom: none; }
+    .menu-item.danger { color: #ff453a; }
+    .menu-cancel {
+      width: 100%; padding: 16px; background: #1c1c1e; border: none; border-radius: 14px;
+      color: #fff; font-size: 16px; font-weight: 700; cursor: pointer;
     }
 
-    .reel-hashtags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-bottom: 16px;
-      font-size: 13px;
+    /* Edit sheet */
+    .edit-sheet {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 120;
+      max-width: 500px; margin: 0 auto; max-height: 85vh;
+      background: #161616; border-radius: 16px 16px 0 0;
+      transform: translateY(100%); transition: transform 0.28s ease;
+      display: flex; flex-direction: column;
     }
-
-    .hashtag {
-      color: #D4A574;
-      cursor: pointer;
+    .edit-sheet.open { transform: translateY(0); }
+    .edit-body { padding: 16px 16px calc(16px + env(safe-area-inset-bottom)); overflow-y: auto; }
+    .edit-label { display: block; font-size: 12px; font-weight: 600; color: #8e8e93; margin: 14px 0 6px; text-transform: uppercase; letter-spacing: 0.3px; }
+    .edit-input {
+      width: 100%; background: #262626; border: 1px solid #333; border-radius: 10px;
+      padding: 12px 14px; color: #fff; font-size: 15px; outline: none; resize: none;
+      font-family: inherit;
     }
-
-    .hashtag:active { opacity: 0.7; }
-
-    .action-buttons {
-      display: flex;
-      gap: 10px;
-      margin-top: 16px;
+    .edit-input:focus { border-color: #0D7377; }
+    .edit-save {
+      width: 100%; margin-top: 20px; padding: 15px; border: none; border-radius: 12px;
+      background: linear-gradient(135deg, #0B5E6B, #0D7377); color: #fff;
+      font-size: 16px; font-weight: 800; cursor: pointer;
     }
+    .edit-save:disabled { opacity: 0.5; }
 
-    .action-btn {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      padding: 10px;
-      background: #1a1a1a;
-      border: 1px solid #2d2d2d;
-      color: #fff;
-      font-size: 14px;
-      font-weight: 600;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
+    /* Confirm dialog */
+    .confirm-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 130; display: none; align-items: center; justify-content: center; padding: 24px; }
+    .confirm-backdrop.open { display: flex; }
+    .confirm-box { background: #1f1f1f; border-radius: 16px; padding: 22px; max-width: 320px; width: 100%; text-align: center; }
+    .confirm-title { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+    .confirm-msg { font-size: 14px; color: #a3a3a3; line-height: 1.4; margin-bottom: 20px; }
+    .confirm-actions { display: flex; gap: 10px; }
+    .confirm-cancel, .confirm-delete { flex: 1; padding: 12px; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; }
+    .confirm-cancel { background: #333; color: #fff; }
+    .confirm-delete { background: #0B5E6B; color: #fff; }
 
-    .action-btn:active { background: #262626; }
-    .action-btn.like.liked { background: #4b0000; border-color: #8b0000; color: #ff6b6b; }
+    .loading { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%); color: #888; z-index: 20; }
+    .error { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%); color: #ef4444; background: rgba(0,0,0,0.7); padding: 16px 20px; border-radius: 12px; max-width: 80%; text-align: center; z-index: 40; }
 
-    .follow-btn {
-      width: 100%;
-      padding: 12px;
-      background: linear-gradient(135deg, #0B5E6B, #0D7377);
-      border: none;
-      border-radius: 8px;
-      color: #fff;
-      font-size: 15px;
-      font-weight: 700;
-      cursor: pointer;
-      margin-top: 12px;
-      transition: opacity 0.15s;
-      box-shadow: 0 4px 12px rgba(11,94,107,.3);
-    }
-
-    .follow-btn:active { opacity: 0.8; }
-    .follow-btn.following { background: #262626; color: #aaa; box-shadow: none; }
-
-    .drawer-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 150; display: none; }
-    .drawer-backdrop.open { display: block; }
-    .drawer { position: fixed; top: 0; right: 0; bottom: 0; width: 80%; max-width: 320px; background: #161616; z-index: 160; transform: translateX(100%); transition: transform 0.25s ease; display: flex; flex-direction: column; box-shadow: -4px 0 20px rgba(0,0,0,0.5); }
-    .drawer.open { transform: translateX(0); }
-    .drawer-head { background: linear-gradient(135deg, #0B5E6B, #0D7377); padding: 20px 16px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(212, 165, 116, 0.75); }
-    .drawer-head img { width: 40px; height: 40px; border-radius: 10px; background: rgba(255,255,255,0.15); }
-    .drawer-head .dh-title { font-size: 16px; font-weight: 800; }
-    .drawer-head .dh-sub { font-size: 11px; color: #D4A574; font-weight: 600; }
-    .drawer-items { flex: 1; overflow-y: auto; padding: 8px 0; }
-    .drawer-item { width: 100%; display: flex; align-items: center; gap: 14px; padding: 15px 18px; background: none; border: none; color: #fff; font-size: 15px; cursor: pointer; text-align: left; }
-    .drawer-item:active { background: #222; }
-    .drawer-item .di-icon { font-size: 20px; width: 26px; text-align: center; }
-    .drawer-sep { height: 1px; background: #262626; margin: 6px 18px; }
-    .drawer-item-danger { color: #ef4444; }
-
-    .loading { text-align: center; padding: 20px; color: #888; }
-
-    @media (min-width: 768px) {
-      .video-container { margin-top: 0; }
-      .video-info { max-height: 50%; }
-    }
+    .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: rgba(40,40,40,0.95); color: #fff; padding: 10px 18px; border-radius: 20px; font-size: 13px; z-index: 200; animation: toastIn 0.25s ease; }
+    .toast.error { background: rgba(239,68,68,0.95); }
+    @keyframes toastIn { from { opacity: 0; transform: translate(-50%, 10px); } }
   </style>
 </head>
 <body>
+  <div class="feed" id="feed"></div>
 
-  <!-- ===== TEAL HEADER WITH WORDMARK ===== -->
-  <header class="video-header">
-    <div class="header-left">
-      <img class="header-logo" src="/icons/wordmark/logo-2-wordmark-300x300.png" alt="GorkhaReels">
-      <div class="header-text">
-        <div class="header-title">GorkhaReels</div>
-        <div class="header-tagline">Gorkha Stories, Global Reach</div>
-      </div>
-    </div>
-    <div class="header-right">
-      <button class="header-btn" onclick="window.location='index.html'" aria-label="Back">‹</button>
-      <button class="header-btn" id="open-drawer" aria-label="Menu">☰</button>
-    </div>
-  </header>
-
-  <div class="video-container">
-    <video id="main-video" controls playsinline></video>
-    <!-- ✅ WATERMARK OVERLAY -->
-    <img src="/icons/watermark/logo-8-minimalist-dark-80x80.png" alt="GorkhaReels" class="watermark">
+  <div class="top-bar">
+    <button class="top-back" onclick="window.history.length > 1 ? window.history.back() : window.location.href='./index.html'">‹</button>
+    <div class="top-title">Reels</div>
+    <button class="top-mute" id="top-mute">🔇</button>
   </div>
 
-  <div class="video-info" id="video-info">
-    <div class="loading">Loading video...</div>
+  <div class="loading" id="loading">Loading…</div>
+  <div class="error" id="error" style="display:none;"></div>
+
+  <!-- Action menu (⋯) -->
+  <div class="menu-backdrop" id="menu-backdrop"></div>
+  <div class="action-menu" id="action-menu">
+    <div class="menu-items" id="menu-items"></div>
+    <button class="menu-cancel" id="menu-cancel">Cancel</button>
   </div>
 
-  <!-- ===== APP DRAWER ===== -->
-  <div class="drawer-backdrop" id="drawer-backdrop"></div>
-  <aside class="drawer" id="drawer">
-    <div class="drawer-head">
-      <img src="/icons/wordmark/logo-2-wordmark-300x300.png" alt="GorkhaReels" style="height:36px;width:auto;">
-      <div>
-        <div class="dh-title">GorkhaReels</div>
-        <div class="dh-sub">Gorkha Stories, Global Reach</div>
+  <!-- Edit sheet (owner only) -->
+  <div class="sheet-backdrop" id="edit-backdrop"></div>
+  <div class="edit-sheet" id="edit-sheet">
+    <div class="sheet-header">
+      <span>Edit reel</span>
+      <button class="sheet-close" id="edit-close">✕</button>
+    </div>
+    <div class="edit-body">
+      <label class="edit-label">Title</label>
+      <input class="edit-input" id="edit-title" maxlength="100" placeholder="Title">
+      <label class="edit-label">Description</label>
+      <textarea class="edit-input" id="edit-desc" rows="3" maxlength="300" placeholder="Description"></textarea>
+      <label class="edit-label">Hashtags (comma separated)</label>
+      <input class="edit-input" id="edit-tags" placeholder="dance, nepali, fun">
+      <label class="edit-label">Category</label>
+      <select class="edit-input" id="edit-category">
+        <option value="sports">⚽ Sports</option>
+        <option value="entertainment">🎭 Entertainment</option>
+        <option value="music">🎵 Music</option>
+        <option value="dance">💃 Dance</option>
+        <option value="comedy">😂 Comedy</option>
+        <option value="education">📚 Education</option>
+        <option value="vlog">📹 Vlog</option>
+        <option value="other">✨ Other</option>
+      </select>
+      <button class="edit-save" id="edit-save">Save changes</button>
+    </div>
+  </div>
+
+  <!-- Confirm dialog -->
+  <div class="confirm-backdrop" id="confirm-backdrop">
+    <div class="confirm-box">
+      <div class="confirm-title" id="confirm-title">Delete this reel?</div>
+      <div class="confirm-msg" id="confirm-msg">This will remove it from GorkhaReels. This can’t be undone easily.</div>
+      <div class="confirm-actions">
+        <button class="confirm-cancel" id="confirm-cancel">Cancel</button>
+        <button class="confirm-delete" id="confirm-ok">Delete</button>
       </div>
     </div>
-    <div class="drawer-items">
-      <button class="drawer-item" onclick="window.location='index.html'"><span class="di-icon">🏠</span> Home</button>
-      <button class="drawer-item" onclick="window.location='trending.html'"><span class="di-icon">🔥</span> Trending</button>
-      <button class="drawer-item" onclick="window.location='creator-dashboard.html'"><span class="di-icon">👤</span> My Profile</button>
-      <button class="drawer-item" onclick="window.location='creator-dashboard.html#edit'"><span class="di-icon">✏️</span> Edit Profile</button>
-      <div class="drawer-sep"></div>
-      <button class="drawer-item drawer-item-danger" id="drawer-logout"><span class="di-icon">🚪</span> Logout</button>
-    </div>
-  </aside>
+  </div>
 
+  <!-- Comment sheet -->
+  <div class="sheet-backdrop" id="sheet-backdrop"></div>
+  <div class="comment-sheet" id="comment-sheet">
+    <div class="sheet-header">
+      <span id="sheet-count">Comments</span>
+      <button class="sheet-close" id="sheet-close">✕</button>
+    </div>
+    <div class="comment-list" id="comment-list"></div>
+    <div class="comment-input-row">
+      <input class="comment-input" id="comment-input" placeholder="Add comment…" maxlength="500">
+      <button class="comment-send" id="comment-send">Post</button>
+    </div>
+  </div>
+
+  <!-- Appwrite SDK v18 -->
   <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
   <script src="js/appwrite-config.js"></script>
   <script>
-    class VideoPlayer {
+    /* ---------- Block all zoom (pinch, double-tap, iOS gesture) ---------- */
+    document.addEventListener('touchmove', e => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
+    document.addEventListener('gesturestart', e => e.preventDefault());
+    document.addEventListener('gesturechange', e => e.preventDefault());
+    let _lastTap = 0;
+    document.addEventListener('touchend', e => {
+      const now = Date.now();
+      if (now - _lastTap <= 300) e.preventDefault();
+      _lastTap = now;
+    }, { passive: false });
+
+    /* ---------- Helpers ---------- */
+    function formatNum(n) {
+      n = n || 0;
+      if (n >= 1000000) return (n / 1000000).toFixed(1).replace('.0', '') + 'M';
+      if (n >= 1000) return (n / 1000).toFixed(1).replace('.0', '') + 'K';
+      return String(n);
+    }
+    function timeAgo(iso) {
+      const s = Math.floor((Date.now() - new Date(iso)) / 1000);
+      if (isNaN(s)) return '';
+      if (s < 60) return s + 's';
+      if (s < 3600) return Math.floor(s / 60) + 'm';
+      if (s < 86400) return Math.floor(s / 3600) + 'h';
+      return Math.floor(s / 86400) + 'd';
+    }
+    function showToast(msg, isError) {
+      const t = document.createElement('div');
+      t.className = 'toast' + (isError ? ' error' : '');
+      t.textContent = msg;
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 2200);
+    }
+    const C = APPWRITE_CONFIG.COLLECTIONS;
+
+    /* ---------- Reel feed ---------- */
+    class ReelFeed {
       constructor() {
-        this.reelId = new URLSearchParams(window.location.search).get('reelId');
-        this.reel = null;
-        this.creator = null;
-        this.isLiked = false;
-        this.isFollowing = false;
+        this.startId = new URLSearchParams(location.search).get('reelId')
+          || new URLSearchParams(location.search).get('id');
+        this.allReels = [];
+        this.queue = [];
+        this.qPtr = 0;
+        this.muted = true;
+        this.likedSet = new Set();    // reelIds liked by current user
+        this.followingSet = new Set();
+        this.viewedSet = new Set();   // avoid double-counting views
+        this.activeReelId = null;     // for comment sheet context
+        this.feed = document.getElementById('feed');
         this.init();
       }
 
       async init() {
-        if (!this.reelId) { alert('No video ID'); window.location = 'index.html'; return; }
-        await session.refresh();
-        this.setupDrawer();
-        await this.loadVideo();
-      }
-
-      setupDrawer() {
-        const open = () => { document.getElementById('drawer').classList.add('open'); document.getElementById('drawer-backdrop').classList.add('open'); };
-        const close = () => { document.getElementById('drawer').classList.remove('open'); document.getElementById('drawer-backdrop').classList.remove('open'); };
-        document.getElementById('open-drawer').onclick = open;
-        document.getElementById('drawer-backdrop').onclick = close;
-        document.querySelectorAll('.drawer-item').forEach(btn => btn.addEventListener('click', close));
-        document.getElementById('drawer-logout').onclick = async () => {
-          try { await session.logout(); } catch (e) {}
-          window.location = 'login.html';
-        };
-      }
-
-      async loadVideo() {
         try {
-          this.reel = await db.get(APPWRITE_CONFIG.COLLECTIONS.REELS, this.reelId);
-          if (this.reel.isDeleted) { alert('Video deleted'); window.location = 'index.html'; return; }
-
-          this.creator = await db.get(APPWRITE_CONFIG.COLLECTIONS.CREATORS, this.reel.creatorId);
-
-          const vid = document.getElementById('main-video');
-          vid.src = this.reel.videoUrl;
-          vid.addEventListener('play', () => this.recordView());
-
-          if (session.isLoggedIn()) {
-            const likes = await db.list(APPWRITE_CONFIG.COLLECTIONS.LIKES, [
-              Query.equal('reelId', this.reelId),
-              Query.equal('userId', session.getUserId()),
-              Query.limit(1)
-            ]);
-            this.isLiked = likes.total > 0;
-
-            const follows = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [
-              Query.equal('followerId', session.getUserId()),
-              Query.equal('followingId', this.creator.$id),
-              Query.limit(1)
-            ]);
-            this.isFollowing = follows.total > 0;
-          }
-
-          this.renderInfo();
-        } catch (error) {
-          console.error('Video load failed:', error);
-          document.getElementById('video-info').innerHTML = '<div class="loading">Failed to load video</div>';
+          await session.refresh();
+          await this.loadAll();
+          if (!this.allReels.length) { this.showError('No videos available'); return; }
+          if (session.isLoggedIn()) await this.preloadUserState();
+          this.buildQueue();
+          this.setupObserver();
+          this.setupGlobalUI();
+          this.renderMore(6);
+          document.getElementById('loading').style.display = 'none';
+        } catch (err) {
+          console.error('Init failed:', err);
+          this.showError('Error: ' + err.message);
         }
       }
 
-      async recordView() {
-        try {
-          await db.update(APPWRITE_CONFIG.COLLECTIONS.REELS, this.reelId, {
-            views: (this.reel.views || 0) + 1
-          });
-          this.reel.views = (this.reel.views || 0) + 1;
-        } catch (e) { console.error('View record failed:', e); }
+      async loadAll() {
+        const res = await db.list(C.REELS, [Query.equal('isDeleted', false), Query.limit(100)]);
+        this.allReels = res.documents;
       }
 
-      renderInfo() {
-        const info = document.getElementById('video-info');
-        const likes = this.reel.likes || 0;
-        const hashtags = (this.reel.hashtags || []).map(tag => `<span class="hashtag">${escapeHtml(tag)}</span>`).join(' ');
+      async preloadUserState() {
+        const uid = session.getUserId();
+        try {
+          const likes = await db.list(C.LIKES, [Query.equal('userId', uid), Query.limit(100)]);
+          likes.documents.forEach(l => this.likedSet.add(l.reelId));
+        } catch (e) {}
+        try {
+          const f = await db.list(C.FOLLOWERS, [Query.equal('followerId', uid), Query.limit(100)]);
+          f.documents.forEach(d => this.followingSet.add(d.followingId));
+        } catch (e) {}
+      }
 
-        let html = `
-          <div class="creator-card" onclick="window.location='creator-profile.html?userId=${this.creator.$id}'">
-            <img class="creator-avatar" src="${this.creator.profilePic || '/icons/primary/logo-1-app-icon-180x180.png'}" onerror="this.src='/icons/primary/logo-1-app-icon-180x180.png'">
-            <div class="creator-info">
-              <div class="creator-name">${escapeHtml(this.creator.name || 'Creator')}${this.creator.isVerified ? '<span class="verified-badge">✓</span>' : ''}</div>
-              <div class="creator-stats">${this.reel.views || 0} views</div>
+      buildQueue() {
+        const start = this.allReels.find(r => r.$id === this.startId) || this.allReels[0];
+        const startCat = start.category;
+        const startTags = (start.hashtags || '').toLowerCase().split(',').map(t => t.trim()).filter(Boolean);
+
+        const related = this.allReels.filter(r => {
+          if (r.$id === start.$id) return false;
+          if (startCat && r.category === startCat) return true;
+          if (startTags.length && r.hashtags) {
+            const tags = r.hashtags.toLowerCase().split(',').map(t => t.trim());
+            return tags.some(t => startTags.includes(t));
+          }
+          return false;
+        });
+        const relIds = new Set(related.map(r => r.$id));
+        const rest = this.allReels
+          .filter(r => r.$id !== start.$id && !relIds.has(r.$id))
+          .sort((a, b) => (b.views || 0) - (a.views || 0));
+
+        this.queue = [start, ...related, ...rest].filter(Boolean);
+      }
+
+      setupObserver() {
+        this.observer = new IntersectionObserver(entries => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting && entry.intersectionRatio >= 0.6) {
+              this.setActive(entry.target);
+            }
+          });
+        }, { threshold: [0, 0.6, 1] });
+
+        // Infinite: append more as user nears the end
+        this.feed.addEventListener('scroll', () => {
+          const { scrollTop, clientHeight, scrollHeight } = this.feed;
+          if (scrollTop + clientHeight >= scrollHeight - clientHeight * 1.5) {
+            this.renderMore(4);
+          }
+        });
+      }
+
+      setupGlobalUI() {
+        // Manual mute toggle (top-right) — also marks that the user has chosen
+        document.getElementById('top-mute').onclick = () => {
+          this.userChoseMute = true;
+          this.setMuted(!this.muted);
+        };
+
+        // First interaction anywhere unmutes (browsers block autoplay-with-sound
+        // until the user interacts once — after that we keep sound on for the session)
+        const unmuteOnce = () => {
+          if (!this.userChoseMute && this.muted) this.setMuted(false);
+          window.removeEventListener('pointerdown', unmuteOnce);
+          window.removeEventListener('touchstart', unmuteOnce);
+          window.removeEventListener('keydown', unmuteOnce);
+        };
+        window.addEventListener('pointerdown', unmuteOnce, { once: false });
+        window.addEventListener('touchstart', unmuteOnce, { once: false });
+        window.addEventListener('keydown', unmuteOnce, { once: false });
+
+        document.getElementById('sheet-close').onclick = () => this.closeComments();
+        document.getElementById('sheet-backdrop').onclick = () => this.closeComments();
+
+        // Action menu
+        document.getElementById('menu-cancel').onclick = () => this.closeMenu();
+        document.getElementById('menu-backdrop').onclick = () => this.closeMenu();
+
+        // Edit sheet
+        document.getElementById('edit-close').onclick = () => this.closeEdit();
+        document.getElementById('edit-backdrop').onclick = () => this.closeEdit();
+        document.getElementById('edit-save').onclick = () => this.saveEdit();
+
+        // Confirm delete
+        document.getElementById('confirm-cancel').onclick = () => this.closeConfirm();
+        document.getElementById('confirm-ok').onclick = () => this.doDelete();
+        const input = document.getElementById('comment-input');
+        const send = document.getElementById('comment-send');
+        send.onclick = () => this.postComment();
+        input.addEventListener('keydown', e => { if (e.key === 'Enter') this.postComment(); });
+      }
+
+      renderMore(n = 4) {
+        for (let i = 0; i < n; i++) {
+          if (!this.queue.length) return;
+          const reel = this.queue[this.qPtr % this.queue.length];
+          this.qPtr++;
+          this.buildSlide(reel);
+        }
+      }
+
+      buildSlide(reel) {
+        const liked = this.likedSet.has(reel.$id);
+        const slide = document.createElement('div');
+        slide.className = 'slide';
+        slide.dataset.id = reel.$id;
+        slide.dataset.creator = reel.creatorId;
+
+        const isOwn = session.isLoggedIn() && session.getUserId() === reel.creatorId;
+        const following = this.followingSet.has(reel.creatorId);
+        const avatar = reel.creatorProfilePic || '/icons/primary/logo-1-app-icon-180x180.png';
+        const name = reel.creatorName || 'Creator';
+
+        const tagsHtml = (reel.hashtags || '').split(',').map(t => t.trim().replace(/^#/, '')).filter(Boolean)
+          .map(t => `<span class="hashtag" data-tag="${escapeHtml(t)}">#${escapeHtml(t)}</span>`).join('');
+
+        slide.innerHTML = `
+          <div class="slide-frame">
+            <video class="slide-video" playsinline loop muted data-src="${reel.videoUrl}"></video>
+            <div class="tap-zone"></div>
+            <div class="play-overlay">▶</div>
+
+            <div class="right-rail">
+              <button class="rail-btn like-btn ${liked ? 'liked' : ''}">
+                <div class="rail-icon">${liked ? '❤️' : '🤍'}</div>
+                <div class="rail-count like-count">${formatNum(reel.likes)}</div>
+              </button>
+              <button class="rail-btn comment-btn">
+                <div class="rail-icon">💬</div>
+                <div class="rail-count comment-count">${formatNum(reel.comments)}</div>
+              </button>
+              <button class="rail-btn share-btn">
+                <div class="rail-icon">↗️</div>
+                <div class="rail-count share-count">${formatNum(reel.shares)}</div>
+              </button>
+              <button class="rail-btn more-btn">
+                <div class="rail-icon">⋯</div>
+              </button>
             </div>
-          </div>
 
-          <div class="reel-title">${escapeHtml(this.reel.title || '')}</div>
-          ${this.reel.description ? `<div class="reel-description">${escapeHtml(this.reel.description)}</div>` : ''}
-          ${hashtags ? `<div class="reel-hashtags">${hashtags}</div>` : ''}
-
-          <div class="action-buttons">
-            <button class="action-btn like ${this.isLiked ? 'liked' : ''}" id="like-btn" onclick="videoPlayer.toggleLike()">
-              <span>${this.isLiked ? '❤️' : '🤍'}</span>
-              <span>${likes}</span>
-            </button>
-            <button class="action-btn" onclick="alert('Comments coming soon')">
-              <span>💬</span>
-              <span>0</span>
-            </button>
-            <button class="action-btn" onclick="alert('Share coming soon')">
-              <span>📤</span>
-              <span>Share</span>
-            </button>
+            <div class="bottom-info">
+              <div class="creator-row">
+                <div class="creator-avatar go-profile"><img src="${avatar}" alt=""></div>
+                <div class="creator-name go-profile">${escapeHtml(name)}</div>
+                ${isOwn ? '' : `<button class="follow-btn ${following ? 'following' : ''}">${following ? 'Following' : 'Follow'}</button>`}
+              </div>
+              <div class="caption">
+                <span class="caption-title">${escapeHtml(reel.title || '')}</span>
+                <span>${reel.description ? ' ' + escapeHtml(reel.description) : ''}</span>
+              </div>
+              <div class="hashtag-row">${tagsHtml}</div>
+            </div>
           </div>
         `;
 
-        if (session.isLoggedIn() && session.getUserId() !== this.creator.$id) {
-          html += `
-            <button class="follow-btn ${this.isFollowing ? 'following' : ''}" id="follow-btn" onclick="videoPlayer.toggleFollow()">
-              ${this.isFollowing ? 'Following' : 'Follow'}
-            </button>
-          `;
-        }
+        // Handlers
+        const video = slide.querySelector('.slide-video');
+        const overlay = slide.querySelector('.play-overlay');
+        slide.querySelector('.tap-zone').onclick = () => {
+          if (video.paused) { video.play(); overlay.classList.remove('show'); }
+          else { video.pause(); overlay.classList.add('show'); }
+        };
+        slide.querySelector('.like-btn').onclick = () => this.toggleLike(reel, slide);
+        slide.querySelector('.comment-btn').onclick = () => this.openComments(reel, slide);
+        slide.querySelector('.share-btn').onclick = () => this.shareReel(reel, slide);
+        slide.querySelector('.more-btn').onclick = () => this.openMenu(reel, slide);
+        slide.querySelector('.caption').onclick = e => e.currentTarget.classList.toggle('expanded');
+        slide.querySelectorAll('.go-profile').forEach(el => el.onclick = () => location.href = `creator-profile.html?userId=${reel.creatorId}`);
+        slide.querySelectorAll('.hashtag').forEach(el => el.onclick = () => location.href = `search.html?hashtag=${encodeURIComponent(el.dataset.tag)}`);
+        const fBtn = slide.querySelector('.follow-btn');
+        if (fBtn) fBtn.onclick = () => this.toggleFollow(reel.creatorId, fBtn);
 
-        info.innerHTML = html;
+        this.feed.appendChild(slide);
+        this.observer.observe(slide);
       }
 
-      async toggleLike() {
-        if (!session.isLoggedIn()) { window.location = 'login.html'; return; }
-        const btn = document.getElementById('like-btn');
-        if (btn.dataset.busy === '1') return;
-        btn.dataset.busy = '1'; btn.disabled = true;
-
-        try {
-          if (this.isLiked) {
-            const likes = await db.list(APPWRITE_CONFIG.COLLECTIONS.LIKES, [
-              Query.equal('reelId', this.reelId),
-              Query.equal('userId', session.getUserId()),
-              Query.limit(1)
-            ]);
-            if (likes.documents.length > 0) {
-              await db.remove(APPWRITE_CONFIG.COLLECTIONS.LIKES, likes.documents[0].$id);
-            }
-            this.isLiked = false;
-            this.reel.likes = Math.max(0, (this.reel.likes || 0) - 1);
-          } else {
-            const existing = await db.list(APPWRITE_CONFIG.COLLECTIONS.LIKES, [
-              Query.equal('reelId', this.reelId),
-              Query.equal('userId', session.getUserId()),
-              Query.limit(1)
-            ]);
-            if (existing.total === 0) {
-              await db.create(APPWRITE_CONFIG.COLLECTIONS.LIKES, {
-                likeId: ID.unique(),
-                reelId: this.reelId,
-                userId: session.getUserId(),
-                createdAt: new Date().toISOString()
-              });
-            }
-            this.isLiked = true;
-            this.reel.likes = (this.reel.likes || 0) + 1;
-          }
-          this.renderInfo();
-        } catch (error) {
-          console.error('Like toggle failed:', error);
-        } finally {
-          btn.disabled = false; btn.dataset.busy = '0';
+      setMuted(muted) {
+        this.muted = muted;
+        document.getElementById('top-mute').textContent = muted ? '🔇' : '🔊';
+        this.feed.querySelectorAll('.slide-video').forEach(v => { v.muted = muted; });
+        // If we just unmuted, make sure the active video is actually playing
+        if (!muted) {
+          const active = this.feed.querySelector('.slide')
+            && Array.from(this.feed.querySelectorAll('.slide'))
+              .find(s => s.dataset.id === this.activeReelId);
+          const v = active && active.querySelector('.slide-video');
+          if (v && v.paused) v.play().catch(() => {});
         }
       }
 
-      async toggleFollow() {
-        if (!session.isLoggedIn()) { window.location = 'login.html'; return; }
-        const btn = document.getElementById('follow-btn');
-        if (btn.dataset.busy === '1') return;
-        btn.data.busy = '1'; btn.disabled = true; btn.textContent = '...';
+      setActive(slide) {
+        const reelId = slide.dataset.id;
+        this.activeReelId = reelId;
+        // Pause everything else, play this
+        this.feed.querySelectorAll('.slide-video').forEach(v => {
+          if (v !== slide.querySelector('.slide-video')) { v.pause(); }
+        });
+        const video = slide.querySelector('.slide-video');
+        if (!video.src && video.dataset.src) video.src = video.dataset.src;
+        const overlay = slide.querySelector('.play-overlay');
 
-        try {
-          if (this.isFollowing) {
-            const follows = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [
-              Query.equal('followerId', session.getUserId()),
-              Query.equal('followingId', this.creator.$id),
-              Query.limit(1)
-            ]);
-            if (follows.documents.length > 0) {
-              await db.remove(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, follows.documents[0].$id);
-            }
-            this.isFollowing = false;
+        // Try to honour the current sound choice. If the browser blocks
+        // autoplay-with-sound, retry muted so the video still plays.
+        video.muted = this.muted;
+        video.play().catch(() => {
+          if (!video.muted) {
+            video.muted = true;
+            video.play().catch(() => overlay.classList.add('show'));
           } else {
-            const existing = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [
-              Query.equal('followerId', session.getUserId()),
-              Query.equal('followingId', this.creator.$id),
-              Query.limit(1)
-            ]);
-            if (existing.total === 0) {
-              await db.create(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, {
-                followId: ID.unique(),
-                followerId: session.getUserId(),
-                followingId: this.creator.$id,
-                CreatorId: this.creator.$id,
-                createdAt: new Date().toISOString()
-              });
-            }
-            this.isFollowing = true;
+            overlay.classList.add('show');
           }
-          this.renderInfo();
-        } catch (error) {
-          console.error('Follow toggle failed:', error);
-        } finally {
-          btn.disabled = false; btn.dataset.busy = '0';
+        });
+        this.countView(reelId);
+      }
+
+      async countView(reelId) {
+        if (this.viewedSet.has(reelId)) return;
+        this.viewedSet.add(reelId);
+        const reel = this.allReels.find(r => r.$id === reelId);
+        if (!reel) return;
+        try {
+          await db.update(C.REELS, reelId, { views: (reel.views || 0) + 1 });
+          reel.views = (reel.views || 0) + 1;
+        } catch (e) {}
+      }
+
+      /* ---------- Likes (FIX: include required creatorId) ---------- */
+      async toggleLike(reel, slide) {
+        if (!session.isLoggedIn()) { location.href = 'login.html'; return; }
+        const uid = session.getUserId();
+        const btn = slide.querySelector('.like-btn');
+        const icon = btn.querySelector('.rail-icon');
+        const countEl = btn.querySelector('.like-count');
+        try {
+          if (this.likedSet.has(reel.$id)) {
+            const likes = await db.list(C.LIKES, [Query.equal('reelId', reel.$id), Query.equal('userId', uid)]);
+            if (likes.documents.length) await db.remove(C.LIKES, likes.documents[0].$id);
+            this.likedSet.delete(reel.$id);
+            reel.likes = Math.max(0, (reel.likes || 1) - 1);
+            btn.classList.remove('liked'); icon.textContent = '🤍';
+          } else {
+            const likeId = ID.unique();
+            await db.create(C.LIKES, {
+              likeId,
+              reelId: reel.$id,
+              creatorId: reel.creatorId,   // ← REQUIRED field that was missing
+              userId: uid,
+              createdAt: new Date().toISOString()
+            }, likeId);
+            this.likedSet.add(reel.$id);
+            reel.likes = (reel.likes || 0) + 1;
+            btn.classList.add('liked'); icon.textContent = '❤️';
+          }
+          await db.update(C.REELS, reel.$id, { likes: reel.likes });
+          countEl.textContent = formatNum(reel.likes);
+        } catch (err) {
+          console.error('Like failed:', err);
+          showToast('Could not update like', true);
         }
+      }
+
+      async toggleFollow(creatorId, btn) {
+        if (!session.isLoggedIn()) { location.href = 'login.html'; return; }
+        const uid = session.getUserId();
+        if (uid === creatorId) return;
+        try {
+          if (this.followingSet.has(creatorId)) {
+            const f = await db.list(C.FOLLOWERS, [Query.equal('followerId', uid), Query.equal('followingId', creatorId)]);
+            if (f.documents.length) await db.remove(C.FOLLOWERS, f.documents[0].$id);
+            this.followingSet.delete(creatorId);
+            btn.classList.remove('following'); btn.textContent = 'Follow';
+          } else {
+            const followId = ID.unique();
+            await db.create(C.FOLLOWERS, {
+              followId, followerId: uid, followingId: creatorId,
+              createdAt: new Date().toISOString(), CreatorId: creatorId
+            }, followId);
+            this.followingSet.add(creatorId);
+            btn.classList.add('following'); btn.textContent = 'Following';
+          }
+        } catch (err) {
+          console.error('Follow failed:', err);
+          showToast('Could not update follow', true);
+        }
+      }
+
+      async shareReel(reel, slide) {
+        const url = `${location.origin}${location.pathname}?reelId=${reel.$id}`;
+        try {
+          if (navigator.share) {
+            await navigator.share({ title: reel.title, text: reel.description || '', url });
+            reel.shares = (reel.shares || 0) + 1;
+            db.update(C.REELS, reel.$id, { shares: reel.shares }).catch(() => {});
+            slide.querySelector('.share-count').textContent = formatNum(reel.shares);
+          } else {
+            await navigator.clipboard.writeText(url);
+            showToast('Link copied!');
+          }
+        } catch (e) {}
+      }
+
+      /* ---------- Action menu (⋯) — role-based ---------- */
+      openMenu(reel, slide) {
+        const isOwner = session.isLoggedIn() && session.getUserId() === reel.creatorId;
+        const items = document.getElementById('menu-items');
+        items.innerHTML = '';
+
+        const add = (label, icon, handler, danger) => {
+          const b = document.createElement('button');
+          b.className = 'menu-item' + (danger ? ' danger' : '');
+          b.innerHTML = `<span>${icon}</span> ${label}`;
+          b.onclick = () => { this.closeMenu(); handler(); };
+          items.appendChild(b);
+        };
+
+        if (isOwner) {
+          // Owner: manage their own reel
+          add('Edit', '✏️', () => this.openEdit(reel, slide));
+          add('Copy link', '🔗', () => this.copyLink(reel));
+          add('Delete', '🗑️', () => this.confirmDelete(reel, slide), true);
+        } else {
+          // Non-owner: safe public actions only
+          add('Share', '↗️', () => this.shareReel(reel, slide));
+          add('Copy link', '🔗', () => this.copyLink(reel));
+          add('Report', '🚩', () => this.reportReel(reel), true);
+        }
+
+        document.getElementById('menu-backdrop').classList.add('open');
+        document.getElementById('action-menu').classList.add('open');
+      }
+
+      closeMenu() {
+        document.getElementById('menu-backdrop').classList.remove('open');
+        document.getElementById('action-menu').classList.remove('open');
+      }
+
+      async copyLink(reel) {
+        const url = `${location.origin}${location.pathname}?reelId=${reel.$id}`;
+        try { await navigator.clipboard.writeText(url); showToast('Link copied!'); }
+        catch (e) { showToast('Could not copy', true); }
+      }
+
+      async reportReel(reel) {
+        if (!session.isLoggedIn()) { location.href = 'login.html'; return; }
+        try {
+          const reportId = ID.unique();
+          await db.create(C.REPORTS, {
+            reportId,
+            reportedBy: session.getUserId(),
+            reportedCreatorId: reel.creatorId,
+            reelId: reel.$id,
+            reason: 'inappropriate',
+            description: '',
+            status: 'pending',
+            createdAt: new Date().toISOString()
+          }, reportId);
+          showToast('Reported. Thank you.');
+        } catch (err) {
+          console.error('Report failed:', err);
+          showToast('Could not report', true);
+        }
+      }
+
+      /* ---------- Edit (owner) ---------- */
+      openEdit(reel, slide) {
+        this._editReel = reel;
+        this._editSlide = slide;
+        document.getElementById('edit-title').value = reel.title || '';
+        document.getElementById('edit-desc').value = reel.description || '';
+        document.getElementById('edit-tags').value = (reel.hashtags || '').split(',').map(t => t.trim().replace(/^#/, '')).filter(Boolean).join(', ');
+        document.getElementById('edit-category').value = reel.category || 'other';
+        document.getElementById('edit-backdrop').classList.add('open');
+        document.getElementById('edit-sheet').classList.add('open');
+      }
+
+      closeEdit() {
+        document.getElementById('edit-backdrop').classList.remove('open');
+        document.getElementById('edit-sheet').classList.remove('open');
+      }
+
+      async saveEdit() {
+        const reel = this._editReel;
+        if (!reel) return;
+        const saveBtn = document.getElementById('edit-save');
+        saveBtn.disabled = true;
+        try {
+          const title = document.getElementById('edit-title').value.trim();
+          const description = document.getElementById('edit-desc').value.trim();
+          const hashtags = document.getElementById('edit-tags').value
+            .split(',').map(t => t.trim().replace(/^#/, '')).filter(Boolean).join(',');
+          const category = document.getElementById('edit-category').value;
+
+          if (!title) { showToast('Title required', true); saveBtn.disabled = false; return; }
+
+          await db.update(C.REELS, reel.$id, { title, description, hashtags, category });
+
+          // Update local + slide UI
+          reel.title = title; reel.description = description; reel.hashtags = hashtags; reel.category = category;
+          if (this._editSlide) {
+            this._editSlide.querySelector('.caption').innerHTML =
+              `<span class="caption-title">${escapeHtml(title)}</span><span>${description ? ' ' + escapeHtml(description) : ''}</span>`;
+            this._editSlide.querySelector('.caption').onclick = e => e.currentTarget.classList.toggle('expanded');
+            const row = this._editSlide.querySelector('.hashtag-row');
+            row.innerHTML = hashtags.split(',').map(t => t.trim()).filter(Boolean)
+              .map(t => `<span class="hashtag" data-tag="${escapeHtml(t)}">#${escapeHtml(t)}</span>`).join('');
+            row.querySelectorAll('.hashtag').forEach(el => el.onclick = () => location.href = `search.html?hashtag=${encodeURIComponent(el.dataset.tag)}`);
+          }
+          this.closeEdit();
+          showToast('Saved');
+        } catch (err) {
+          console.error('Edit save failed:', err);
+          showToast('Could not save', true);
+        } finally {
+          saveBtn.disabled = false;
+        }
+      }
+
+      /* ---------- Delete (owner) — soft delete ---------- */
+      confirmDelete(reel, slide) {
+        this._delReel = reel;
+        this._delSlide = slide;
+        document.getElementById('confirm-backdrop').classList.add('open');
+      }
+
+      closeConfirm() {
+        document.getElementById('confirm-backdrop').classList.remove('open');
+      }
+
+      async doDelete() {
+        const reel = this._delReel;
+        if (!reel) return;
+        try {
+          await db.update(C.REELS, reel.$id, { isDeleted: true });
+          // Remove from feed + queue
+          if (this._delSlide) { this.observer.unobserve(this._delSlide); this._delSlide.remove(); }
+          this.queue = this.queue.filter(r => r.$id !== reel.$id);
+          this.allReels = this.allReels.filter(r => r.$id !== reel.$id);
+          this.closeConfirm();
+          showToast('Reel deleted');
+          // If nothing left on screen, go back
+          if (!this.feed.querySelector('.slide')) {
+            setTimeout(() => window.history.length > 1 ? window.history.back() : (location.href = 'index.html'), 600);
+          }
+        } catch (err) {
+          console.error('Delete failed:', err);
+          showToast('Could not delete', true);
+        }
+      }
+
+      async openComments(reel, slide) {
+        this.activeCommentReel = reel;
+        this.activeCommentSlide = slide;
+        document.getElementById('sheet-backdrop').classList.add('open');
+        document.getElementById('comment-sheet').classList.add('open');
+        const listEl = document.getElementById('comment-list');
+        listEl.innerHTML = '<div class="comment-empty">Loading…</div>';
+        try {
+          const res = await db.list(C.COMMENTS, [
+            Query.equal('reelId', reel.$id),
+            Query.equal('isDeleted', false),
+            Query.limit(100)
+          ]);
+          const comments = res.documents.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+          document.getElementById('sheet-count').textContent = `${formatNum(comments.length)} comments`;
+          if (!comments.length) {
+            listEl.innerHTML = '<div class="comment-empty">No comments yet.<br>Be the first!</div>';
+            return;
+          }
+          listEl.innerHTML = '';
+          comments.forEach(c => listEl.appendChild(this.commentEl(c)));
+        } catch (err) {
+          console.error('Load comments failed:', err);
+          listEl.innerHTML = '<div class="comment-empty">Could not load comments</div>';
+        }
+      }
+
+      commentEl(c) {
+        const el = document.createElement('div');
+        el.className = 'comment';
+        el.innerHTML = `
+          <div class="comment-avatar"><img src="${c.creatorProfilePic || '/icons/primary/logo-1-app-icon-180x180.png'}" alt=""></div>
+          <div class="comment-body">
+            <div><span class="comment-name">${escapeHtml(c.creatorName || 'User')}</span><span class="comment-time">${timeAgo(c.createdAt)}</span></div>
+            <div class="comment-text">${escapeHtml(c.text || '')}</div>
+          </div>
+        `;
+        return el;
+      }
+
+      async postComment() {
+        if (!session.isLoggedIn()) { location.href = 'login.html'; return; }
+        const input = document.getElementById('comment-input');
+        const text = input.value.trim();
+        if (!text) return;
+        const reel = this.activeCommentReel;
+        const send = document.getElementById('comment-send');
+        send.disabled = true;
+        try {
+          const now = new Date().toISOString();
+          const commentId = ID.unique();
+          const data = {
+            commentId,
+            reelId: reel.$id,
+            creatorId: session.getUserId(),          // commenter's id
+            text,
+            likes: 0,
+            createdAt: now,
+            updatedAt: now,                          // ← REQUIRED
+            isDeleted: false,
+            creatorName: session.currentUser?.name || 'User',
+            creatorProfilePic: session.currentUser?.prefs?.avatar || ''
+          };
+          await db.create(C.COMMENTS, data, commentId);
+
+          // Prepend to list
+          const listEl = document.getElementById('comment-list');
+          if (listEl.querySelector('.comment-empty')) listEl.innerHTML = '';
+          listEl.insertBefore(this.commentEl(data), listEl.firstChild);
+          input.value = '';
+
+          // Bump count on reel + slide
+          reel.comments = (reel.comments || 0) + 1;
+          db.update(C.REELS, reel.$id, { comments: reel.comments }).catch(() => {});
+          if (this.activeCommentSlide) this.activeCommentSlide.querySelector('.comment-count').textContent = formatNum(reel.comments);
+          document.getElementById('sheet-count').textContent = `${formatNum(reel.comments)} comments`;
+        } catch (err) {
+          console.error('Post comment failed:', err);
+          showToast('Could not post comment', true);
+        } finally {
+          send.disabled = false;
+        }
+      }
+
+      closeComments() {
+        document.getElementById('sheet-backdrop').classList.remove('open');
+        document.getElementById('comment-sheet').classList.remove('open');
+      }
+
+      showError(msg) {
+        document.getElementById('loading').style.display = 'none';
+        const e = document.getElementById('error');
+        e.style.display = 'block'; e.textContent = msg;
       }
     }
 
-    let videoPlayer;
-    document.addEventListener('DOMContentLoaded', () => { videoPlayer = new VideoPlayer(); });
+    window.addEventListener('load', () => new ReelFeed());
   </script>
 </body>
 </html>
