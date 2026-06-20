@@ -5,15 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>New Reel - GorkhaReels</title>
   <meta name="theme-color" content="#0B5E6B">
-  <!-- ✅ UPDATED FAVICON -->
+  <!-- ✅ FAVICON -->
   <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon/logo-3-minimalist-icon-32x32.png">
   <link rel="stylesheet" href="css/styles.css">
 
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #0f0f0f; overflow-x: hidden; }
 
-    /* ===== BRAND BANNER (TEAL + GOLD CARD) ===== */
     .upload-header {
       display: flex;
       align-items: center;
@@ -23,8 +21,8 @@
       position: sticky;
       top: 0;
       z-index: 100;
-      border-bottom: 3px solid #D4A574;
-      box-shadow: 0 4px 16px rgba(11, 94, 107, 0.4);
+      border-bottom: 1px solid rgba(212, 165, 116, 0.75);
+      box-shadow: 0 1px 0 rgba(232, 196, 160, 0.18), 0 4px 24px rgba(11, 94, 107, 0.3);
     }
 
     .upload-back {
@@ -38,19 +36,14 @@
       display: flex; 
       align-items: center; 
       justify-content: center;
-      backdrop-filter: blur(8px);
     }
 
-    .upload-back:active { background: rgba(255,255,255,0.25); }
-
-    /* ===== CARD STYLING ===== */
     #upload-header-title {
       font-size: 17px;
       font-weight: 700;
       color: #fff;
       flex: 1;
       text-align: center;
-      text-shadow: 0 1px 3px rgba(0,0,0,0.4);
     }
 
     .header-spacer { width: 36px; }
@@ -171,11 +164,11 @@
 
     .form-input:focus, .form-textarea:focus, .form-select:focus {
       outline: none;
-      border-color: #0B5E6B;
-      box-shadow: 0 0 8px rgba(11, 94, 107, 0.3);
+      border-color: #D4A574;
+      box-shadow: 0 0 8px rgba(212, 165, 116, 0.3);
     }
 
-    .form-textarea { resize: none; }
+    .form-textarea { resize: none; min-height: 100px; }
     .form-select option { background: #1a1a1a; }
 
     .form-row {
@@ -329,11 +322,10 @@
 
       <div class="form-field">
         <label class="form-label">Description</label>
-        <textarea id="post-description" class="form-textarea" rows="3" placeholder="What's this reel about?" maxlength="300" oninput="updateHashtagSuggestions()"></textarea>
+        <textarea id="post-description" class="form-textarea" placeholder="What's this reel about?" maxlength="300" oninput="updateHashtagSuggestions()"></textarea>
         <div class="char-count" id="desc-count">0/300</div>
       </div>
 
-      <!-- HASHTAG SECTION -->
       <div class="form-field">
         <div class="hashtag-section">
           <div class="hashtag-label">
@@ -380,19 +372,16 @@
   <script src="js/upload.js"></script>
 
   <script>
-    // Hashtag extraction helpers
     const COMMON_WORDS = new Set(['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'can', 'your', 'my', 'his', 'her', 'this', 'that', 'it', 'as', 'from', 'by', 'with', 'about', 'into', 'through', 'during', 'before', 'after', 'above', 'below', 'up', 'down', 'out', 'off', 'over', 'under', 'again', 'further', 'then', 'once', 'here', 'there', 'when', 'where', 'why', 'how']);
 
     function extractHashtagsFromText(text) {
       if (!text) return [];
-      
       const words = text
         .toLowerCase()
         .replace(/#\S+/g, '')
         .split(/[\s\-_.,:;!?()]+/)
         .filter(w => w.length >= 3 && !COMMON_WORDS.has(w))
         .slice(0, 8);
-
       return [...new Set(words)];
     }
 
@@ -400,16 +389,12 @@
       const title = document.getElementById('post-title').value;
       const desc = document.getElementById('post-description').value;
       const combined = (title + ' ' + desc).trim();
-
       const suggestions = extractHashtagsFromText(combined);
       const categoryVal = document.getElementById('post-category').value.toLowerCase();
-      
       if (!suggestions.includes(categoryVal)) {
         suggestions.unshift(categoryVal);
       }
-
       renderHashtagSuggestions(suggestions);
-
       document.getElementById('title-count').textContent = title.length + '/100';
       document.getElementById('desc-count').textContent = desc.length + '/300';
     }
@@ -417,13 +402,11 @@
     function renderHashtagSuggestions(suggestions) {
       const container = document.getElementById('suggested-hashtags');
       const selected = window.uploader?.selectedHashtags || new Set();
-
       let html = suggestions.map(word => {
         const tag = '#' + word;
         const isActive = selected.has(tag);
         return `<button type="button" class="hashtag-btn ${isActive ? 'active' : ''}" onclick="toggleHashtag('${tag}')">${tag}</button>`;
       }).join('');
-
       container.innerHTML = html;
       updateSelectedHashtagsDisplay();
     }
@@ -441,20 +424,17 @@
     function updateSelectedHashtagsDisplay() {
       const container = document.getElementById('selected-hashtags');
       const selected = window.uploader?.selectedHashtags || new Set();
-
       if (selected.size === 0) {
         container.innerHTML = '';
         document.getElementById('hashtag-count').textContent = '0';
         return;
       }
-
       let html = Array.from(selected).map(tag => `
         <div class="hashtag-badge">
           ${tag}
           <button type="button" onclick="toggleHashtag('${tag}')">✕</button>
         </div>
       `).join('');
-
       container.innerHTML = html;
       document.getElementById('hashtag-count').textContent = selected.size;
     }
