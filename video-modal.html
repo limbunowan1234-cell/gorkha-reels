@@ -2,224 +2,296 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Video - GorkhaReels</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Reels - GorkhaReels</title>
   <meta name="theme-color" content="#000000">
   <link rel="icon" type="image/png" href="assets/logo.png">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html { touch-action: manipulation; }   /* kills double-tap zoom delay + zoom */
     html, body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: #000; color: #fff; overflow: hidden;
-      height: 100%; width: 100%;
+      background: #000; color: #fff; height: 100%; width: 100%;
+      overflow: hidden; overscroll-behavior: none;
     }
 
-    /* Center the reel; on desktop it's a phone-width column */
-    .reel-container {
+    /* Vertical snap feed */
+    .feed {
       position: fixed; inset: 0;
+      overflow-y: scroll; scroll-snap-type: y mandatory;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-y;                 /* allow vertical pan, block pinch */
+      scrollbar-width: none;
+    }
+    .feed::-webkit-scrollbar { display: none; }
+
+    .slide {
+      position: relative;
+      height: 100%; width: 100%;
+      scroll-snap-align: start; scroll-snap-stop: always;
       display: flex; align-items: center; justify-content: center;
       background: #000;
     }
+    .slide-frame { position: relative; width: 100%; height: 100%; max-width: 500px; overflow: hidden; }
 
-    .reel-frame {
-      position: relative;
-      width: 100%; height: 100%;
-      max-width: 500px;
-      background: #000; overflow: hidden;
+    .slide-video {
+      width: 100%; height: 100%; object-fit: contain; background: #000;
     }
 
-    #video-player {
-      width: 100%; height: 100%;
-      object-fit: contain;   /* never crop property text/phone numbers */
-      background: #000;
-    }
-
-    /* Tap anywhere to play/pause */
-    .tap-zone {
-      position: absolute; inset: 0; z-index: 5;
-    }
-
+    .tap-zone { position: absolute; inset: 0; z-index: 5; }
     .play-overlay {
-      position: absolute; top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      width: 76px; height: 76px; border-radius: 50%;
-      background: rgba(0,0,0,0.45);
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+      width: 76px; height: 76px; border-radius: 50%; background: rgba(0,0,0,0.4);
       display: none; align-items: center; justify-content: center;
-      z-index: 6; pointer-events: none;
-      font-size: 34px; padding-left: 4px;
+      z-index: 6; pointer-events: none; font-size: 34px; padding-left: 4px;
     }
     .play-overlay.show { display: flex; }
 
-    /* Top bar */
+    /* Top bar (fixed, above feed) */
     .top-bar {
-      position: absolute; top: 0; left: 0; right: 0;
+      position: fixed; top: 0; left: 0; right: 0; z-index: 30;
       display: flex; align-items: center; justify-content: space-between;
-      padding: 14px 14px 30px;
-      background: linear-gradient(rgba(0,0,0,0.5), transparent);
-      z-index: 10;
+      padding: 14px 14px 30px; max-width: 500px; margin: 0 auto;
+      background: linear-gradient(rgba(0,0,0,0.45), transparent); pointer-events: none;
     }
-    .top-back {
+    .top-bar button { pointer-events: auto; }
+    .top-back, .top-mute {
       width: 40px; height: 40px; border: none; border-radius: 50%;
-      background: rgba(0,0,0,0.3); color: #fff; font-size: 26px;
-      cursor: pointer; display: flex; align-items: center; justify-content: center;
-    }
-    .top-title { font-size: 16px; font-weight: 700; }
-    .top-spacer { width: 40px; }
-
-    /* Right action rail */
-    .right-rail {
-      position: absolute; right: 10px; bottom: 140px;
-      display: flex; flex-direction: column; gap: 22px;
-      z-index: 10; align-items: center;
-    }
-    .rail-btn {
-      display: flex; flex-direction: column; align-items: center; gap: 4px;
-      background: none; border: none; color: #fff; cursor: pointer;
-    }
-    .rail-icon {
-      width: 46px; height: 46px; border-radius: 50%;
-      background: rgba(0,0,0,0.28);
+      background: rgba(0,0,0,0.3); color: #fff; font-size: 22px; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
-      font-size: 26px; transition: transform 0.15s;
     }
-    .rail-btn:active .rail-icon { transform: scale(0.85); }
+    .top-back { font-size: 26px; }
+    .top-title { font-size: 16px; font-weight: 700; }
+
+    /* Right rail */
+    .right-rail {
+      position: absolute; right: 10px; bottom: 130px; z-index: 10;
+      display: flex; flex-direction: column; gap: 20px; align-items: center;
+    }
+    .rail-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; background: none; border: none; color: #fff; cursor: pointer; }
+    .rail-icon {
+      width: 46px; height: 46px; border-radius: 50%; background: rgba(0,0,0,0.28);
+      display: flex; align-items: center; justify-content: center; font-size: 26px; transition: transform 0.15s;
+    }
+    .rail-btn:active .rail-icon { transform: scale(0.82); }
     .rail-count { font-size: 12px; font-weight: 600; text-shadow: 0 1px 3px rgba(0,0,0,0.6); }
     .rail-btn.liked .rail-icon { background: rgba(220,38,38,0.25); }
-
-    .rail-avatar {
-      width: 46px; height: 46px; border-radius: 50%;
-      border: 2px solid #fff; overflow: hidden; background: #333;
-      margin-bottom: 2px;
-    }
+    .rail-avatar { width: 46px; height: 46px; border-radius: 50%; border: 2px solid #fff; overflow: hidden; background: #333; }
     .rail-avatar img { width: 100%; height: 100%; object-fit: cover; }
 
     /* Bottom info */
     .bottom-info {
-      position: absolute; left: 0; right: 70px; bottom: 0;
-      padding: 14px 16px 24px;
-      background: linear-gradient(transparent, rgba(0,0,0,0.75) 60%);
-      z-index: 9;
+      position: absolute; left: 0; right: 70px; bottom: 0; z-index: 9;
+      padding: 14px 16px 26px; background: linear-gradient(transparent, rgba(0,0,0,0.75) 60%);
     }
-    .creator-row {
-      display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
-    }
-    .creator-avatar {
-      width: 38px; height: 38px; border-radius: 50%;
-      border: 1px solid rgba(255,255,255,0.5); overflow: hidden;
-      background: #333; flex-shrink: 0; cursor: pointer;
-    }
+    .creator-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .creator-avatar { width: 38px; height: 38px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.5); overflow: hidden; background: #333; flex-shrink: 0; }
     .creator-avatar img { width: 100%; height: 100%; object-fit: cover; }
-    .creator-name {
-      font-size: 15px; font-weight: 700; cursor: pointer;
-      text-shadow: 0 1px 3px rgba(0,0,0,0.6);
-    }
-    .follow-btn {
-      margin-left: 4px; padding: 5px 14px;
-      background: transparent; border: 1px solid #fff; border-radius: 8px;
-      color: #fff; font-size: 13px; font-weight: 700; cursor: pointer;
-    }
+    .creator-name { font-size: 15px; font-weight: 700; text-shadow: 0 1px 3px rgba(0,0,0,0.6); }
+    .follow-btn { margin-left: 4px; padding: 5px 14px; background: transparent; border: 1px solid #fff; border-radius: 8px; color: #fff; font-size: 13px; font-weight: 700; cursor: pointer; }
     .follow-btn.following { border-color: rgba(255,255,255,0.4); color: rgba(255,255,255,0.7); }
-
-    .caption {
-      font-size: 14px; line-height: 1.4; margin-bottom: 8px;
-      text-shadow: 0 1px 3px rgba(0,0,0,0.7);
-      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
-      overflow: hidden; cursor: pointer;
-    }
+    .caption { font-size: 14px; line-height: 1.4; margin-bottom: 8px; text-shadow: 0 1px 3px rgba(0,0,0,0.7); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     .caption.expanded { -webkit-line-clamp: unset; }
     .caption-title { font-weight: 700; }
-
     .hashtag-row { display: flex; flex-wrap: wrap; gap: 8px; }
-    .hashtag {
-      font-size: 13px; font-weight: 600; color: #7cc4ff;
-      cursor: pointer; text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+    .hashtag { font-size: 13px; font-weight: 600; color: #7cc4ff; cursor: pointer; text-shadow: 0 1px 3px rgba(0,0,0,0.7); }
+
+    /* Comment sheet */
+    .sheet-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 90; display: none; }
+    .sheet-backdrop.open { display: block; }
+    .comment-sheet {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 100;
+      max-width: 500px; margin: 0 auto; height: 65vh;
+      background: #161616; border-radius: 16px 16px 0 0;
+      transform: translateY(100%); transition: transform 0.28s ease;
+      display: flex; flex-direction: column;
+    }
+    .comment-sheet.open { transform: translateY(0); }
+    .sheet-header { display: flex; align-items: center; justify-content: space-between; padding: 16px; border-bottom: 1px solid #262626; font-weight: 700; }
+    .sheet-close { background: none; border: none; color: #fff; font-size: 22px; cursor: pointer; }
+    .comment-list { flex: 1; overflow-y: auto; padding: 8px 16px; }
+    .comment { display: flex; gap: 10px; padding: 10px 0; }
+    .comment-avatar { width: 36px; height: 36px; border-radius: 50%; background: #333; overflow: hidden; flex-shrink: 0; }
+    .comment-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .comment-body { flex: 1; min-width: 0; }
+    .comment-name { font-size: 13px; font-weight: 700; }
+    .comment-time { font-size: 11px; color: #8e8e93; margin-left: 6px; font-weight: 400; }
+    .comment-text { font-size: 14px; line-height: 1.4; margin-top: 2px; word-wrap: break-word; }
+    .comment-empty { text-align: center; color: #8e8e93; padding: 40px 20px; }
+    .comment-input-row { display: flex; gap: 10px; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); border-top: 1px solid #262626; }
+    .comment-input { flex: 1; background: #262626; border: none; border-radius: 20px; padding: 11px 16px; color: #fff; font-size: 14px; outline: none; }
+    .comment-send { background: none; border: none; color: #f97316; font-weight: 700; font-size: 14px; cursor: pointer; padding: 0 6px; }
+    .comment-send:disabled { color: #555; }
+
+    /* Action menu (⋯) */
+    .menu-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 110; display: none; }
+    .menu-backdrop.open { display: block; }
+    .action-menu {
+      position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 120;
+      max-width: 476px; margin: 0 auto;
+      transform: translateY(140%); transition: transform 0.25s ease;
+    }
+    .action-menu.open { transform: translateY(0); }
+    .menu-items { background: #1c1c1e; border-radius: 14px; overflow: hidden; margin-bottom: 8px; }
+    .menu-item {
+      width: 100%; padding: 16px; background: none; border: none; color: #fff;
+      font-size: 16px; cursor: pointer; display: flex; align-items: center; gap: 12px;
+      border-bottom: 1px solid #2c2c2e; text-align: left;
+    }
+    .menu-item:last-child { border-bottom: none; }
+    .menu-item.danger { color: #ff453a; }
+    .menu-cancel {
+      width: 100%; padding: 16px; background: #1c1c1e; border: none; border-radius: 14px;
+      color: #fff; font-size: 16px; font-weight: 700; cursor: pointer;
     }
 
-    .loading {
-      position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
-      color: #888; z-index: 7;
+    /* Edit sheet */
+    .edit-sheet {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 120;
+      max-width: 500px; margin: 0 auto; max-height: 85vh;
+      background: #161616; border-radius: 16px 16px 0 0;
+      transform: translateY(100%); transition: transform 0.28s ease;
+      display: flex; flex-direction: column;
     }
-    .error {
-      position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
-      color: #ff6b35; background: rgba(0,0,0,0.7); padding: 16px 20px;
-      border-radius: 12px; max-width: 80%; text-align: center; z-index: 11;
+    .edit-sheet.open { transform: translateY(0); }
+    .edit-body { padding: 16px 16px calc(16px + env(safe-area-inset-bottom)); overflow-y: auto; }
+    .edit-label { display: block; font-size: 12px; font-weight: 600; color: #8e8e93; margin: 14px 0 6px; text-transform: uppercase; letter-spacing: 0.3px; }
+    .edit-input {
+      width: 100%; background: #262626; border: 1px solid #333; border-radius: 10px;
+      padding: 12px 14px; color: #fff; font-size: 15px; outline: none; resize: none;
+      font-family: inherit;
     }
+    .edit-input:focus { border-color: #f97316; }
+    .edit-save {
+      width: 100%; margin-top: 20px; padding: 15px; border: none; border-radius: 12px;
+      background: linear-gradient(135deg, #dc2626, #f97316); color: #fff;
+      font-size: 16px; font-weight: 800; cursor: pointer;
+    }
+    .edit-save:disabled { opacity: 0.5; }
 
-    /* Toasts */
-    .toast {
-      position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
-      background: rgba(40,40,40,0.95); color: #fff; padding: 10px 18px;
-      border-radius: 20px; font-size: 13px; z-index: 200;
-      animation: toastIn 0.25s ease;
-    }
+    /* Confirm dialog */
+    .confirm-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 130; display: none; align-items: center; justify-content: center; padding: 24px; }
+    .confirm-backdrop.open { display: flex; }
+    .confirm-box { background: #1f1f1f; border-radius: 16px; padding: 22px; max-width: 320px; width: 100%; text-align: center; }
+    .confirm-title { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+    .confirm-msg { font-size: 14px; color: #a3a3a3; line-height: 1.4; margin-bottom: 20px; }
+    .confirm-actions { display: flex; gap: 10px; }
+    .confirm-cancel, .confirm-delete { flex: 1; padding: 12px; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; }
+    .confirm-cancel { background: #333; color: #fff; }
+    .confirm-delete { background: #dc2626; color: #fff; }
+
+    .loading { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%); color: #888; z-index: 20; }
+    .error { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%); color: #ff6b35; background: rgba(0,0,0,0.7); padding: 16px 20px; border-radius: 12px; max-width: 80%; text-align: center; z-index: 40; }
+
+    .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: rgba(40,40,40,0.95); color: #fff; padding: 10px 18px; border-radius: 20px; font-size: 13px; z-index: 200; animation: toastIn 0.25s ease; }
     .toast.error { background: rgba(180,40,40,0.95); }
     @keyframes toastIn { from { opacity: 0; transform: translate(-50%, 10px); } }
   </style>
 </head>
 <body>
-  <div class="reel-container">
-    <div class="reel-frame">
-      <video id="video-player" playsinline loop></video>
-      <div class="tap-zone" id="tap-zone"></div>
-      <div class="play-overlay" id="play-overlay">▶</div>
+  <div class="feed" id="feed"></div>
 
-      <div class="loading" id="loading">Loading…</div>
-      <div class="error" id="error" style="display:none;"></div>
+  <div class="top-bar">
+    <button class="top-back" onclick="window.history.length > 1 ? window.history.back() : window.location.href='./index.html'">‹</button>
+    <div class="top-title">Reels</div>
+    <button class="top-mute" id="top-mute">🔇</button>
+  </div>
 
-      <!-- Top -->
-      <div class="top-bar">
-        <button class="top-back" onclick="window.history.length > 1 ? window.history.back() : window.location.href='./index.html'">‹</button>
-        <div class="top-title">Reels</div>
-        <div class="top-spacer"></div>
-      </div>
+  <div class="loading" id="loading">Loading…</div>
+  <div class="error" id="error" style="display:none;"></div>
 
-      <!-- Right rail -->
-      <div class="right-rail" id="right-rail" style="display:none;">
-        <button class="rail-btn" id="like-btn">
-          <div class="rail-icon" id="like-icon">🤍</div>
-          <div class="rail-count" id="like-count">0</div>
-        </button>
-        <button class="rail-btn" id="comment-btn">
-          <div class="rail-icon">💬</div>
-          <div class="rail-count" id="comment-count">0</div>
-        </button>
-        <button class="rail-btn" id="share-btn">
-          <div class="rail-icon">↗️</div>
-          <div class="rail-count" id="share-count">0</div>
-        </button>
-        <button class="rail-btn" id="mute-btn">
-          <div class="rail-icon" id="mute-icon">🔇</div>
-          <div class="rail-count">Sound</div>
-        </button>
-      </div>
+  <!-- Action menu (⋯) -->
+  <div class="menu-backdrop" id="menu-backdrop"></div>
+  <div class="action-menu" id="action-menu">
+    <div class="menu-items" id="menu-items"></div>
+    <button class="menu-cancel" id="menu-cancel">Cancel</button>
+  </div>
 
-      <!-- Bottom info -->
-      <div class="bottom-info" id="bottom-info" style="display:none;">
-        <div class="creator-row">
-          <div class="creator-avatar" id="creator-avatar"><img id="creator-avatar-img" src="" alt=""></div>
-          <div class="creator-name" id="creator-name"></div>
-          <button class="follow-btn" id="follow-btn">Follow</button>
-        </div>
-        <div class="caption" id="caption">
-          <span class="caption-title" id="caption-title"></span>
-          <span id="caption-desc"></span>
-        </div>
-        <div class="hashtag-row" id="hashtag-row"></div>
+  <!-- Edit sheet (owner only) -->
+  <div class="sheet-backdrop" id="edit-backdrop"></div>
+  <div class="edit-sheet" id="edit-sheet">
+    <div class="sheet-header">
+      <span>Edit reel</span>
+      <button class="sheet-close" id="edit-close">✕</button>
+    </div>
+    <div class="edit-body">
+      <label class="edit-label">Title</label>
+      <input class="edit-input" id="edit-title" maxlength="100" placeholder="Title">
+      <label class="edit-label">Description</label>
+      <textarea class="edit-input" id="edit-desc" rows="3" maxlength="300" placeholder="Description"></textarea>
+      <label class="edit-label">Hashtags (comma separated)</label>
+      <input class="edit-input" id="edit-tags" placeholder="dance, nepali, fun">
+      <label class="edit-label">Category</label>
+      <select class="edit-input" id="edit-category">
+        <option value="sports">⚽ Sports</option>
+        <option value="entertainment">🎭 Entertainment</option>
+        <option value="music">🎵 Music</option>
+        <option value="dance">💃 Dance</option>
+        <option value="comedy">😂 Comedy</option>
+        <option value="education">📚 Education</option>
+        <option value="vlog">📹 Vlog</option>
+        <option value="other">✨ Other</option>
+      </select>
+      <button class="edit-save" id="edit-save">Save changes</button>
+    </div>
+  </div>
+
+  <!-- Confirm dialog -->
+  <div class="confirm-backdrop" id="confirm-backdrop">
+    <div class="confirm-box">
+      <div class="confirm-title" id="confirm-title">Delete this reel?</div>
+      <div class="confirm-msg" id="confirm-msg">This will remove it from GorkhaReels. This can’t be undone easily.</div>
+      <div class="confirm-actions">
+        <button class="confirm-cancel" id="confirm-cancel">Cancel</button>
+        <button class="confirm-delete" id="confirm-ok">Delete</button>
       </div>
     </div>
   </div>
 
-  <!-- Appwrite SDK v18 (matches working upload.html) -->
+  <!-- Comment sheet -->
+  <div class="sheet-backdrop" id="sheet-backdrop"></div>
+  <div class="comment-sheet" id="comment-sheet">
+    <div class="sheet-header">
+      <span id="sheet-count">Comments</span>
+      <button class="sheet-close" id="sheet-close">✕</button>
+    </div>
+    <div class="comment-list" id="comment-list"></div>
+    <div class="comment-input-row">
+      <input class="comment-input" id="comment-input" placeholder="Add comment…" maxlength="500">
+      <button class="comment-send" id="comment-send">Post</button>
+    </div>
+  </div>
+
+  <!-- Appwrite SDK v18 -->
   <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
   <script src="js/appwrite-config.js"></script>
   <script>
+    /* ---------- Block all zoom (pinch, double-tap, iOS gesture) ---------- */
+    document.addEventListener('touchmove', e => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
+    document.addEventListener('gesturestart', e => e.preventDefault());
+    document.addEventListener('gesturechange', e => e.preventDefault());
+    let _lastTap = 0;
+    document.addEventListener('touchend', e => {
+      const now = Date.now();
+      if (now - _lastTap <= 300) e.preventDefault();
+      _lastTap = now;
+    }, { passive: false });
+
+    /* ---------- Helpers ---------- */
     function formatNum(n) {
       n = n || 0;
       if (n >= 1000000) return (n / 1000000).toFixed(1).replace('.0', '') + 'M';
       if (n >= 1000) return (n / 1000).toFixed(1).replace('.0', '') + 'K';
       return String(n);
     }
-
+    function timeAgo(iso) {
+      const s = Math.floor((Date.now() - new Date(iso)) / 1000);
+      if (isNaN(s)) return '';
+      if (s < 60) return s + 's';
+      if (s < 3600) return Math.floor(s / 60) + 'm';
+      if (s < 86400) return Math.floor(s / 3600) + 'h';
+      return Math.floor(s / 86400) + 'd';
+    }
     function showToast(msg, isError) {
       const t = document.createElement('div');
       t.className = 'toast' + (isError ? ' error' : '');
@@ -227,234 +299,287 @@
       document.body.appendChild(t);
       setTimeout(() => t.remove(), 2200);
     }
+    const C = APPWRITE_CONFIG.COLLECTIONS;
 
-    class VideoModal {
+    /* ---------- Reel feed ---------- */
+    class ReelFeed {
       constructor() {
-        this.reelId = new URLSearchParams(window.location.search).get('reelId')
-          || new URLSearchParams(window.location.search).get('id');
-        this.reel = null;
-        this.creator = null;
-        this.isLiked = false;
-        this.isFollowing = false;
+        this.startId = new URLSearchParams(location.search).get('reelId')
+          || new URLSearchParams(location.search).get('id');
+        this.allReels = [];
+        this.queue = [];
+        this.qPtr = 0;
+        this.muted = true;
+        this.likedSet = new Set();    // reelIds liked by current user
+        this.followingSet = new Set();
+        this.viewedSet = new Set();   // avoid double-counting views
+        this.activeReelId = null;     // for comment sheet context
+        this.feed = document.getElementById('feed');
         this.init();
       }
 
       async init() {
         try {
           await session.refresh();
-          if (!this.reelId) { this.showError('No video specified'); return; }
-          await this.loadVideo();
-          await this.loadCreator();
-          if (session.isLoggedIn()) {
-            await this.checkLikeStatus();
-            await this.checkFollowStatus();
-          }
-          this.incrementViews();
-          this.setupUI();
+          await this.loadAll();
+          if (!this.allReels.length) { this.showError('No videos available'); return; }
+          if (session.isLoggedIn()) await this.preloadUserState();
+          this.buildQueue();
+          this.setupObserver();
+          this.setupGlobalUI();
+          this.renderMore(6);
+          document.getElementById('loading').style.display = 'none';
         } catch (err) {
           console.error('Init failed:', err);
-          this.showError('Error loading video: ' + err.message);
+          this.showError('Error: ' + err.message);
         }
       }
 
-      async loadVideo() {
-        this.reel = await db.get(APPWRITE_CONFIG.COLLECTIONS.REELS, this.reelId);
-        if (!this.reel || this.reel.isDeleted) throw new Error('Video not found');
-        const player = document.getElementById('video-player');
-        player.src = this.reel.videoUrl;
-        player.muted = true; // start muted so autoplay is allowed
-        document.getElementById('loading').style.display = 'none';
-        player.play().catch(() => {
-          document.getElementById('play-overlay').classList.add('show');
+      async loadAll() {
+        const res = await db.list(C.REELS, [Query.equal('isDeleted', false), Query.limit(100)]);
+        this.allReels = res.documents;
+      }
+
+      async preloadUserState() {
+        const uid = session.getUserId();
+        try {
+          const likes = await db.list(C.LIKES, [Query.equal('userId', uid), Query.limit(100)]);
+          likes.documents.forEach(l => this.likedSet.add(l.reelId));
+        } catch (e) {}
+        try {
+          const f = await db.list(C.FOLLOWERS, [Query.equal('followerId', uid), Query.limit(100)]);
+          f.documents.forEach(d => this.followingSet.add(d.followingId));
+        } catch (e) {}
+      }
+
+      buildQueue() {
+        const start = this.allReels.find(r => r.$id === this.startId) || this.allReels[0];
+        const startCat = start.category;
+        const startTags = (start.hashtags || '').toLowerCase().split(',').map(t => t.trim()).filter(Boolean);
+
+        const related = this.allReels.filter(r => {
+          if (r.$id === start.$id) return false;
+          if (startCat && r.category === startCat) return true;
+          if (startTags.length && r.hashtags) {
+            const tags = r.hashtags.toLowerCase().split(',').map(t => t.trim());
+            return tags.some(t => startTags.includes(t));
+          }
+          return false;
+        });
+        const relIds = new Set(related.map(r => r.$id));
+        const rest = this.allReels
+          .filter(r => r.$id !== start.$id && !relIds.has(r.$id))
+          .sort((a, b) => (b.views || 0) - (a.views || 0));
+
+        this.queue = [start, ...related, ...rest].filter(Boolean);
+      }
+
+      setupObserver() {
+        this.observer = new IntersectionObserver(entries => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting && entry.intersectionRatio >= 0.6) {
+              this.setActive(entry.target);
+            }
+          });
+        }, { threshold: [0, 0.6, 1] });
+
+        // Infinite: append more as user nears the end
+        this.feed.addEventListener('scroll', () => {
+          const { scrollTop, clientHeight, scrollHeight } = this.feed;
+          if (scrollTop + clientHeight >= scrollHeight - clientHeight * 1.5) {
+            this.renderMore(4);
+          }
         });
       }
 
-      async loadCreator() {
-        try {
-          this.creator = await db.get(APPWRITE_CONFIG.COLLECTIONS.CREATORS, this.reel.creatorId);
-        } catch (e) { /* fall back to denormalized fields on the reel */ }
+      setupGlobalUI() {
+        document.getElementById('top-mute').onclick = () => {
+          this.muted = !this.muted;
+          document.getElementById('top-mute').textContent = this.muted ? '🔇' : '🔊';
+          this.feed.querySelectorAll('.slide-video').forEach(v => v.muted = this.muted);
+        };
+        document.getElementById('sheet-close').onclick = () => this.closeComments();
+        document.getElementById('sheet-backdrop').onclick = () => this.closeComments();
+
+        // Action menu
+        document.getElementById('menu-cancel').onclick = () => this.closeMenu();
+        document.getElementById('menu-backdrop').onclick = () => this.closeMenu();
+
+        // Edit sheet
+        document.getElementById('edit-close').onclick = () => this.closeEdit();
+        document.getElementById('edit-backdrop').onclick = () => this.closeEdit();
+        document.getElementById('edit-save').onclick = () => this.saveEdit();
+
+        // Confirm delete
+        document.getElementById('confirm-cancel').onclick = () => this.closeConfirm();
+        document.getElementById('confirm-ok').onclick = () => this.doDelete();
+        const input = document.getElementById('comment-input');
+        const send = document.getElementById('comment-send');
+        send.onclick = () => this.postComment();
+        input.addEventListener('keydown', e => { if (e.key === 'Enter') this.postComment(); });
       }
 
-      async incrementViews() {
-        try {
-          await db.update(APPWRITE_CONFIG.COLLECTIONS.REELS, this.reelId, {
-            views: (this.reel.views || 0) + 1
-          });
-        } catch (e) { /* non-blocking */ }
+      renderMore(n = 4) {
+        for (let i = 0; i < n; i++) {
+          if (!this.queue.length) return;
+          const reel = this.queue[this.qPtr % this.queue.length];
+          this.qPtr++;
+          this.buildSlide(reel);
+        }
       }
 
-      async checkLikeStatus() {
+      buildSlide(reel) {
+        const liked = this.likedSet.has(reel.$id);
+        const slide = document.createElement('div');
+        slide.className = 'slide';
+        slide.dataset.id = reel.$id;
+        slide.dataset.creator = reel.creatorId;
+
+        const isOwn = session.isLoggedIn() && session.getUserId() === reel.creatorId;
+        const following = this.followingSet.has(reel.creatorId);
+        const avatar = reel.creatorProfilePic || 'assets/placeholder.svg';
+        const name = reel.creatorName || 'Creator';
+
+        const tagsHtml = (reel.hashtags || '').split(',').map(t => t.trim().replace(/^#/, '')).filter(Boolean)
+          .map(t => `<span class="hashtag" data-tag="${escapeHtml(t)}">#${escapeHtml(t)}</span>`).join('');
+
+        slide.innerHTML = `
+          <div class="slide-frame">
+            <video class="slide-video" playsinline loop muted data-src="${reel.videoUrl}"></video>
+            <div class="tap-zone"></div>
+            <div class="play-overlay">▶</div>
+
+            <div class="right-rail">
+              <button class="rail-btn like-btn ${liked ? 'liked' : ''}">
+                <div class="rail-icon">${liked ? '❤️' : '🤍'}</div>
+                <div class="rail-count like-count">${formatNum(reel.likes)}</div>
+              </button>
+              <button class="rail-btn comment-btn">
+                <div class="rail-icon">💬</div>
+                <div class="rail-count comment-count">${formatNum(reel.comments)}</div>
+              </button>
+              <button class="rail-btn share-btn">
+                <div class="rail-icon">↗️</div>
+                <div class="rail-count share-count">${formatNum(reel.shares)}</div>
+              </button>
+              <button class="rail-btn more-btn">
+                <div class="rail-icon">⋯</div>
+              </button>
+            </div>
+
+            <div class="bottom-info">
+              <div class="creator-row">
+                <div class="creator-avatar go-profile"><img src="${avatar}" alt=""></div>
+                <div class="creator-name go-profile">${escapeHtml(name)}</div>
+                ${isOwn ? '' : `<button class="follow-btn ${following ? 'following' : ''}">${following ? 'Following' : 'Follow'}</button>`}
+              </div>
+              <div class="caption">
+                <span class="caption-title">${escapeHtml(reel.title || '')}</span>
+                <span>${reel.description ? ' ' + escapeHtml(reel.description) : ''}</span>
+              </div>
+              <div class="hashtag-row">${tagsHtml}</div>
+            </div>
+          </div>
+        `;
+
+        // Handlers
+        const video = slide.querySelector('.slide-video');
+        const overlay = slide.querySelector('.play-overlay');
+        slide.querySelector('.tap-zone').onclick = () => {
+          if (video.paused) { video.play(); overlay.classList.remove('show'); }
+          else { video.pause(); overlay.classList.add('show'); }
+        };
+        slide.querySelector('.like-btn').onclick = () => this.toggleLike(reel, slide);
+        slide.querySelector('.comment-btn').onclick = () => this.openComments(reel, slide);
+        slide.querySelector('.share-btn').onclick = () => this.shareReel(reel, slide);
+        slide.querySelector('.more-btn').onclick = () => this.openMenu(reel, slide);
+        slide.querySelector('.caption').onclick = e => e.currentTarget.classList.toggle('expanded');
+        slide.querySelectorAll('.go-profile').forEach(el => el.onclick = () => location.href = `creator-profile.html?userId=${reel.creatorId}`);
+        slide.querySelectorAll('.hashtag').forEach(el => el.onclick = () => location.href = `search.html?hashtag=${encodeURIComponent(el.dataset.tag)}`);
+        const fBtn = slide.querySelector('.follow-btn');
+        if (fBtn) fBtn.onclick = () => this.toggleFollow(reel.creatorId, fBtn);
+
+        this.feed.appendChild(slide);
+        this.observer.observe(slide);
+      }
+
+      setActive(slide) {
+        const reelId = slide.dataset.id;
+        this.activeReelId = reelId;
+        // Pause everything else, play this
+        this.feed.querySelectorAll('.slide-video').forEach(v => {
+          if (v !== slide.querySelector('.slide-video')) { v.pause(); }
+        });
+        const video = slide.querySelector('.slide-video');
+        if (!video.src && video.dataset.src) video.src = video.dataset.src;
+        video.muted = this.muted;
+        video.play().catch(() => slide.querySelector('.play-overlay').classList.add('show'));
+        this.countView(reelId);
+      }
+
+      async countView(reelId) {
+        if (this.viewedSet.has(reelId)) return;
+        this.viewedSet.add(reelId);
+        const reel = this.allReels.find(r => r.$id === reelId);
+        if (!reel) return;
         try {
-          const likes = await db.list(APPWRITE_CONFIG.COLLECTIONS.LIKES, [
-            Query.equal('reelId', this.reelId),
-            Query.equal('userId', session.getUserId())
-          ]);
-          this.isLiked = likes.documents.length > 0;
+          await db.update(C.REELS, reelId, { views: (reel.views || 0) + 1 });
+          reel.views = (reel.views || 0) + 1;
         } catch (e) {}
       }
 
-      async checkFollowStatus() {
+      /* ---------- Likes (FIX: include required creatorId) ---------- */
+      async toggleLike(reel, slide) {
+        if (!session.isLoggedIn()) { location.href = 'login.html'; return; }
+        const uid = session.getUserId();
+        const btn = slide.querySelector('.like-btn');
+        const icon = btn.querySelector('.rail-icon');
+        const countEl = btn.querySelector('.like-count');
         try {
-          if (session.getUserId() === this.reel.creatorId) return;
-          const f = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [
-            Query.equal('followerId', session.getUserId()),
-            Query.equal('followingId', this.reel.creatorId)
-          ]);
-          this.isFollowing = f.documents.length > 0;
-        } catch (e) {}
-      }
-
-      setupUI() {
-        const r = this.reel, c = this.creator;
-        const name = c?.name || r.creatorName || 'Creator';
-        const avatar = c?.profilePic || r.creatorProfilePic || 'assets/placeholder.svg';
-
-        document.getElementById('creator-name').textContent = name;
-        document.getElementById('creator-avatar-img').src = avatar;
-        document.getElementById('caption-title').textContent = r.title || '';
-        document.getElementById('caption-desc').textContent = r.description ? ' ' + r.description : '';
-
-        document.getElementById('like-count').textContent = formatNum(r.likes);
-        document.getElementById('comment-count').textContent = formatNum(r.comments);
-        document.getElementById('share-count').textContent = formatNum(r.shares);
-
-        // Hashtags
-        const row = document.getElementById('hashtag-row');
-        if (r.hashtags) {
-          r.hashtags.split(',').map(t => t.trim()).filter(Boolean).forEach(tag => {
-            const clean = tag.replace(/^#/, '');
-            const el = document.createElement('span');
-            el.className = 'hashtag';
-            el.textContent = '#' + clean;
-            el.onclick = () => window.location.href = `./search.html?hashtag=${encodeURIComponent(clean)}`;
-            row.appendChild(el);
-          });
-        }
-
-        // Caption expand
-        const cap = document.getElementById('caption');
-        cap.onclick = () => cap.classList.toggle('expanded');
-
-        // Like
-        const likeBtn = document.getElementById('like-btn');
-        if (this.isLiked) {
-          likeBtn.classList.add('liked');
-          document.getElementById('like-icon').textContent = '❤️';
-        }
-        likeBtn.onclick = () => this.toggleLike();
-
-        // Comment (not built yet)
-        document.getElementById('comment-btn').onclick = () => showToast('Comments coming soon');
-
-        // Share — native share sheet (great for spreading reels)
-        document.getElementById('share-btn').onclick = () => this.shareReel();
-
-        // Mute toggle
-        const player = document.getElementById('video-player');
-        document.getElementById('mute-btn').onclick = () => {
-          player.muted = !player.muted;
-          document.getElementById('mute-icon').textContent = player.muted ? '🔇' : '🔊';
-          if (!player.paused) return;
-          player.play().catch(() => {});
-        };
-
-        // Follow
-        const followBtn = document.getElementById('follow-btn');
-        if (session.isLoggedIn() && session.getUserId() === r.creatorId) {
-          followBtn.style.display = 'none';
-        } else {
-          if (this.isFollowing) { followBtn.classList.add('following'); followBtn.textContent = 'Following'; }
-          followBtn.onclick = () => this.toggleFollow();
-        }
-
-        // Creator → profile
-        const goProfile = () => window.location.href = `./creator-profile.html?userId=${r.creatorId}`;
-        document.getElementById('creator-name').onclick = goProfile;
-        document.getElementById('creator-avatar').onclick = goProfile;
-
-        // Tap video to play/pause
-        const overlay = document.getElementById('play-overlay');
-        document.getElementById('tap-zone').onclick = () => {
-          if (player.paused) { player.play(); overlay.classList.remove('show'); }
-          else { player.pause(); overlay.classList.add('show'); }
-        };
-
-        document.getElementById('right-rail').style.display = 'flex';
-        document.getElementById('bottom-info').style.display = 'block';
-      }
-
-      showError(msg) {
-        document.getElementById('loading').style.display = 'none';
-        const e = document.getElementById('error');
-        e.style.display = 'block';
-        e.textContent = msg;
-      }
-
-      async toggleLike() {
-        if (!session.isLoggedIn()) { window.location.href = './login.html'; return; }
-        const likeBtn = document.getElementById('like-btn');
-        const icon = document.getElementById('like-icon');
-        const userId = session.getUserId();
-        try {
-          if (this.isLiked) {
-            const likes = await db.list(APPWRITE_CONFIG.COLLECTIONS.LIKES, [
-              Query.equal('reelId', this.reelId), Query.equal('userId', userId)
-            ]);
-            if (likes.documents.length) await db.remove(APPWRITE_CONFIG.COLLECTIONS.LIKES, likes.documents[0].$id);
-            this.isLiked = false;
-            this.reel.likes = Math.max(0, (this.reel.likes || 1) - 1);
-            likeBtn.classList.remove('liked'); icon.textContent = '🤍';
+          if (this.likedSet.has(reel.$id)) {
+            const likes = await db.list(C.LIKES, [Query.equal('reelId', reel.$id), Query.equal('userId', uid)]);
+            if (likes.documents.length) await db.remove(C.LIKES, likes.documents[0].$id);
+            this.likedSet.delete(reel.$id);
+            reel.likes = Math.max(0, (reel.likes || 1) - 1);
+            btn.classList.remove('liked'); icon.textContent = '🤍';
           } else {
             const likeId = ID.unique();
-            await db.create(APPWRITE_CONFIG.COLLECTIONS.LIKES, {
-              likeId, reelId: this.reelId, userId, createdAt: new Date().toISOString()
+            await db.create(C.LIKES, {
+              likeId,
+              reelId: reel.$id,
+              creatorId: reel.creatorId,   // ← REQUIRED field that was missing
+              userId: uid,
+              createdAt: new Date().toISOString()
             }, likeId);
-            this.isLiked = true;
-            this.reel.likes = (this.reel.likes || 0) + 1;
-            likeBtn.classList.add('liked'); icon.textContent = '❤️';
+            this.likedSet.add(reel.$id);
+            reel.likes = (reel.likes || 0) + 1;
+            btn.classList.add('liked'); icon.textContent = '❤️';
           }
-          await db.update(APPWRITE_CONFIG.COLLECTIONS.REELS, this.reelId, { likes: this.reel.likes });
-          document.getElementById('like-count').textContent = formatNum(this.reel.likes);
+          await db.update(C.REELS, reel.$id, { likes: reel.likes });
+          countEl.textContent = formatNum(reel.likes);
         } catch (err) {
           console.error('Like failed:', err);
           showToast('Could not update like', true);
         }
       }
 
-      async shareReel() {
-        const url = window.location.href;
+      async toggleFollow(creatorId, btn) {
+        if (!session.isLoggedIn()) { location.href = 'login.html'; return; }
+        const uid = session.getUserId();
+        if (uid === creatorId) return;
         try {
-          if (navigator.share) {
-            await navigator.share({ title: this.reel.title, text: this.reel.description || '', url });
-            this.reel.shares = (this.reel.shares || 0) + 1;
-            db.update(APPWRITE_CONFIG.COLLECTIONS.REELS, this.reelId, { shares: this.reel.shares }).catch(() => {});
-            document.getElementById('share-count').textContent = formatNum(this.reel.shares);
-          } else {
-            await navigator.clipboard.writeText(url);
-            showToast('Link copied!');
-          }
-        } catch (e) { /* user cancelled share */ }
-      }
-
-      async toggleFollow() {
-        if (!session.isLoggedIn()) { window.location.href = './login.html'; return; }
-        const btn = document.getElementById('follow-btn');
-        const userId = session.getUserId();
-        try {
-          if (this.isFollowing) {
-            const f = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [
-              Query.equal('followerId', userId), Query.equal('followingId', this.reel.creatorId)
-            ]);
-            if (f.documents.length) await db.remove(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, f.documents[0].$id);
-            this.isFollowing = false;
+          if (this.followingSet.has(creatorId)) {
+            const f = await db.list(C.FOLLOWERS, [Query.equal('followerId', uid), Query.equal('followingId', creatorId)]);
+            if (f.documents.length) await db.remove(C.FOLLOWERS, f.documents[0].$id);
+            this.followingSet.delete(creatorId);
             btn.classList.remove('following'); btn.textContent = 'Follow';
           } else {
             const followId = ID.unique();
-            await db.create(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, {
-              followId, followerId: userId, followingId: this.reel.creatorId,
-              createdAt: new Date().toISOString(), CreatorId: this.reel.creatorId
+            await db.create(C.FOLLOWERS, {
+              followId, followerId: uid, followingId: creatorId,
+              createdAt: new Date().toISOString(), CreatorId: creatorId
             }, followId);
-            this.isFollowing = true;
+            this.followingSet.add(creatorId);
             btn.classList.add('following'); btn.textContent = 'Following';
           }
         } catch (err) {
@@ -462,9 +587,267 @@
           showToast('Could not update follow', true);
         }
       }
+
+      async shareReel(reel, slide) {
+        const url = `${location.origin}${location.pathname}?reelId=${reel.$id}`;
+        try {
+          if (navigator.share) {
+            await navigator.share({ title: reel.title, text: reel.description || '', url });
+            reel.shares = (reel.shares || 0) + 1;
+            db.update(C.REELS, reel.$id, { shares: reel.shares }).catch(() => {});
+            slide.querySelector('.share-count').textContent = formatNum(reel.shares);
+          } else {
+            await navigator.clipboard.writeText(url);
+            showToast('Link copied!');
+          }
+        } catch (e) {}
+      }
+
+      /* ---------- Action menu (⋯) — role-based ---------- */
+      openMenu(reel, slide) {
+        const isOwner = session.isLoggedIn() && session.getUserId() === reel.creatorId;
+        const items = document.getElementById('menu-items');
+        items.innerHTML = '';
+
+        const add = (label, icon, handler, danger) => {
+          const b = document.createElement('button');
+          b.className = 'menu-item' + (danger ? ' danger' : '');
+          b.innerHTML = `<span>${icon}</span> ${label}`;
+          b.onclick = () => { this.closeMenu(); handler(); };
+          items.appendChild(b);
+        };
+
+        if (isOwner) {
+          // Owner: manage their own reel
+          add('Edit', '✏️', () => this.openEdit(reel, slide));
+          add('Copy link', '🔗', () => this.copyLink(reel));
+          add('Delete', '🗑️', () => this.confirmDelete(reel, slide), true);
+        } else {
+          // Non-owner: safe public actions only
+          add('Share', '↗️', () => this.shareReel(reel, slide));
+          add('Copy link', '🔗', () => this.copyLink(reel));
+          add('Report', '🚩', () => this.reportReel(reel), true);
+        }
+
+        document.getElementById('menu-backdrop').classList.add('open');
+        document.getElementById('action-menu').classList.add('open');
+      }
+
+      closeMenu() {
+        document.getElementById('menu-backdrop').classList.remove('open');
+        document.getElementById('action-menu').classList.remove('open');
+      }
+
+      async copyLink(reel) {
+        const url = `${location.origin}${location.pathname}?reelId=${reel.$id}`;
+        try { await navigator.clipboard.writeText(url); showToast('Link copied!'); }
+        catch (e) { showToast('Could not copy', true); }
+      }
+
+      async reportReel(reel) {
+        if (!session.isLoggedIn()) { location.href = 'login.html'; return; }
+        try {
+          const reportId = ID.unique();
+          await db.create(C.REPORTS, {
+            reportId,
+            reportedBy: session.getUserId(),
+            reportedCreatorId: reel.creatorId,
+            reelId: reel.$id,
+            reason: 'inappropriate',
+            description: '',
+            status: 'pending',
+            createdAt: new Date().toISOString()
+          }, reportId);
+          showToast('Reported. Thank you.');
+        } catch (err) {
+          console.error('Report failed:', err);
+          showToast('Could not report', true);
+        }
+      }
+
+      /* ---------- Edit (owner) ---------- */
+      openEdit(reel, slide) {
+        this._editReel = reel;
+        this._editSlide = slide;
+        document.getElementById('edit-title').value = reel.title || '';
+        document.getElementById('edit-desc').value = reel.description || '';
+        document.getElementById('edit-tags').value = (reel.hashtags || '').split(',').map(t => t.trim().replace(/^#/, '')).filter(Boolean).join(', ');
+        document.getElementById('edit-category').value = reel.category || 'other';
+        document.getElementById('edit-backdrop').classList.add('open');
+        document.getElementById('edit-sheet').classList.add('open');
+      }
+
+      closeEdit() {
+        document.getElementById('edit-backdrop').classList.remove('open');
+        document.getElementById('edit-sheet').classList.remove('open');
+      }
+
+      async saveEdit() {
+        const reel = this._editReel;
+        if (!reel) return;
+        const saveBtn = document.getElementById('edit-save');
+        saveBtn.disabled = true;
+        try {
+          const title = document.getElementById('edit-title').value.trim();
+          const description = document.getElementById('edit-desc').value.trim();
+          const hashtags = document.getElementById('edit-tags').value
+            .split(',').map(t => t.trim().replace(/^#/, '')).filter(Boolean).join(',');
+          const category = document.getElementById('edit-category').value;
+
+          if (!title) { showToast('Title required', true); saveBtn.disabled = false; return; }
+
+          await db.update(C.REELS, reel.$id, { title, description, hashtags, category });
+
+          // Update local + slide UI
+          reel.title = title; reel.description = description; reel.hashtags = hashtags; reel.category = category;
+          if (this._editSlide) {
+            this._editSlide.querySelector('.caption').innerHTML =
+              `<span class="caption-title">${escapeHtml(title)}</span><span>${description ? ' ' + escapeHtml(description) : ''}</span>`;
+            this._editSlide.querySelector('.caption').onclick = e => e.currentTarget.classList.toggle('expanded');
+            const row = this._editSlide.querySelector('.hashtag-row');
+            row.innerHTML = hashtags.split(',').map(t => t.trim()).filter(Boolean)
+              .map(t => `<span class="hashtag" data-tag="${escapeHtml(t)}">#${escapeHtml(t)}</span>`).join('');
+            row.querySelectorAll('.hashtag').forEach(el => el.onclick = () => location.href = `search.html?hashtag=${encodeURIComponent(el.dataset.tag)}`);
+          }
+          this.closeEdit();
+          showToast('Saved');
+        } catch (err) {
+          console.error('Edit save failed:', err);
+          showToast('Could not save', true);
+        } finally {
+          saveBtn.disabled = false;
+        }
+      }
+
+      /* ---------- Delete (owner) — soft delete ---------- */
+      confirmDelete(reel, slide) {
+        this._delReel = reel;
+        this._delSlide = slide;
+        document.getElementById('confirm-backdrop').classList.add('open');
+      }
+
+      closeConfirm() {
+        document.getElementById('confirm-backdrop').classList.remove('open');
+      }
+
+      async doDelete() {
+        const reel = this._delReel;
+        if (!reel) return;
+        try {
+          await db.update(C.REELS, reel.$id, { isDeleted: true });
+          // Remove from feed + queue
+          if (this._delSlide) { this.observer.unobserve(this._delSlide); this._delSlide.remove(); }
+          this.queue = this.queue.filter(r => r.$id !== reel.$id);
+          this.allReels = this.allReels.filter(r => r.$id !== reel.$id);
+          this.closeConfirm();
+          showToast('Reel deleted');
+          // If nothing left on screen, go back
+          if (!this.feed.querySelector('.slide')) {
+            setTimeout(() => window.history.length > 1 ? window.history.back() : (location.href = 'index.html'), 600);
+          }
+        } catch (err) {
+          console.error('Delete failed:', err);
+          showToast('Could not delete', true);
+        }
+      }
+
+      async openComments(reel, slide) {
+        this.activeCommentReel = reel;
+        this.activeCommentSlide = slide;
+        document.getElementById('sheet-backdrop').classList.add('open');
+        document.getElementById('comment-sheet').classList.add('open');
+        const listEl = document.getElementById('comment-list');
+        listEl.innerHTML = '<div class="comment-empty">Loading…</div>';
+        try {
+          const res = await db.list(C.COMMENTS, [
+            Query.equal('reelId', reel.$id),
+            Query.equal('isDeleted', false),
+            Query.limit(100)
+          ]);
+          const comments = res.documents.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+          document.getElementById('sheet-count').textContent = `${formatNum(comments.length)} comments`;
+          if (!comments.length) {
+            listEl.innerHTML = '<div class="comment-empty">No comments yet.<br>Be the first!</div>';
+            return;
+          }
+          listEl.innerHTML = '';
+          comments.forEach(c => listEl.appendChild(this.commentEl(c)));
+        } catch (err) {
+          console.error('Load comments failed:', err);
+          listEl.innerHTML = '<div class="comment-empty">Could not load comments</div>';
+        }
+      }
+
+      commentEl(c) {
+        const el = document.createElement('div');
+        el.className = 'comment';
+        el.innerHTML = `
+          <div class="comment-avatar"><img src="${c.creatorProfilePic || 'assets/placeholder.svg'}" alt=""></div>
+          <div class="comment-body">
+            <div><span class="comment-name">${escapeHtml(c.creatorName || 'User')}</span><span class="comment-time">${timeAgo(c.createdAt)}</span></div>
+            <div class="comment-text">${escapeHtml(c.text || '')}</div>
+          </div>
+        `;
+        return el;
+      }
+
+      async postComment() {
+        if (!session.isLoggedIn()) { location.href = 'login.html'; return; }
+        const input = document.getElementById('comment-input');
+        const text = input.value.trim();
+        if (!text) return;
+        const reel = this.activeCommentReel;
+        const send = document.getElementById('comment-send');
+        send.disabled = true;
+        try {
+          const now = new Date().toISOString();
+          const commentId = ID.unique();
+          const data = {
+            commentId,
+            reelId: reel.$id,
+            creatorId: session.getUserId(),          // commenter's id
+            text,
+            likes: 0,
+            createdAt: now,
+            updatedAt: now,                          // ← REQUIRED
+            isDeleted: false,
+            creatorName: session.currentUser?.name || 'User',
+            creatorProfilePic: session.currentUser?.prefs?.avatar || ''
+          };
+          await db.create(C.COMMENTS, data, commentId);
+
+          // Prepend to list
+          const listEl = document.getElementById('comment-list');
+          if (listEl.querySelector('.comment-empty')) listEl.innerHTML = '';
+          listEl.insertBefore(this.commentEl(data), listEl.firstChild);
+          input.value = '';
+
+          // Bump count on reel + slide
+          reel.comments = (reel.comments || 0) + 1;
+          db.update(C.REELS, reel.$id, { comments: reel.comments }).catch(() => {});
+          if (this.activeCommentSlide) this.activeCommentSlide.querySelector('.comment-count').textContent = formatNum(reel.comments);
+          document.getElementById('sheet-count').textContent = `${formatNum(reel.comments)} comments`;
+        } catch (err) {
+          console.error('Post comment failed:', err);
+          showToast('Could not post comment', true);
+        } finally {
+          send.disabled = false;
+        }
+      }
+
+      closeComments() {
+        document.getElementById('sheet-backdrop').classList.remove('open');
+        document.getElementById('comment-sheet').classList.remove('open');
+      }
+
+      showError(msg) {
+        document.getElementById('loading').style.display = 'none';
+        const e = document.getElementById('error');
+        e.style.display = 'block'; e.textContent = msg;
+      }
     }
 
-    window.addEventListener('load', () => new VideoModal());
+    window.addEventListener('load', () => new ReelFeed());
   </script>
 </body>
 </html>
