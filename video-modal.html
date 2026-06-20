@@ -393,11 +393,24 @@
       }
 
       setupGlobalUI() {
+        // Manual mute toggle (top-right) — also marks that the user has chosen
         document.getElementById('top-mute').onclick = () => {
-          this.muted = !this.muted;
-          document.getElementById('top-mute').textContent = this.muted ? '🔇' : '🔊';
-          this.feed.querySelectorAll('.slide-video').forEach(v => v.muted = this.muted);
+          this.userChoseMute = true;
+          this.setMuted(!this.muted);
         };
+
+        // First interaction anywhere unmutes (browsers block autoplay-with-sound
+        // until the user interacts once — after that we keep sound on for the session)
+        const unmuteOnce = () => {
+          if (!this.userChoseMute && this.muted) this.setMuted(false);
+          window.removeEventListener('pointerdown', unmuteOnce);
+          window.removeEventListener('touchstart', unmuteOnce);
+          window.removeEventListener('keydown', unmuteOnce);
+        };
+        window.addEventListener('pointerdown', unmuteOnce, { once: false });
+        window.addEventListener('touchstart', unmuteOnce, { once: false });
+        window.addEventListener('keydown', unmuteOnce, { once: false });
+
         document.getElementById('sheet-close').onclick = () => this.closeComments();
         document.getElementById('sheet-backdrop').onclick = () => this.closeComments();
 
@@ -503,6 +516,20 @@
         this.observer.observe(slide);
       }
 
+      setMuted(muted) {
+        this.muted = muted;
+        document.getElementById('top-mute').textContent = muted ? '🔇' : '🔊';
+        this.feed.querySelectorAll('.slide-video').forEach(v => { v.muted = muted; });
+        // If we just unmuted, make sure the active video is actually playing
+        if (!muted) {
+          const active = this.feed.querySelector('.slide')
+            && Array.from(this.feed.querySelectorAll('.slide'))
+              .find(s => s.dataset.id === this.activeReelId);
+          const v = active && active.querySelector('.slide-video');
+          if (v && v.paused) v.play().catch(() => {});
+        }
+      }
+
       setActive(slide) {
         const reelId = slide.dataset.id;
         this.activeReelId = reelId;
@@ -512,8 +539,19 @@
         });
         const video = slide.querySelector('.slide-video');
         if (!video.src && video.dataset.src) video.src = video.dataset.src;
+        const overlay = slide.querySelector('.play-overlay');
+
+        // Try to honour the current sound choice. If the browser blocks
+        // autoplay-with-sound, retry muted so the video still plays.
         video.muted = this.muted;
-        video.play().catch(() => slide.querySelector('.play-overlay').classList.add('show'));
+        video.play().catch(() => {
+          if (!video.muted) {
+            video.muted = true;
+            video.play().catch(() => overlay.classList.add('show'));
+          } else {
+            overlay.classList.add('show');
+          }
+        });
         this.countView(reelId);
       }
 
