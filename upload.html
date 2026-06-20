@@ -8,6 +8,21 @@
   <link rel="icon" type="image/png" href="/icons/favicon/logo-3-minimalist-icon-32x32.png">
   <link rel="stylesheet" href="css/styles.css">
 
+  <!-- 🚨 ERUDA BLOCKER - MUST BE FIRST -->
+  <script>
+    if (typeof window !== 'undefined') {
+      window.eruda = null;
+      window.Eruda = null;
+      const origFetch = window.fetch;
+      window.fetch = function(...args) {
+        if (args[0] && args[0].includes && args[0].includes('eruda')) {
+          return Promise.reject(new Error('Eruda blocked'));
+        }
+        return origFetch.apply(this, args);
+      };
+    }
+  </script>
+
   <style>
     body { background: #0f0f0f; overflow-x: hidden; }
 
