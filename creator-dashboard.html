@@ -297,6 +297,17 @@
     let REELS = [];
     let CURRENT_REEL = null;
 
+    // Returns a safe <img> src for a reel thumbnail. If extraction failed
+    // and `thumbnail` ended up being the raw video file (a known fallback
+    // in upload.js), this avoids handing a video URL to an <img> tag.
+    function getThumbSrc(reel) {
+      const t = reel && reel.thumbnail;
+      const fallback = '/icons/primary/logo-1-app-icon-180x180.png';
+      if (!t) return fallback;
+      if (/\.(mp4|mov|webm|m4v)(\?|$)/i.test(t)) return fallback;
+      return t;
+    }
+
     async function init() {
       await session.refresh();
       if (!session.isLoggedIn()) { window.location = 'login.html'; return; }
@@ -358,7 +369,7 @@
           const thumb = document.createElement('div');
           thumb.className = 'video-thumb';
           thumb.innerHTML = `
-            <img src="${reel.thumbnail || '/icons/primary/logo-1-app-icon-180x180.png'}" onerror="this.src='/icons/primary/logo-1-app-icon-180x180.png'">
+            <img src="${getThumbSrc(reel)}" onerror="this.src='/icons/primary/logo-1-app-icon-180x180.png'">
             <button class="video-more" onclick="openVideoMenu(event, '${reel.$id}')">⋯</button>
             <div class="video-views">👁️ ${reel.views || 0}</div>
           `;
