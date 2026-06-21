@@ -1,8 +1,7 @@
 /**
  * GorkhaReels - Appwrite & Bunny CDN Configuration
  * ✅ Complete production config with all utilities
- * ✅ Works on GitHub Pages (no backend needed)
- * ✅ Storage support for profile pictures
+ * ✅ Storage support for profile pictures (publicly viewable)
  */
 
 // ============== APPWRITE CONFIG ==============
@@ -55,55 +54,33 @@ window.Role = Role;
 // ============== DATABASE HELPER ==============
 const db = {
   async list(collectionId, queries = []) {
-    return databases.listDocuments(
-      APPWRITE_CONFIG.DATABASE_ID,
-      collectionId,
-      queries
-    );
+    return databases.listDocuments(APPWRITE_CONFIG.DATABASE_ID, collectionId, queries);
   },
-
   async get(collectionId, documentId) {
-    return databases.getDocument(
-      APPWRITE_CONFIG.DATABASE_ID,
-      collectionId,
-      documentId
-    );
+    return databases.getDocument(APPWRITE_CONFIG.DATABASE_ID, collectionId, documentId);
   },
-
   async create(collectionId, data, documentId = null, permissions = null) {
     return databases.createDocument(
-      APPWRITE_CONFIG.DATABASE_ID,
-      collectionId,
-      documentId || ID.unique(),
-      data,
-      permissions || undefined
+      APPWRITE_CONFIG.DATABASE_ID, collectionId,
+      documentId || ID.unique(), data, permissions || undefined
     );
   },
-
   async update(collectionId, documentId, data) {
-    return databases.updateDocument(
-      APPWRITE_CONFIG.DATABASE_ID,
-      collectionId,
-      documentId,
-      data
-    );
+    return databases.updateDocument(APPWRITE_CONFIG.DATABASE_ID, collectionId, documentId, data);
   },
-
   async remove(collectionId, documentId) {
-    return databases.deleteDocument(
-      APPWRITE_CONFIG.DATABASE_ID,
-      collectionId,
-      documentId
-    );
+    return databases.deleteDocument(APPWRITE_CONFIG.DATABASE_ID, collectionId, documentId);
   }
 };
 
 // ============== STORAGE HELPER (Profile Pictures) ==============
 const fileStorage = {
+  // Upload with public-read permission so images display for everyone
   async upload(bucketId, file) {
     try {
       const fileId = ID.unique();
-      const uploadedFile = await storage.createFile(bucketId, fileId, file);
+      const permissions = [Permission.read(Role.any())];
+      const uploadedFile = await storage.createFile(bucketId, fileId, file, permissions);
       return uploadedFile;
     } catch (error) {
       console.error('Storage upload error:', error);
@@ -120,8 +97,9 @@ const fileStorage = {
     }
   },
 
+  // Use /view endpoint (serves raw file - reliable, no transformation needed)
   getFileUrl(bucketId, fileId) {
-    return `${APPWRITE_CONFIG.ENDPOINT}/storage/buckets/${bucketId}/files/${fileId}/preview?project=${APPWRITE_CONFIG.PROJECT_ID}&width=200&height=200&gravity=center&quality=80`;
+    return `${APPWRITE_CONFIG.ENDPOINT}/storage/buckets/${bucketId}/files/${fileId}/view?project=${APPWRITE_CONFIG.PROJECT_ID}`;
   }
 };
 
@@ -138,22 +116,10 @@ class BunnyCDNClient {
     try {
       const response = await fetch(
         `${this.storageEndpoint}${this.storageZone}/${fileName}`,
-        {
-          method: 'PUT',
-          headers: { 'AccessKey': this.apiKey },
-          body: file
-        }
+        { method: 'PUT', headers: { 'AccessKey': this.apiKey }, body: file }
       );
-
-      if (!response.ok) {
-        throw new Error(`Upload failed: ${response.status}`);
-      }
-
-      return {
-        success: true,
-        url: `${this.pullZoneUrl}${fileName}`,
-        fileName: fileName
-      };
+      if (!response.ok) throw new Error(`Upload failed: ${response.status}`);
+      return { success: true, url: `${this.pullZoneUrl}${fileName}`, fileName };
     } catch (error) {
       console.error('Bunny CDN Upload Error:', error);
       throw error;
@@ -164,10 +130,7 @@ class BunnyCDNClient {
     try {
       const response = await fetch(
         `${this.storageEndpoint}${this.storageZone}/${fileName}`,
-        {
-          method: 'DELETE',
-          headers: { 'AccessKey': this.apiKey }
-        }
+        { method: 'DELETE', headers: { 'AccessKey': this.apiKey } }
       );
       return response.ok;
     } catch (error) {
@@ -179,30 +142,17 @@ class BunnyCDNClient {
 
 // ============== SESSION MANAGER ==============
 class SessionManager {
-  constructor() {
-    this.currentUser = null;
-  }
-
+  constructor() { this.currentUser = null; }
   async refresh() {
-    try {
-      this.currentUser = await account.get();
-      return this.currentUser;
-    } catch (error) {
-      this.currentUser = null;
-      return null;
-    }
+    try { this.currentUser = await account.get(); return this.currentUser; }
+    catch (error) { this.currentUser = null; return null; }
   }
-
   getUser() { return this.currentUser; }
   getUserId() { return this.currentUser?.$id || null; }
   isLoggedIn() { return this.currentUser !== null; }
-
   async logout() {
-    try {
-      await account.deleteSession('current');
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
+    try { await account.deleteSession('current'); }
+    catch (error) { console.error('Logout error:', error); }
     this.currentUser = null;
   }
 }
@@ -214,13 +164,11 @@ class Toast {
     toast.className = `toast ${type}`;
     toast.textContent = message;
     document.body.appendChild(toast);
-
     setTimeout(() => {
       toast.style.animation = 'slideDown 0.3s ease-out forwards';
       setTimeout(() => toast.remove(), 300);
     }, duration);
   }
-
   static success(message) { this.show(message, 'success'); }
   static error(message) { this.show(message, 'error'); }
   static info(message) { this.show(message, 'info'); }
