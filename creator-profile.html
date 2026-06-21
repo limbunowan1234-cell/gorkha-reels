@@ -7,7 +7,7 @@
   <link rel="icon" type="image/png" href="/logo-suite/favicon/logo-khukuri-32x32.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&display=swap"display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #0f0f0f; color: #fff; font-family: system-ui; }
@@ -244,7 +244,9 @@
 
     class ProfileManager {
       constructor() {
-        this.creatorId = new URLSearchParams(window.location.search).get('userId') || new URLSearchParams(window.location.search).get('id');
+        // Accept creatorId (from video-modal), userId, or id (from search/lists)
+        const _p = new URLSearchParams(window.location.search);
+        this.creatorId = _p.get('creatorId') || _p.get('userId') || _p.get('id');
         this.creator = null;
         this.isFollowing = false;
         this.init();
@@ -292,7 +294,7 @@
             const creator = await db.get(APPWRITE_CONFIG.COLLECTIONS.CREATORS, f.followerId);
             const item = document.createElement('div');
             item.className = 'list-item';
-            item.onclick = () => window.location = `creator-profile.html?userId=${creator.$id}`;
+            item.onclick = () => window.location = `creator-profile.html?creatorId=${creator.$id}`;
             item.innerHTML = `
               <div class="list-avatar"><img src="${creator.profilePic || '/logo-suite/primary/logo-khukuri-512x512.png'}" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'"></div>
               <div class="list-name">${escapeHtml(creator.name || 'User')}</div>
@@ -318,7 +320,7 @@
             const creator = await db.get(APPWRITE_CONFIG.COLLECTIONS.CREATORS, f.followingId);
             const item = document.createElement('div');
             item.className = 'list-item';
-            item.onclick = () => window.location = `creator-profile.html?userId=${creator.$id}`;
+            item.onclick = () => window.location = `creator-profile.html?creatorId=${creator.$id}`;
             item.innerHTML = `
               <div class="list-avatar"><img src="${creator.profilePic || '/logo-suite/primary/logo-khukuri-512x512.png'}" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'"></div>
               <div class="list-name">${escapeHtml(creator.name || 'User')}</div>
@@ -382,6 +384,7 @@
           const grid = document.getElementById('videos-grid');
           document.getElementById('videos-count').textContent = response.documents.length;
           const totalViews = response.documents.reduce((sum, r) => sum + (r.views || 0), 0);
+          document.getElementById('views-count').textContent = totalViews;
           if (response.documents.length === 0) {
             grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#888">No videos yet</div>';
             return;
