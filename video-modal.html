@@ -497,7 +497,8 @@
           Query.orderDesc('uploadedAt'),
           Query.limit(50)
         ]);
-        REELS = res.documents;
+        // Skip broken reels (made when login was broken) that have no playable video
+        REELS = res.documents.filter(r => r.videoUrl && String(r.videoUrl).trim() !== '');
       } catch (e) {
         document.getElementById('feed-loading').innerHTML = '<p style="color:#888">Could not load videos</p>';
         return;
@@ -551,12 +552,12 @@
             </div>
           </div>
           <div class="reel-bottom">
-            <div class="reel-creator" data-creator-id="${reel.creatorId}">
+            <div class="reel-creator" data-creator-id="${reel.creatorId || ''}">
               <img class="reel-avatar" src="${reel.creatorProfilePic || '/logo-suite/primary/logo-khukuri-512x512.png'}" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'" alt="${escapeHtml(reel.creatorName || 'Creator')}">
               <div class="reel-creator-info">
                 <div class="reel-cname">${escapeHtml(reel.creatorName || 'GorkhaReels')}</div>
               </div>
-              <button class="reel-follow" data-index="${i}" onclick="event.stopPropagation();">Follow</button>
+              ${reel.creatorId ? `<button class="reel-follow" data-index="${i}" onclick="event.stopPropagation();">Follow</button>` : ''}
             </div>
             <div class="reel-title">${escapeHtml(reel.title || '')}</div>
           </div>
@@ -570,13 +571,20 @@
         // Creator profile click → navigate to creator-profile.html
         slide.querySelector('.reel-creator').onclick = (e) => {
           const creatorId = e.currentTarget.dataset.creatorId;
-          if (creatorId) window.location = `creator-profile.html?creatorId=${creatorId}`;
+          if (creatorId) {
+            window.location = `creator-profile.html?creatorId=${creatorId}`;
+          } else {
+            toast('This creator is unavailable');
+          }
         };
         
-        slide.querySelector('.reel-follow').onclick = (e) => { 
-          e.stopPropagation(); 
-          toggleFollow(i, e.currentTarget); 
-        };
+        const followBtn = slide.querySelector('.reel-follow');
+        if (followBtn) {
+          followBtn.onclick = (e) => { 
+            e.stopPropagation(); 
+            toggleFollow(i, e.currentTarget); 
+          };
+        }
 
         setupTap(slide.querySelector('.tap-layer'), i);
       });
@@ -625,7 +633,8 @@
           const i = parseInt(entry.target.dataset.index);
           const v = entry.target.querySelector('video');
           if (entry.isIntersecting && entry.intersectionRatio > 0.6) {
-            if (!v.src) v.src = REELS[i].videoUrl;
+            if (!v.src && REELS[i].videoUrl) v.src = REELS[i].videoUrl;
+            if (!v.src) return;
             v.muted = false;
             v.play().catch(() => { v.muted = true; v.play().catch(()=>{}); });
             setActive(i);
@@ -646,7 +655,7 @@
     const viewed = new Set();
     async function countView(i) {
       const reel = REELS[i];
-      if (viewed.has(reel.$id)) return;
+      if (!reel || viewed.has(reel.$id)) return;
       viewed.add(reel.$id);
       try {
         const newViews = (reel.views || 0) + 1;
