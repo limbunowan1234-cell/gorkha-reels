@@ -145,7 +145,6 @@
   <script src="js/appwrite-config.js"></script>
   <script>
     let MY_USER_ID = null;
-    let LIKED = new Set();
 
     function getThumbSrc(reel) {
       const t = reel && reel.thumbnail;
@@ -160,10 +159,6 @@
         await session.refresh();
         if (session.isLoggedIn()) {
           MY_USER_ID = session.getUserId();
-          try {
-            const likes = await db.list(APPWRITE_CONFIG.COLLECTIONS.LIKES, [Query.equal('userId', MY_USER_ID), Query.limit(100)]);
-            likes.documents.forEach(l => LIKED.add(l.reelId));
-          } catch (e) {}
         }
         setupDrawer();
         loadVideos();
@@ -209,7 +204,6 @@
         const feed = document.getElementById('feed');
         feed.innerHTML = '';
         reels.documents.forEach(reel => {
-          const liked = LIKED.has(reel.$id);
           const isOwner = MY_USER_ID && MY_USER_ID === reel.creatorId;
           const isVerified = VERIFIED.has(reel.creatorId);
           const post = document.createElement('div');
@@ -227,14 +221,6 @@
             </div>
             <div class="post-title">${escapeHtml(reel.title || '')}</div>
             <div class="post-actions">
-              <button class="action-btn like-btn ${liked ? 'liked' : ''}">
-                <span class="action-icon">${liked ? '❤️' : '🤍'}</span>
-                <span class="like-count">${reel.likes || 0}</span>
-              </button>
-              <button class="action-btn comment-btn">
-                <span class="action-icon">💬</span>
-                <span>${reel.comments || 0}</span>
-              </button>
               <button class="action-btn share-btn">
                 <span class="action-icon">↗️</span>
                 <span>Share</span>
@@ -242,8 +228,6 @@
             </div>
           `;
           post.onclick = () => window.location = `video-modal.html?reelId=${reel.$id}`;
-          post.querySelector('.like-btn').onclick = (e) => { e.stopPropagation(); toggleLike(reel, post); };
-          post.querySelector('.comment-btn').onclick = (e) => { e.stopPropagation(); window.location = `video-modal.html?reelId=${reel.$id}`; };
           post.querySelector('.share-btn').onclick = (e) => { e.stopPropagation(); shareReel(reel); };
           post.querySelector('.post-more').onclick = (e) => { e.stopPropagation(); openPostMenu(reel, post, isOwner); };
           feed.appendChild(post);
@@ -251,34 +235,6 @@
       } catch (err) {
         console.error('Load error:', err);
         document.getElementById('feed').innerHTML = '<div class="loading"><p>Error loading videos</p></div>';
-      }
-    }
-
-    async function toggleLike(reel, post) {
-      if (!MY_USER_ID) { window.location = 'login.html'; return; }
-      const btn = post.querySelector('.like-btn');
-      const icon = btn.querySelector('.action-icon');
-      const countEl = btn.querySelector('.like-count');
-      try {
-        if (LIKED.has(reel.$id)) {
-          const likes = await db.list(APPWRITE_CONFIG.COLLECTIONS.LIKES, [Query.equal('reelId', reel.$id), Query.equal('userId', MY_USER_ID)]);
-          if (likes.documents.length) await db.remove(APPWRITE_CONFIG.COLLECTIONS.LIKES, likes.documents[0].$id);
-          LIKED.delete(reel.$id);
-          reel.likes = Math.max(0, (reel.likes || 1) - 1);
-          btn.classList.remove('liked'); icon.textContent = '🤍';
-        } else {
-          const likeId = ID.unique();
-          await db.create(APPWRITE_CONFIG.COLLECTIONS.LIKES, {
-            likeId, reelId: reel.$id, creatorId: reel.creatorId, userId: MY_USER_ID, createdAt: new Date().toISOString()
-          }, likeId);
-          LIKED.add(reel.$id);
-          reel.likes = (reel.likes || 0) + 1;
-          btn.classList.add('liked'); icon.textContent = '❤️';
-        }
-        await db.update(APPWRITE_CONFIG.COLLECTIONS.REELS, reel.$id, { likes: reel.likes });
-        countEl.textContent = reel.likes;
-      } catch (err) {
-        console.error('Like failed:', err);
       }
     }
 
