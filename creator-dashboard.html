@@ -363,6 +363,15 @@
     </div>
   </aside>
 
+  <script>
+    window.eruda = null;
+    window.Eruda = null;
+    const origFetch = window.fetch;
+    window.fetch = function(...args) {
+      if (args[0]?.includes?.("eruda")) return Promise.reject(new Error("Eruda blocked"));
+      return origFetch.apply(this, args);
+    };
+  </script>
   <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
   <script src="js/appwrite-config.js"></script>
   <script>
