@@ -9,7 +9,7 @@
   <link rel="icon" type="image/png" href="/logo-suite/favicon/logo-khukuri-32x32.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&display=swap"display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #0f0f0f; color: #fff; font-family: system-ui; }
@@ -130,6 +130,32 @@
       width: 100%; padding: 16px; background: #1c1c1e; border: none; border-radius: 14px;
       color: #fff; font-size: 15px; font-weight: 600; cursor: pointer;
     }
+
+    /* ===== EDIT PROFILE SHEET ===== */
+    .edit-profile-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 300; display: none; }
+    .edit-profile-backdrop.open { display: block; }
+    .edit-profile-sheet {
+      position: fixed; bottom: 0; left: 0; right: 0; background: #1c1c1e; z-index: 310;
+      border-radius: 16px 16px 0 0; transform: translateY(100%); transition: transform 0.3s ease;
+      max-height: 80vh; overflow-y: auto; max-width: 640px; margin: 0 auto; width: 100%;
+    }
+    .edit-profile-sheet.open { transform: translateY(0); }
+    .sheet-header { display: flex; justify-content: space-between; align-items: center; padding: 16px; border-bottom: 1px solid #2d2d2d; }
+    .sheet-header h2 { font-size: 18px; font-weight: 700; }
+    .close-btn { background: none; border: none; color: #fff; font-size: 24px; cursor: pointer; }
+    .sheet-content { padding: 20px 16px; }
+    .edit-section { margin-bottom: 20px; }
+    .edit-section label { display: block; font-size: 13px; font-weight: 600; color: #888; margin-bottom: 8px; text-transform: uppercase; }
+    .edit-section input, .edit-section textarea {
+      width: 100%; padding: 10px; background: #2d2d2d; color: #fff; border: 1px solid #3d3d3d;
+      border-radius: 8px; font-size: 15px; font-family: inherit;
+    }
+    .edit-section textarea { resize: vertical; }
+    .pic-preview-container { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+    .pic-preview { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid #0B5E6B; }
+    .upload-btn { padding: 9px 16px; background: #0B5E6B; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
+    .edit-actions { display: flex; gap: 10px; margin-top: 20px; margin-bottom: 20px; }
+    .save-btn { flex: 1; padding: 11px; background: #0B5E6B; color: #fff; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
 
     /* ===== BOTTOM BAR: 3 main buttons ===== */
     .bottom-nav {
@@ -261,6 +287,43 @@
     <button class="video-menu-cancel" id="video-menu-cancel">Cancel</button>
   </div>
 
+  <!-- Edit Profile Sheet -->
+  <div class="edit-profile-backdrop" id="edit-profile-backdrop"></div>
+  <div class="edit-profile-sheet" id="edit-profile-sheet">
+    <div class="sheet-header">
+      <h2>Edit Profile</h2>
+      <button class="close-btn" id="close-edit-profile">✕</button>
+    </div>
+    <div class="sheet-content">
+      <!-- Profile Picture Upload -->
+      <div class="edit-section">
+        <label>Profile Picture</label>
+        <div class="pic-preview-container">
+          <img id="profile-pic-preview" class="pic-preview" src="" alt="Profile">
+          <button class="upload-btn" id="upload-pic-btn">📷 Choose Photo</button>
+          <input type="file" id="profile-pic-input" accept="image/jpeg,image/png,image/webp" style="display:none;">
+        </div>
+      </div>
+
+      <!-- Name Input -->
+      <div class="edit-section">
+        <label for="edit-name">Name</label>
+        <input type="text" id="edit-name" placeholder="Your name" maxlength="50">
+      </div>
+
+      <!-- Bio Input -->
+      <div class="edit-section">
+        <label for="edit-bio">Bio</label>
+        <textarea id="edit-bio" placeholder="Tell your story..." maxlength="150" rows="3"></textarea>
+      </div>
+
+      <!-- Save Button -->
+      <div class="edit-actions">
+        <button class="save-btn" id="save-profile-btn">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Bottom Nav -->
   <nav class="bottom-nav">
     <button class="nav-btn" onclick="window.location='index.html'">
@@ -328,12 +391,17 @@
         try { await session.logout(); } catch (e) {}
         window.location = 'login.html';
       };
-      document.getElementById('edit-profile-btn').onclick = () => alert('Edit profile coming soon');
+      document.getElementById('edit-profile-btn').onclick = openEditProfileSheet;
       document.getElementById('upload-btn').onclick = () => window.location = 'upload.html';
       document.getElementById('withdraw-btn').onclick = () => alert('Withdraw coming soon');
-      document.getElementById('edit-profile-drawer').onclick = () => alert('Edit profile coming soon');
+      document.getElementById('edit-profile-drawer').onclick = openEditProfileSheet;
       document.getElementById('video-menu-cancel').onclick = closeVideoMenu;
       document.getElementById('video-menu-backdrop').onclick = closeVideoMenu;
+      document.getElementById('close-edit-profile').onclick = closeEditProfileSheet;
+      document.getElementById('edit-profile-backdrop').onclick = closeEditProfileSheet;
+      document.getElementById('upload-pic-btn').onclick = () => document.getElementById('profile-pic-input').click();
+      document.getElementById('profile-pic-input').onchange = handleProfilePicSelect;
+      document.getElementById('save-profile-btn').onclick = saveProfileChanges;
     }
 
     async function loadDashboard() {
@@ -428,6 +496,87 @@
     }
 
     document.addEventListener('DOMContentLoaded', init);
+
+    // ===== EDIT PROFILE FUNCTIONS =====
+    let SELECTED_PROFILE_PIC = null;
+
+    function openEditProfileSheet() {
+      const sheet = document.getElementById('edit-profile-sheet');
+      const backdrop = document.getElementById('edit-profile-backdrop');
+      document.getElementById('edit-name').value = CREATOR.name || '';
+      document.getElementById('edit-bio').value = CREATOR.bio || '';
+      if (CREATOR.profilePic) {
+        document.getElementById('profile-pic-preview').src = CREATOR.profilePic;
+      }
+      SELECTED_PROFILE_PIC = null;
+      sheet.classList.add('open');
+      backdrop.classList.add('open');
+    }
+
+    function closeEditProfileSheet() {
+      const sheet = document.getElementById('edit-profile-sheet');
+      const backdrop = document.getElementById('edit-profile-backdrop');
+      sheet.classList.remove('open');
+      backdrop.classList.remove('open');
+      SELECTED_PROFILE_PIC = null;
+    }
+
+    function handleProfilePicSelect(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        SELECTED_PROFILE_PIC = file;
+        document.getElementById('profile-pic-preview').src = ev.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    async function saveProfileChanges() {
+      const name = document.getElementById('edit-name').value.trim();
+      const bio = document.getElementById('edit-bio').value.trim();
+
+      if (!name) { alert('Name is required'); return; }
+
+      try {
+        const saveBtn = document.getElementById('save-profile-btn');
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Saving...';
+
+        let profilePicUrl = CREATOR.profilePic;
+
+        // Upload new profile picture if selected
+        if (SELECTED_PROFILE_PIC) {
+          const fileId = ID.unique();
+          const uploadedFile = await fileStorage.upload(APPWRITE_CONFIG.BUCKETS.PROFILE_PICS, SELECTED_PROFILE_PIC);
+          profilePicUrl = fileStorage.getFileUrl(APPWRITE_CONFIG.BUCKETS.PROFILE_PICS, uploadedFile.$id);
+        }
+
+        // Update creator document
+        await db.update(APPWRITE_CONFIG.COLLECTIONS.CREATORS, session.getUserId(), {
+          name,
+          bio,
+          profilePic: profilePicUrl
+        });
+
+        // Update local state
+        CREATOR.name = name;
+        CREATOR.bio = bio;
+        CREATOR.profilePic = profilePicUrl;
+
+        showToast('Profile updated!');
+        closeEditProfileSheet();
+        await loadDashboard();
+      } catch (err) {
+        console.error('Save failed:', err);
+        showToast('Could not save profile', true);
+      } finally {
+        const saveBtn = document.getElementById('save-profile-btn');
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Save Changes';
+      }
+    }
   </script>
 </body>
 </html>
