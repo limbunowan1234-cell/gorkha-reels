@@ -165,8 +165,8 @@
       </div>
     </div>
     <div class="banner-right">
-      <button class="banner-btn" onclick="window.location='search.html'" aria-label="Search">🔍</button>
-      <button class="banner-btn" id="open-drawer" aria-label="Menu">☰</button>
+      <button class="banner-btn" onclick="window.location='search.html'" aria-label="Search">&#128269;</button>
+      <button class="banner-btn" id="open-drawer" aria-label="Menu">&#9776;</button>
     </div>
   </header>
 
@@ -194,12 +194,12 @@
     <div class="earnings-strip">
       <div class="earnings-left">
         <span class="earnings-label">Total Earnings</span>
-        <span class="earnings-amount" id="total-earnings">₹ 0.00</span>
+        <span class="earnings-amount" id="total-earnings">&#8377; 0.00</span>
       </div>
       <button class="withdraw-btn" id="withdraw-btn">Withdraw</button>
     </div>
 
-    <div class="videos-header"><span class="videos-title">📹 My Videos</span></div>
+    <div class="videos-header"><span class="videos-title">&#128249; My Videos</span></div>
     <div id="my-reels-container"><div class="loading"><div class="spinner"></div></div></div>
   </div>
 
@@ -215,14 +215,14 @@
   <div class="edit-profile-sheet" id="edit-profile-sheet">
     <div class="sheet-header">
       <h2>Edit Profile</h2>
-      <button class="close-btn" id="close-edit-profile">✕</button>
+      <button class="close-btn" id="close-edit-profile">&#10005;</button>
     </div>
     <div class="sheet-content">
       <div class="edit-section">
         <label>Profile Picture</label>
         <div class="pic-preview-container">
           <img id="profile-pic-preview" class="pic-preview" src="" alt="Profile">
-          <button class="upload-btn" id="upload-pic-btn">📷 Choose Photo</button>
+          <button class="upload-btn" id="upload-pic-btn">&#128247; Choose Photo</button>
           <input type="file" id="profile-pic-input" accept="image/*" style="display:none;">
         </div>
       </div>
@@ -250,10 +250,10 @@
       </div>
       <div class="crop-controls">
         <div class="crop-zoom-row">
-          <span>🔍</span>
+          <span>&#128269;</span>
           <input type="range" class="crop-zoom-slider" id="crop-zoom" min="1" max="3" step="0.01" value="1">
         </div>
-        <div class="crop-hint">Drag to move • Slide to zoom</div>
+        <div class="crop-hint">Drag to move &#8226; Slide to zoom</div>
         <div class="crop-btn-row">
           <button class="crop-cancel-btn" id="crop-cancel">Cancel</button>
           <button class="crop-apply-btn" id="crop-apply">Apply</button>
@@ -263,9 +263,9 @@
   </div>
 
   <nav class="bottom-nav">
-    <button class="nav-btn" onclick="window.location='index.html'"><span>🏠</span><span class="nav-label">Home</span></button>
-    <button class="nav-btn" onclick="window.location='upload.html'"><span>＋</span><span class="nav-label">Create</span></button>
-    <button class="nav-btn active"><span>👤</span><span class="nav-label">Profile</span></button>
+    <button class="nav-btn" onclick="window.location='index.html'"><span>&#127968;</span><span class="nav-label">Home</span></button>
+    <button class="nav-btn" onclick="window.location='upload.html'"><span>&#65291;</span><span class="nav-label">Create</span></button>
+    <button class="nav-btn active"><span>&#128100;</span><span class="nav-label">Profile</span></button>
   </nav>
 
   <div class="drawer-backdrop" id="drawer-backdrop"></div>
@@ -275,12 +275,12 @@
       <div><div class="dh-title">GorkhaReels</div><div class="dh-sub">Gorkha Stories, Global Reach</div></div>
     </div>
     <div class="drawer-items">
-      <button class="drawer-item" onclick="window.location='index.html'"><span class="di-icon">🏠</span> Home</button>
-      <button class="drawer-item" onclick="window.location='search.html'"><span class="di-icon">🔍</span> Search</button>
-      <button class="drawer-item" onclick="window.location='creator-dashboard.html'"><span class="di-icon">👤</span> My Profile</button>
-      <button class="drawer-item" id="edit-profile-drawer"><span class="di-icon">✏️</span> Edit Profile</button>
+      <button class="drawer-item" onclick="window.location='index.html'"><span class="di-icon">&#127968;</span> Home</button>
+      <button class="drawer-item" onclick="window.location='search.html'"><span class="di-icon">&#128269;</span> Search</button>
+      <button class="drawer-item" onclick="window.location='creator-dashboard.html'"><span class="di-icon">&#128100;</span> My Profile</button>
+      <button class="drawer-item" id="edit-profile-drawer"><span class="di-icon">&#9999;&#65039;</span> Edit Profile</button>
       <div class="drawer-sep"></div>
-      <button class="drawer-item drawer-item-danger" id="drawer-logout"><span class="di-icon">🚪</span> Logout</button>
+      <button class="drawer-item drawer-item-danger" id="drawer-logout"><span class="di-icon">&#128682;</span> Logout</button>
     </div>
   </aside>
 
@@ -344,11 +344,51 @@
       document.getElementById('save-profile-btn').onclick = saveProfileChanges;
     }
 
+    // Get the creator profile, or auto-create it if missing (handles
+    // accounts that were created before the profile row was written).
+    async function getOrCreateCreator(uid) {
+      try {
+        return await db.get(APPWRITE_CONFIG.COLLECTIONS.CREATORS, uid);
+      } catch (err) {
+        const notFound = err && (err.code === 404 || err.type === 'document_not_found');
+        if (!notFound) throw err;
+
+        // Build a fresh profile from the logged-in account
+        const acct = session.getUser() || {};
+        const safeName = acct.name || (acct.email ? acct.email.split('@')[0] : 'Creator');
+        const safeEmail = acct.email || (uid + '@gorkhareels.app');
+        const baseUsername = (acct.email ? acct.email.split('@')[0] : safeName)
+          .toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 20) || ('user' + uid.slice(0, 6));
+
+        const newProfile = {
+          userId: uid,
+          email: safeEmail,
+          name: safeName,
+          username: baseUsername,
+          bio: '',
+          profilePic: '',
+          followers: 0,
+          totalViews: 0,
+          totalReels: 0,
+          totalEarnings: 0,
+          isVerified: false,
+          isActive: true,
+          isAdmin: false,
+          createdAt: new Date().toISOString()
+        };
+
+        // Document ID MUST equal the auth uid so future db.get(uid) works
+        const created = await db.create(APPWRITE_CONFIG.COLLECTIONS.CREATORS, newProfile, uid);
+        showToast('Welcome! Your profile is ready.');
+        return created;
+      }
+    }
+
     async function loadDashboard() {
       try {
         const uid = session.getUserId();
-        CREATOR = await db.get(APPWRITE_CONFIG.COLLECTIONS.CREATORS, uid);
-        document.getElementById('creator-name').innerHTML = escapeHtml(CREATOR.name || 'Creator') + (CREATOR.isVerified ? ' <span class="verified-badge">✓</span>' : '');
+        CREATOR = await getOrCreateCreator(uid);
+        document.getElementById('creator-name').innerHTML = escapeHtml(CREATOR.name || 'Creator') + (CREATOR.isVerified ? ' <span class="verified-badge">&#10003;</span>' : '');
         document.getElementById('creator-bio').textContent = CREATOR.bio || 'No bio yet';
         document.getElementById('creator-avatar').src = CREATOR.profilePic || '/logo-suite/primary/logo-khukuri-512x512.png';
 
@@ -360,28 +400,28 @@
           Query.orderDesc('uploadedAt'),
           Query.limit(50)
         ]);
-        REELS = reels.documents;
-        document.getElementById('total-reels').textContent = reels.documents.length;
-        const totalViews = reels.documents.reduce((s, r) => s + (r.views || 0), 0);
+        REELS = reels.documents.filter(r => !r.isDeleted);
+        document.getElementById('total-reels').textContent = REELS.length;
+        const totalViews = REELS.reduce((s, r) => s + (r.views || 0), 0);
         document.getElementById('total-views').textContent = totalViews;
-        document.getElementById('total-earnings').textContent = '₹ 0.00';
+        document.getElementById('total-earnings').textContent = '\u20B9 ' + (CREATOR.totalEarnings || 0).toFixed(2);
 
-        if (!reels.documents.length) {
+        if (!REELS.length) {
           document.getElementById('my-reels-container').innerHTML = '<div class="empty-state">No videos yet. Start uploading!</div>';
           return;
         }
 
         const grid = document.createElement('div');
         grid.className = 'videos-grid';
-        reels.documents.forEach(reel => {
+        REELS.forEach(reel => {
           const thumb = document.createElement('div');
           thumb.className = 'video-thumb';
           thumb.innerHTML = `
             <img src="${getThumbSrc(reel)}" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'">
-            <button class="video-more" onclick="openVideoMenu(event, '${reel.$id}')">⋯</button>
-            <div class="video-views">👁️ ${reel.views || 0}</div>
+            <button class="video-more" onclick="openVideoMenu(event, '${reel.$id}')">&#8943;</button>
+            <div class="video-views">&#128065;&#65039; ${reel.views || 0}</div>
           `;
-          thumb.onclick = (e) => { if (e.target.classList.contains('video-more')) return; window.location = `video-modal.html?id=${reel.$id}`; };
+          thumb.onclick = (e) => { if (e.target.classList.contains('video-more')) return; window.location = `video-modal.html?reelId=${reel.$id}`; };
           grid.appendChild(thumb);
         });
         document.getElementById('my-reels-container').innerHTML = '';
@@ -405,8 +445,8 @@
         b.onclick = () => { closeVideoMenu(); handler(); };
         items.appendChild(b);
       };
-      add('✏️ Edit', () => window.location = `video-modal.html?id=${CURRENT_REEL.$id}`);
-      add('🗑️ Delete', () => deleteVideo(CURRENT_REEL), true);
+      add('\u270F\uFE0F Edit', () => window.location = `video-modal.html?reelId=${CURRENT_REEL.$id}`);
+      add('\uD83D\uDDD1\uFE0F Delete', () => deleteVideo(CURRENT_REEL), true);
       document.getElementById('video-menu-backdrop').classList.add('open');
       document.getElementById('video-menu').classList.add('open');
     }
@@ -448,9 +488,8 @@
     function handleProfilePicSelect(e) {
       const file = e.target.files[0];
       if (!file) return;
-      // Open cropper instead of direct preview
       openCropper(file);
-      e.target.value = ''; // reset so same file can be reselected
+      e.target.value = '';
     }
 
     async function saveProfileChanges() {
@@ -467,7 +506,6 @@
 
         if (SELECTED_PROFILE_PIC) {
           try {
-            // SELECTED_PROFILE_PIC is a cropped JPEG File named profile.jpg
             const uploadedFile = await fileStorage.upload(APPWRITE_CONFIG.BUCKETS.PROFILE_PICS, SELECTED_PROFILE_PIC);
             profilePicUrl = fileStorage.getFileUrl(APPWRITE_CONFIG.BUCKETS.PROFILE_PICS, uploadedFile.$id);
           } catch (uploadErr) {
@@ -510,7 +548,6 @@
         drawCrop();
       };
 
-      // Pointer drag
       const getPoint = (e) => {
         if (e.touches && e.touches[0]) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
         return { x: e.clientX, y: e.clientY };
@@ -543,13 +580,11 @@
         const img = new Image();
         img.onload = () => {
           cropState.img = img;
-          // Show modal FIRST so the crop area has a real width
           document.getElementById('crop-modal-backdrop').classList.add('open');
-          // Wait for layout, then size the canvas and draw
           requestAnimationFrame(() => {
             const canvas = document.getElementById('crop-canvas');
             let size = document.getElementById('crop-area').clientWidth;
-            if (!size || size < 50) size = 300; // fallback if measurement fails
+            if (!size || size < 50) size = 300;
             cropState.canvasSize = size;
             canvas.width = size;
             canvas.height = size;
@@ -573,7 +608,6 @@
       const size = cropState.canvasSize;
       const w = cropState.img.width * cropState.scale;
       const h = cropState.img.height * cropState.scale;
-      // Don't allow gaps
       if (cropState.offsetX > 0) cropState.offsetX = 0;
       if (cropState.offsetY > 0) cropState.offsetY = 0;
       if (cropState.offsetX < size - w) cropState.offsetX = size - w;
@@ -598,8 +632,6 @@
     }
 
     function applyCrop() {
-      // The circle is inset 10% in the square. We export the full square
-      // at 400x400 (the circle is shown via object-fit on the avatar).
       const exportSize = 400;
       const out = document.createElement('canvas');
       out.width = exportSize;
@@ -614,9 +646,7 @@
 
       out.toBlob((blob) => {
         if (!blob) { showToast('Crop failed', true); return; }
-        // Create a File named profile.jpg so extension check passes
         SELECTED_PROFILE_PIC = new File([blob], 'profile.jpg', { type: 'image/jpeg' });
-        // Show preview
         const url = URL.createObjectURL(blob);
         document.getElementById('profile-pic-preview').src = url;
         closeCropper();
