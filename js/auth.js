@@ -2,11 +2,11 @@
  * GorkhaReels - Authentication System (FIXED)
  * 
  * FIXES APPLIED:
- * ✅ FIX #12: Email format validation added
- * ✅ FIX #6: Profile creation failures now rollback user account
- * ✅ FIX #3: Session refresh waits for appwrite-config.js to load
- * ✅ REMOVED: username field (doesn't exist in CREATORS schema)
- * ✅ FIXED: Rollback error (account.delete is not a function)
+ * ✅ FIX #1: Removed username field (doesn't exist in CREATORS schema)
+ * ✅ FIX #2: Added permissions so user can read/write their own profile
+ * ✅ FIX #3: Profile creation now succeeds for new creators
+ * ✅ FIX #4: Email validation added
+ * ✅ FIX #5: Session rollback on profile failure
  */
 
 class AuthManager {
@@ -62,7 +62,6 @@ class AuthManager {
       return;
     }
 
-    // FIX #12: Validate email format
     if (!this.isValidEmail(email)) {
       this.showError(errorEl, 'Please enter a valid email address');
       return;
@@ -114,7 +113,7 @@ class AuthManager {
 
   /**
    * Handle SIGNUP using Appwrite Account API (FIXED)
-   * Username is auto-generated - no need to ask user
+   * Creates account + creator profile with proper permissions
    */
   async handleSignup() {
     const name = document.getElementById('signup-name')?.value?.trim();
@@ -132,7 +131,6 @@ class AuthManager {
       this.showError(errorEl, 'Name must be at least 2 characters');
       return;
     }
-    // FIX #12: Validate email format
     if (!this.isValidEmail(email)) {
       this.showError(errorEl, 'Please enter a valid email address');
       return;
@@ -142,15 +140,12 @@ class AuthManager {
       return;
     }
 
-    // Auto-generate username from name + random suffix
-    const username = this.generateUsername(name);
-
     try {
       signupBtn.disabled = true;
       signupBtn.classList.add('loading');
       signupBtn.textContent = 'Creating account...';
 
-      // Clear any existing session first (prevents "session is active" error)
+      // Clear any existing session first
       try {
         await account.deleteSession('current');
       } catch (e) {
@@ -172,7 +167,7 @@ class AuthManager {
           msg = 'Email already registered. Please sign in.';
         }
         this.showError(errorEl, msg);
-        return; // Stop here, don't proceed to profile creation
+        return;
       }
 
       // 2. Log them in immediately
@@ -185,34 +180,43 @@ class AuthManager {
         return;
       }
 
-      // 3. Create their creator profile in the database
+      // 3. Create their creator profile in the database with permissions
       try {
+        const creatorData = {
+          userId: user.$id,
+          email: email,
+          name: name,
+          bio: '',
+          profilePic: '',
+          followers: 0,
+          totalViews: 0,
+          totalReels: 0,
+          totalEarnings: 0,
+          isVerified: false,
+          isActive: true,
+          createdAt: new Date().toISOString()
+        };
+
+        // FIX #2: Add permissions so user can read/write their own profile
+        const permissions = [
+          Permission.read(Role.user(user.$id)),
+          Permission.write(Role.user(user.$id)),
+          Permission.update(Role.user(user.$id)),
+          Permission.delete(Role.user(user.$id))
+        ];
+
         await db.create(
           APPWRITE_CONFIG.COLLECTIONS.CREATORS,
-          {
-            userId: user.$id,
-            username: username,
-            name: name,
-            email: email,
-            bio: '',
-            profilePic: '',
-            followers: 0,
-            totalViews: 0,
-            totalReels: 0,
-            totalEarnings: 0,
-            isVerified: false,
-            isActive: true,
-            createdAt: new Date().toISOString()
-          },
-          user.$id  // use the auth user id as the document id
+          creatorData,
+          user.$id,  // Document ID = user ID
+          permissions
         );
-        console.log('✅ Creator profile created');
+        console.log('✅ Creator profile created with permissions');
 
       } catch (profileErr) {
         console.error('Profile creation failed:', profileErr);
         
-        // FIX #6: ROLLBACK - delete the session since profile setup failed
-        // FIXED: account.delete() doesn't exist - use deleteSession instead
+        // Rollback: Clear session since profile setup failed
         try {
           await account.deleteSession('current');
           console.log('⚠️  Session cleared due to profile failure');
@@ -221,10 +225,10 @@ class AuthManager {
         }
 
         this.showError(errorEl, 'Profile setup failed. Please try again.');
-        return; // Don't proceed to success
+        return;
       }
 
-      // SUCCESS: Everything worked
+      // SUCCESS
       Toast.success('Account created! Welcome to GorkhaReels! 🎉');
       setTimeout(() => {
         window.location.href = './index.html';
@@ -240,16 +244,8 @@ class AuthManager {
     }
   }
 
-  // FIX #12: Email validation helper
   isValidEmail(email) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  }
-
-  // Auto-generate username from name (e.g. "Adhar Limbu" → "adharlimbu_4821")
-  generateUsername(name) {
-    const base = name.toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 15);
-    const suffix = Math.floor(1000 + Math.random() * 9000); // 4-digit random
-    return `${base || 'user'}_${suffix}`;
   }
 
   showError(element, message) {
@@ -266,7 +262,7 @@ function toggleForm() {
   }
 }
 
-// FIX #3: Wait for DOM to be ready before initializing
+// Initialize when DOM is ready
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
     window.authManager = new AuthManager();
@@ -275,4 +271,4 @@ if (document.readyState === 'loading') {
   window.authManager = new AuthManager();
 }
 
-console.log('✅ Auth Manager Loaded (username removed, rollback fixed)');
+console.log('✅ Auth Manager Loaded (Fixed: removed username, added permissions)');
