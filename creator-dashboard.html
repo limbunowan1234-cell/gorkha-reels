@@ -210,6 +210,12 @@
       animation: spin 1s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    .toast {
+      position: fixed; top: 20px; right: 20px; padding: 12px 20px;
+      background: #0B5E6B; color: #fff; border-radius: 8px; z-index: 2000;
+    }
+    .toast.error { background: #dc2626; }
   </style>
 </head>
 <body>
@@ -349,7 +355,7 @@
     </div>
     <div class="drawer-items">
       <button class="drawer-item" onclick="window.location='index.html'"><span class="di-icon">🏠</span> Home</button>
-      <button class="drawer-item" onclick="window.location='trending.html'"><span class="di-icon">🔥</span> Trending</button>
+      <button class="drawer-item" onclick="window.location='search.html'"><span class="di-icon">🔍</span> Search</button>
       <button class="drawer-item" onclick="window.location='creator-dashboard.html'"><span class="di-icon">👤</span> My Profile</button>
       <button class="drawer-item" id="edit-profile-drawer"><span class="di-icon">✏️</span> Edit Profile</button>
       <div class="drawer-sep"></div>
@@ -362,16 +368,22 @@
   <script>
     let REELS = [];
     let CURRENT_REEL = null;
+    let CREATOR = null;
 
-    // Returns a safe <img> src for a reel thumbnail. If extraction failed
-    // and `thumbnail` ended up being the raw video file (a known fallback
-    // in upload.js), this avoids handing a video URL to an <img> tag.
     function getThumbSrc(reel) {
       const t = reel && reel.thumbnail;
       const fallback = '/logo-suite/primary/logo-khukuri-512x512.png';
       if (!t) return fallback;
       if (/\.(mp4|mov|webm|m4v)(\?|$)/i.test(t)) return fallback;
       return t;
+    }
+
+    function showToast(msg, isError = false) {
+      const toast = document.createElement('div');
+      toast.className = 'toast' + (isError ? ' error' : '');
+      toast.textContent = msg;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
     }
 
     async function init() {
@@ -407,18 +419,18 @@
     async function loadDashboard() {
       try {
         const uid = session.getUserId();
-        const creator = await db.get(APPWRITE_CONFIG.COLLECTIONS.CREATORS, uid);
-        document.getElementById('creator-name').innerHTML = escapeHtml(creator.name || 'Creator') +
-          (creator.isVerified ? ' <span class="verified-badge">✓</span>' : '');
-        document.getElementById('creator-bio').textContent = creator.bio || 'No bio yet';
-        document.getElementById('creator-avatar').src = creator.profilePic || '/logo-suite/primary/logo-khukuri-512x512.png';
+        CREATOR = await db.get(APPWRITE_CONFIG.COLLECTIONS.CREATORS, uid);
+        
+        document.getElementById('creator-name').innerHTML = escapeHtml(CREATOR.name || 'Creator') +
+          (CREATOR.isVerified ? ' <span class="verified-badge">✓</span>' : '');
+        document.getElementById('creator-bio').textContent = CREATOR.bio || 'No bio yet';
+        document.getElementById('creator-avatar').src = CREATOR.profilePic || '/logo-suite/primary/logo-khukuri-512x512.png';
 
         const followers = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [Query.equal('followingId', uid)]);
         document.getElementById('followers-count').textContent = followers.total;
 
         const reels = await db.list(APPWRITE_CONFIG.COLLECTIONS.REELS, [
           Query.equal('creatorId', uid),
-          Query.equal('isDeleted', false),
           Query.orderDesc('uploadedAt'),
           Query.limit(50)
         ]);
@@ -444,7 +456,7 @@
             <button class="video-more" onclick="openVideoMenu(event, '${reel.$id}')">⋯</button>
             <div class="video-views">👁️ ${reel.views || 0}</div>
           `;
-          thumb.onclick = (e) => { if (e.target.classList.contains('video-more')) return; window.location = `video-modal.html?reelId=${reel.$id}`; };
+          thumb.onclick = (e) => { if (e.target.classList.contains('video-more')) return; window.location = `video-modal.html?id=${reel.$id}`; };
           grid.appendChild(thumb);
         });
         document.getElementById('my-reels-container').innerHTML = '';
@@ -471,7 +483,7 @@
         items.appendChild(b);
       };
 
-      add('✏️ Edit', () => window.location = `video-modal.html?reelId=${CURRENT_REEL.$id}`);
+      add('✏️ Edit', () => window.location = `video-modal.html?id=${CURRENT_REEL.$id}`);
       add('🗑️ Delete', () => deleteVideo(CURRENT_REEL), true);
 
       document.getElementById('video-menu-backdrop').classList.add('open');
@@ -501,12 +513,15 @@
     let SELECTED_PROFILE_PIC = null;
 
     function openEditProfileSheet() {
+      if (!CREATOR) return;
       const sheet = document.getElementById('edit-profile-sheet');
       const backdrop = document.getElementById('edit-profile-backdrop');
       document.getElementById('edit-name').value = CREATOR.name || '';
       document.getElementById('edit-bio').value = CREATOR.bio || '';
       if (CREATOR.profilePic) {
         document.getElementById('profile-pic-preview').src = CREATOR.profilePic;
+      } else {
+        document.getElementById('profile-pic-preview').src = '/logo-suite/primary/logo-khukuri-512x512.png';
       }
       SELECTED_PROFILE_PIC = null;
       sheet.classList.add('open');
@@ -548,9 +563,16 @@
 
         // Upload new profile picture if selected
         if (SELECTED_PROFILE_PIC) {
-          const fileId = ID.unique();
-          const uploadedFile = await fileStorage.upload(APPWRITE_CONFIG.BUCKETS.PROFILE_PICS, SELECTED_PROFILE_PIC);
-          profilePicUrl = fileStorage.getFileUrl(APPWRITE_CONFIG.BUCKETS.PROFILE_PICS, uploadedFile.$id);
+          try {
+            const uploadedFile = await fileStorage.upload(APPWRITE_CONFIG.BUCKETS.PROFILE_PICS, SELECTED_PROFILE_PIC);
+            profilePicUrl = fileStorage.getFileUrl(APPWRITE_CONFIG.BUCKETS.PROFILE_PICS, uploadedFile.$id);
+          } catch (uploadErr) {
+            console.error('Picture upload failed:', uploadErr);
+            showToast('Could not upload picture', true);
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Save Changes';
+            return;
+          }
         }
 
         // Update creator document
