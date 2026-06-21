@@ -6,7 +6,7 @@
   <title>Creator Dashboard - GorkhaReels</title>
   <meta name="description" content="Manage your GorkhaReels profile, track earnings, and grow your audience">
   <meta name="theme-color" content="#0f0f0f">
-  <link rel="icon" type="image/png" href="/icons/favicon/logo-3-minimalist-icon-32x32.png">
+  <link rel="icon" type="image/png" href="/logo-suite/favicon/logo-khukuri-32x32.png">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #0f0f0f; color: #fff; font-family: system-ui; }
@@ -187,7 +187,7 @@
   <!-- ===== BRAND BANNER ===== -->
   <header class="banner">
     <div class="banner-left">
-      <img class="banner-logo" src="/icons/wordmark/logo-2-wordmark-300x300.png" alt="GorkhaReels">
+      <img class="banner-logo" src="/logo-suite/primary/logo-khukuri-256x256.png" alt="GorkhaReels">
       <div class="banner-text">
         <div class="banner-title">GorkhaReels</div>
         <div class="banner-tagline">Gorkha Stories, Global Reach</div>
@@ -202,7 +202,7 @@
   <div class="dashboard-container">
     <!-- Profile Header -->
     <div class="profile-top">
-      <img id="creator-avatar" src="/icons/primary/logo-1-app-icon-180x180.png" alt="Profile" class="profile-avatar-lg">
+      <img id="creator-avatar" src="/logo-suite/primary/logo-khukuri-512x512.png" alt="Profile" class="profile-avatar-lg">
       <div class="profile-stats-row">
         <div class="stat-cell">
           <span class="stat-num" id="total-reels">0</span>
@@ -275,7 +275,7 @@
   <div class="drawer-backdrop" id="drawer-backdrop"></div>
   <aside class="drawer" id="drawer">
     <div class="drawer-head">
-      <img src="/icons/wordmark/logo-2-wordmark-300x300.png" alt="">
+      <img src="/logo-suite/primary/logo-khukuri-256x256.png" alt="">
       <div>
         <div class="dh-title">GorkhaReels</div>
         <div class="dh-sub">Gorkha Stories, Global Reach</div>
@@ -302,7 +302,7 @@
     // in upload.js), this avoids handing a video URL to an <img> tag.
     function getThumbSrc(reel) {
       const t = reel && reel.thumbnail;
-      const fallback = '/icons/primary/logo-1-app-icon-180x180.png';
+      const fallback = '/logo-suite/primary/logo-khukuri-512x512.png';
       if (!t) return fallback;
       if (/\.(mp4|mov|webm|m4v)(\?|$)/i.test(t)) return fallback;
       return t;
@@ -340,7 +340,7 @@
         document.getElementById('creator-name').innerHTML = escapeHtml(creator.name || 'Creator') +
           (creator.isVerified ? ' <span class="verified-badge">✓</span>' : '');
         document.getElementById('creator-bio').textContent = creator.bio || 'No bio yet';
-        document.getElementById('creator-avatar').src = creator.profilePic || '/icons/primary/logo-1-app-icon-180x180.png';
+        document.getElementById('creator-avatar').src = creator.profilePic || '/logo-suite/primary/logo-khukuri-512x512.png';
 
         const followers = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [Query.equal('followingId', uid)]);
         document.getElementById('followers-count').textContent = followers.total;
@@ -369,7 +369,7 @@
           const thumb = document.createElement('div');
           thumb.className = 'video-thumb';
           thumb.innerHTML = `
-            <img src="${getThumbSrc(reel)}" onerror="this.src='/icons/primary/logo-1-app-icon-180x180.png'">
+            <img src="${getThumbSrc(reel)}" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'">
             <button class="video-more" onclick="openVideoMenu(event, '${reel.$id}')">⋯</button>
             <div class="video-views">👁️ ${reel.views || 0}</div>
           `;
