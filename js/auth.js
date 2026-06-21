@@ -1,10 +1,10 @@
 /**
- * GorkhaReels - Authentication System (FIXED)
+ * GorkhaReels - Authentication System (FIXED v2)
  * 
  * FIXES APPLIED:
  * ✅ FIX #1: Removed username field (doesn't exist in CREATORS schema)
- * ✅ FIX #2: Added permissions so user can read/write their own profile
- * ✅ FIX #3: Profile creation now succeeds for new creators
+ * ✅ FIX #2: Create profile WITHOUT explicit permissions (collection-level allows it)
+ * ✅ FIX #3: If create fails, log detailed error for debugging
  * ✅ FIX #4: Email validation added
  * ✅ FIX #5: Session rollback on profile failure
  */
@@ -112,8 +112,8 @@ class AuthManager {
   }
 
   /**
-   * Handle SIGNUP using Appwrite Account API (FIXED)
-   * Creates account + creator profile with proper permissions
+   * Handle SIGNUP using Appwrite Account API (FIXED v2)
+   * Creates account + creator profile (no explicit permissions - collection-level allows it)
    */
   async handleSignup() {
     const name = document.getElementById('signup-name')?.value?.trim();
@@ -180,7 +180,7 @@ class AuthManager {
         return;
       }
 
-      // 3. Create their creator profile in the database with permissions
+      // 3. Create their creator profile in the database (NO explicit permissions - collection allows it)
       try {
         const creatorData = {
           userId: user.$id,
@@ -197,24 +197,22 @@ class AuthManager {
           createdAt: new Date().toISOString()
         };
 
-        // FIX #2: Add permissions so user can read/write their own profile
-        const permissions = [
-          Permission.read(Role.user(user.$id)),
-          Permission.write(Role.user(user.$id)),
-          Permission.update(Role.user(user.$id)),
-          Permission.delete(Role.user(user.$id))
-        ];
-
+        // FIX v2: Create without explicit permissions
+        // The CREATORS collection should allow authenticated users to create documents
         await db.create(
           APPWRITE_CONFIG.COLLECTIONS.CREATORS,
           creatorData,
-          user.$id,  // Document ID = user ID
-          permissions
+          user.$id  // Document ID = user ID
         );
-        console.log('✅ Creator profile created with permissions');
+        console.log('✅ Creator profile created successfully');
 
       } catch (profileErr) {
         console.error('Profile creation failed:', profileErr);
+        console.error('Error details:', {
+          message: profileErr.message,
+          code: profileErr.code,
+          type: profileErr.type
+        });
         
         // Rollback: Clear session since profile setup failed
         try {
@@ -224,7 +222,7 @@ class AuthManager {
           console.error('Session cleanup failed:', deleteErr);
         }
 
-        this.showError(errorEl, 'Profile setup failed. Please try again.');
+        this.showError(errorEl, 'Profile setup failed. Please try again. (Check console for details)');
         return;
       }
 
@@ -271,4 +269,4 @@ if (document.readyState === 'loading') {
   window.authManager = new AuthManager();
 }
 
-console.log('✅ Auth Manager Loaded (Fixed: removed username, added permissions)');
+console.log('✅ Auth Manager Loaded v2 (no explicit permissions - collection-level)');
