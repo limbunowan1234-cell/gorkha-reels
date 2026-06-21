@@ -398,7 +398,7 @@
       const reel = REELS[i];
       try {
         const followRes = await db.list(C.FOLLOWERS, [
-          Query.equal('followerID', MY_UID),
+          Query.equal('followerId', MY_UID),
           Query.equal('followingId', reel.creatorId)
         ]);
         if (followRes.documents.length > 0) {
