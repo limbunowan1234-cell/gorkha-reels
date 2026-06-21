@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Creator Profile - GorkhaReels</title>
-  <link rel="icon" type="image/png" href="/icons/favicon/logo-3-minimalist-icon-32x32.png">
+  <link rel="icon" type="image/png" href="/logo-suite/favicon/logo-khukuri-32x32.png">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #0f0f0f; color: #fff; font-family: system-ui; }
@@ -105,7 +105,7 @@
   <!-- ===== BRAND BANNER ===== -->
   <header class="banner">
     <div class="banner-left">
-      <img class="banner-logo" src="/icons/wordmark/logo-2-wordmark-300x300.png" alt="GorkhaReels">
+      <img class="banner-logo" src="/logo-suite/primary/logo-khukuri-256x256.png" alt="GorkhaReels">
       <div class="banner-text">
         <div class="banner-title">GorkhaReels</div>
         <div class="banner-tagline">Gorkha Stories, Global Reach</div>
@@ -119,7 +119,7 @@
 
   <div class="content">
     <div class="profile-header">
-      <img id="profile-pic" class="profile-pic-large" src="/icons/primary/logo-1-app-icon-180x180.png" alt="Profile">
+      <img id="profile-pic" class="profile-pic-large" src="/logo-suite/primary/logo-khukuri-512x512.png" alt="Profile">
       <h2 id="creator-name" class="profile-name">Loading...</h2>
       <p id="creator-bio" class="profile-bio"></p>
 
@@ -180,7 +180,7 @@
   <div class="drawer-backdrop" id="drawer-backdrop"></div>
   <aside class="drawer" id="drawer">
     <div class="drawer-head">
-      <img src="/icons/wordmark/logo-2-wordmark-300x300.png" alt="">
+      <img src="/logo-suite/primary/logo-khukuri-256x256.png" alt="">
       <div>
         <div class="dh-title">GorkhaReels</div>
         <div class="dh-sub">Gorkha Stories, Global Reach</div>
@@ -233,7 +233,7 @@
     // in upload.js), this avoids handing a video URL to an <img> tag.
     function getThumbSrc(reel) {
       const t = reel && reel.thumbnail;
-      const fallback = '/icons/primary/logo-1-app-icon-180x180.png';
+      const fallback = '/logo-suite/primary/logo-khukuri-512x512.png';
       if (!t) return fallback;
       if (/\.(mp4|mov|webm|m4v)(\?|$)/i.test(t)) return fallback;
       return t;
@@ -291,7 +291,7 @@
             item.className = 'list-item';
             item.onclick = () => window.location = `creator-profile.html?userId=${creator.$id}`;
             item.innerHTML = `
-              <div class="list-avatar"><img src="${creator.profilePic || '/icons/primary/logo-1-app-icon-180x180.png'}" onerror="this.src='/icons/primary/logo-1-app-icon-180x180.png'"></div>
+              <div class="list-avatar"><img src="${creator.profilePic || '/logo-suite/primary/logo-khukuri-512x512.png'}" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'"></div>
               <div class="list-name">${escapeHtml(creator.name || 'User')}</div>
             `;
             listBody.appendChild(item);
@@ -317,7 +317,7 @@
             item.className = 'list-item';
             item.onclick = () => window.location = `creator-profile.html?userId=${creator.$id}`;
             item.innerHTML = `
-              <div class="list-avatar"><img src="${creator.profilePic || '/icons/primary/logo-1-app-icon-180x180.png'}" onerror="this.src='/icons/primary/logo-1-app-icon-180x180.png'"></div>
+              <div class="list-avatar"><img src="${creator.profilePic || '/logo-suite/primary/logo-khukuri-512x512.png'}" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'"></div>
               <div class="list-name">${escapeHtml(creator.name || 'User')}</div>
             `;
             listBody.appendChild(item);
@@ -336,7 +336,7 @@
           document.getElementById('creator-name').innerHTML = escapeHtml(this.creator.name || 'Creator') +
             (this.creator.isVerified ? ' <span class="verified-badge">✓</span>' : '');
           document.getElementById('creator-bio').textContent = this.creator.bio || '';
-          document.getElementById('profile-pic').src = this.creator.profilePic || '/icons/primary/logo-1-app-icon-180x180.png';
+          document.getElementById('profile-pic').src = this.creator.profilePic || '/logo-suite/primary/logo-khukuri-512x512.png';
 
           const followers = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [Query.equal('followingId', this.creatorId)]);
           const following = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [Query.equal('followerId', this.creatorId)]);
@@ -385,7 +385,7 @@
           }
           grid.innerHTML = response.documents.map(reel => `
             <div class="video-thumb" onclick="window.location.href='./video-modal.html?reelId=${reel.$id}'">
-              <img src="${getThumbSrc(reel)}" alt="${(reel.title || '').replace(/"/g,'&quot;')}" onerror="this.src='/icons/primary/logo-1-app-icon-180x180.png'">
+              <img src="${getThumbSrc(reel)}" alt="${(reel.title || '').replace(/"/g,'&quot;')}" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'">
               <div class="video-views">👁️ ${reel.views || 0}</div>
             </div>
           `).join('');
