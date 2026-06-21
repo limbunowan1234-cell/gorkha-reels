@@ -448,8 +448,15 @@
 
   <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
   <script src="js/appwrite-config.js"></script>
-  <script src="js/utils.js"></script>
   <script>
+    // Inline utility functions
+    function escapeHtml(text) {
+      if (!text) return '';
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
     const C = APPWRITE_CONFIG.COLLECTIONS;
     let REELS = [];
     let MY_UID = null;
