@@ -3,518 +3,490 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Video - GorkhaReels</title>
-  <meta name="description" content="Watch videos on GorkhaReels - Gorkha community short-form videos">
-  <meta name="theme-color" content="#0f0f0f">
-
+  <title>Reels - GorkhaReels</title>
+  <meta name="theme-color" content="#000">
   <link rel="icon" type="image/png" href="/logo-suite/favicon/logo-khukuri-32x32.png">
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/styles.css">
-
   <style>
-    body { overflow: hidden; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
-    * { -webkit-tap-highlight-color: transparent; }
-    .modal-overlay { position: fixed; inset: 0; background: #000; z-index: 1000; }
-    .modal { position: fixed; inset: 0; z-index: 1001; display: flex; flex-direction: column; }
-    .modal-video { flex: 1; background: #000; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
-    .modal-video video { width: 100%; height: 100%; object-fit: contain; }
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { height: 100%; background: #000; color: #fff; font-family: system-ui; overflow: hidden; touch-action: manipulation; }
 
-    /* transparent layer that captures taps for play/pause + double-tap-like */
-    .tap-layer { position: absolute; inset: 0; z-index: 1001; touch-action: manipulation; }
+    /* vertical snap feed */
+    .reels-feed {
+      height: 100dvh; width: 100vw; overflow-y: scroll; scroll-snap-type: y mandatory;
+      -webkit-overflow-scrolling: touch; scrollbar-width: none;
+    }
+    .reels-feed::-webkit-scrollbar { display: none; }
 
-    /* play/pause indicator (brief flash on single tap) */
+    .reel-slide {
+      height: 100dvh; width: 100vw; scroll-snap-align: start; scroll-snap-stop: always;
+      position: relative; background: #000; display: flex; align-items: center; justify-content: center; overflow: hidden;
+    }
+    .reel-slide video { width: 100%; height: 100%; object-fit: contain; background: #000; }
+
+    .tap-layer { position: absolute; inset: 0; z-index: 2; touch-action: manipulation; }
+
     .pp-indicator {
       position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%) scale(0.8);
       font-size: 64px; color: #fff; opacity: 0; pointer-events: none;
-      text-shadow: 0 2px 16px rgba(0,0,0,0.5); transition: opacity 0.25s, transform 0.25s; z-index: 1002;
+      text-shadow: 0 2px 16px rgba(0,0,0,0.5); transition: opacity 0.25s, transform 0.25s; z-index: 3;
     }
-    .pp-indicator.show { opacity: 0.92; transform: translate(-50%,-50%) scale(1); }
+    .pp-indicator.show { opacity: 0.9; transform: translate(-50%,-50%) scale(1); }
 
-    /* double-tap heart pop */
     .heart-pop {
-      position: absolute; font-size: 88px; pointer-events: none; z-index: 1004;
+      position: absolute; font-size: 88px; pointer-events: none; z-index: 5;
       transform: translate(-50%,-50%) scale(0) rotate(-18deg);
-      animation: heartPop 0.8s cubic-bezier(0.17, 0.89, 0.32, 1.28) forwards;
+      animation: heartPop 0.8s cubic-bezier(0.17,0.89,0.32,1.28) forwards;
       filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4));
     }
     @keyframes heartPop {
-      0%   { transform: translate(-50%,-50%) scale(0)   rotate(-18deg); opacity: 0; }
-      15%  { transform: translate(-50%,-50%) scale(1.25) rotate(-18deg); opacity: 1; }
-      35%  { transform: translate(-50%,-50%) scale(1)   rotate(-18deg); opacity: 1; }
-      70%  { transform: translate(-50%,-50%) scale(1.05) rotate(-18deg); opacity: 1; }
-      100% { transform: translate(-50%,-50%) scale(1.5) rotate(-18deg); opacity: 0; }
+      0%{transform:translate(-50%,-50%) scale(0) rotate(-18deg);opacity:0;}
+      15%{transform:translate(-50%,-50%) scale(1.25) rotate(-18deg);opacity:1;}
+      35%{transform:translate(-50%,-50%) scale(1) rotate(-18deg);opacity:1;}
+      70%{transform:translate(-50%,-50%) scale(1.05) rotate(-18deg);opacity:1;}
+      100%{transform:translate(-50%,-50%) scale(1.5) rotate(-18deg);opacity:0;}
     }
 
-    .modal-controls {
-      position: fixed; bottom: 0; left: 0; right: 0;
-      background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.85) 100%);
-      padding: 16px; display: flex; justify-content: space-between; align-items: flex-end;
-      z-index: 1003; pointer-events: none;
-    }
-    .modal-controls > * { pointer-events: auto; }
+    .close-btn { position: fixed; top: 14px; left: 14px; z-index: 20; background: rgba(0,0,0,0.45); backdrop-filter: blur(6px); border: none; color: #fff; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 20px; }
 
-    .close-btn { position: fixed; top: 16px; left: 16px; z-index: 1005; background: rgba(0,0,0,0.45); backdrop-filter: blur(6px); border: none; color: #fff; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 20px; }
-
-    .action-buttons { display: flex; flex-direction: column; gap: 18px; align-items: center; }
+    /* right-side actions */
+    .actions { position: absolute; right: 10px; bottom: 96px; z-index: 6; display: flex; flex-direction: column; gap: 20px; align-items: center; }
     .action-col { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-    .action-btn { background: none; border: none; color: #fff; font-size: 30px; cursor: pointer; transition: transform 0.18s; line-height: 1; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.4)); }
-    .action-btn:active { transform: scale(1.25); }
-    .action-count { font-size: 12px; color: #fff; font-weight: 600; text-shadow: 0 1px 4px rgba(0,0,0,0.5); }
-    .action-btn.liked { animation: likeBounce 0.35s ease; }
-    @keyframes likeBounce { 0%{transform:scale(1);} 40%{transform:scale(1.35);} 100%{transform:scale(1);} }
+    .a-btn { background: none; border: none; color: #fff; font-size: 32px; cursor: pointer; line-height: 1; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.5)); transition: transform 0.15s; }
+    .a-btn:active { transform: scale(1.2); }
+    .a-btn.liked { animation: likeBounce 0.35s ease; }
+    @keyframes likeBounce { 0%{transform:scale(1);}40%{transform:scale(1.35);}100%{transform:scale(1);} }
+    .a-count { font-size: 12px; font-weight: 600; text-shadow: 0 1px 4px rgba(0,0,0,0.6); }
 
-    .creator-info { display: flex; align-items: center; gap: 12px; flex: 1; }
-    .creator-avatar { width: 44px; height: 44px; border-radius: 50%; background: #0B5E6B; object-fit: cover; border: 2px solid rgba(255,255,255,0.85); }
-    .creator-details { min-width: 0; }
-    .creator-name { font-size: 15px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: 'Space Grotesk', sans-serif; text-shadow: 0 1px 6px rgba(0,0,0,0.5); }
-    .creator-handle { font-size: 12px; color: rgba(255,255,255,0.85); }
-    .follow-btn { background: #0B5E6B; border: none; color: #fff; padding: 7px 16px; border-radius: 8px; font-size: 12px; cursor: pointer; font-weight: 700; transition: all 0.2s; }
-    .follow-btn:active { transform: scale(0.95); }
-    .follow-btn.following { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.6); }
+    /* bottom-left creator info */
+    .reel-bottom { position: absolute; left: 14px; right: 80px; bottom: 28px; z-index: 6; }
+    .reel-creator { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+    .reel-avatar { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(255,255,255,0.85); background: #0B5E6B; }
+    .reel-cname { font-size: 15px; font-weight: 700; font-family: 'Space Grotesk', sans-serif; text-shadow: 0 1px 6px rgba(0,0,0,0.6); }
+    .reel-follow { background: #0B5E6B; border: none; color: #fff; padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; }
+    .reel-follow.following { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.6); }
+    .reel-title { font-size: 14px; text-shadow: 0 1px 8px rgba(0,0,0,0.7); line-height: 1.35; }
 
-    .video-title-overlay { position: fixed; left: 16px; right: 90px; bottom: 84px; z-index: 1003; color: #fff; font-size: 14px; text-shadow: 0 1px 8px rgba(0,0,0,0.6); }
+    .feed-loading { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 30; }
+    .spinner { width: 44px; height: 44px; border: 3px solid #2d2d2d; border-top-color: #0B5E6B; border-radius: 50%; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-    .bottom-sheet-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 400; display: none; }
-    .bottom-sheet { position: fixed; bottom: 0; left: 0; right: 0; background: #1a1a1a; z-index: 410; border-radius: 16px 16px 0 0; max-height: 80vh; overflow-y: auto; transform: translateY(100%); transition: transform 0.3s; }
-    .bottom-sheet.open { transform: translateY(0); }
-    .sheet-header { padding: 16px; border-bottom: 1px solid #2d2d2d; font-size: 16px; font-weight: 600; color: #fff; position: sticky; top: 0; background: #1a1a1a; }
-    .comment-item { padding: 12px 16px; border-bottom: 1px solid #2d2d2d; }
-    .comment-author { font-size: 13px; font-weight: 600; color: #fff; margin-bottom: 4px; }
-    .comment-text { font-size: 13px; color: #a3a3a3; }
-    .comment-meta { font-size: 11px; color: #737373; margin-top: 6px; }
-    .comment-form { padding: 12px 16px; border-top: 1px solid #2d2d2d; display: flex; gap: 8px; position: sticky; bottom: 0; background: #1a1a1a; }
-    .comment-input { flex: 1; background: #242424; border: 1px solid #2d2d2d; padding: 10px 12px; border-radius: 8px; color: #fff; font-size: 14px; }
-    .comment-input::placeholder { color: #737373; }
-    .comment-btn { background: #0B5E6B; border: none; color: #fff; padding: 10px 16px; border-radius: 8px; font-size: 13px; cursor: pointer; font-weight: 600; }
-    .toast { position: fixed; top: 20px; right: 20px; padding: 12px 20px; background: #0B5E6B; color: #fff; border-radius: 8px; z-index: 2000; }
+    /* comments sheet */
+    .sheet-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 40; display: none; }
+    .sheet-backdrop.open { display: block; }
+    .sheet { position: fixed; bottom: 0; left: 0; right: 0; background: #1a1a1a; z-index: 50; border-radius: 16px 16px 0 0; height: 70dvh; transform: translateY(100%); transition: transform 0.3s; display: flex; flex-direction: column; }
+    .sheet.open { transform: translateY(0); }
+    .sheet-head { padding: 16px; border-bottom: 1px solid #2d2d2d; font-size: 16px; font-weight: 700; text-align: center; flex-shrink: 0; }
+    .c-list { flex: 1; overflow-y: auto; }
+    .c-item { padding: 12px 16px; border-bottom: 1px solid #242424; display: flex; gap: 10px; }
+    .c-avatar { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; background: #0B5E6B; flex-shrink: 0; }
+    .c-body { flex: 1; min-width: 0; }
+    .c-author { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
+    .c-text { font-size: 14px; color: #ddd; word-wrap: break-word; }
+    .c-meta { font-size: 11px; color: #777; margin-top: 4px; }
+    .c-form { padding: 12px 16px; border-top: 1px solid #2d2d2d; display: flex; gap: 8px; flex-shrink: 0; padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
+    .c-input { flex: 1; background: #242424; border: 1px solid #2d2d2d; padding: 11px 14px; border-radius: 22px; color: #fff; font-size: 14px; }
+    .c-input::placeholder { color: #777; }
+    .c-post { background: #0B5E6B; border: none; color: #fff; padding: 0 18px; border-radius: 22px; font-size: 14px; font-weight: 700; cursor: pointer; }
+    .c-empty { padding: 40px 20px; text-align: center; color: #888; }
+
+    .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); padding: 11px 20px; background: #0B5E6B; color: #fff; border-radius: 10px; z-index: 100; font-size: 14px; box-shadow: 0 4px 14px rgba(0,0,0,0.4); }
     .toast.error { background: #dc2626; }
   </style>
 </head>
 <body>
   <script>
-    // Block iOS pinch-zoom (double-tap zoom is handled by touch-action: manipulation)
     document.addEventListener('gesturestart', e => e.preventDefault());
     document.addEventListener('gesturechange', e => e.preventDefault());
     document.addEventListener('gestureend', e => e.preventDefault());
   </script>
-  <div class="modal-overlay"></div>
 
-  <div class="modal">
-    <button class="close-btn" onclick="closeModal()">✕</button>
+  <button class="close-btn" onclick="window.location='index.html'">✕</button>
 
-    <div class="modal-video" id="modal-video-wrap">
-      <video id="modal-video" autoplay muted loop playsinline></video>
-      <div class="tap-layer" id="tap-layer"></div>
-      <div class="pp-indicator" id="pp-indicator">▶︎</div>
-    </div>
+  <div class="feed-loading" id="feed-loading"><div class="spinner"></div></div>
+  <div class="reels-feed" id="reels-feed"></div>
 
-    <div class="video-title-overlay" id="video-title"></div>
-
-    <div class="modal-controls">
-      <div class="creator-info">
-        <img id="creator-avatar" class="creator-avatar" src="/logo-suite/primary/logo-khukuri-512x512.png" alt="Creator" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'">
-        <div class="creator-details">
-          <div class="creator-name" id="creator-name">Loading...</div>
-          <div class="creator-handle" id="creator-handle">@creator</div>
-        </div>
-        <button class="follow-btn" id="follow-btn">Follow</button>
-      </div>
-
-      <div class="action-buttons">
-        <div class="action-col">
-          <button class="action-btn" id="like-btn" title="Like">🤍</button>
-          <span class="action-count" id="like-count">0</span>
-        </div>
-        <div class="action-col">
-          <button class="action-btn" id="comment-btn" title="Comment" onclick="openComments()">💬</button>
-          <span class="action-count" id="comment-count">0</span>
-        </div>
-        <div class="action-col">
-          <button class="action-btn" id="share-btn" title="Share">↗️</button>
-          <span class="action-count">Share</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Comments Sheet -->
-  <div class="bottom-sheet-backdrop" id="comments-backdrop"></div>
-  <div class="bottom-sheet" id="comments-sheet">
-    <div class="sheet-header">Comments</div>
-    <div id="comments-list"></div>
-    <div class="comment-form">
-      <input type="text" class="comment-input" id="comment-input" placeholder="Add a comment...">
-      <button class="comment-btn" onclick="postComment()">Post</button>
+  <!-- Comments sheet -->
+  <div class="sheet-backdrop" id="sheet-backdrop"></div>
+  <div class="sheet" id="comments-sheet">
+    <div class="sheet-head">Comments</div>
+    <div class="c-list" id="c-list"></div>
+    <div class="c-form">
+      <input type="text" class="c-input" id="c-input" placeholder="Add a comment...">
+      <button class="c-post" id="c-post">Post</button>
     </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
   <script src="js/appwrite-config.js"></script>
-
   <script>
     const C = APPWRITE_CONFIG.COLLECTIONS;
+    let REELS = [];
+    let MY_UID = null;
+    let LIKED = new Set();
+    let currentIndex = 0;
     let currentReel = null;
-    let creatorDoc = null;
-    let isLiked = false;
-    let likeCount = 0;
+    let likeBusy = new Set();
+
+    function toast(msg, isErr) {
+      const t = document.createElement('div');
+      t.className = 'toast' + (isErr ? ' error' : '');
+      t.textContent = msg;
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 2800);
+    }
+
+    function getThumb(reel) {
+      const t = reel && reel.thumbnail;
+      const fb = '/logo-suite/primary/logo-khukuri-512x512.png';
+      if (!t) return fb;
+      if (/\.(mp4|mov|webm|m4v)(\?|$)/i.test(t)) return fb;
+      return t;
+    }
 
     async function init() {
-      const uid = session.getUserId() || (await session.refresh(), session.getUserId());
-      if (!uid) {
-        showToast('Please log in to watch videos', 'error');
-        setTimeout(() => closeModal(), 1500);
-        return;
-      }
+      await session.refresh();
+      MY_UID = session.getUserId();
+      if (!MY_UID) { window.location = 'login.html'; return; }
 
-      const params = new URLSearchParams(window.location.search);
-      const reelId = params.get('id') || params.get('reelId'); // accept both
-
-      if (!reelId) {
-        showToast('Video not found', 'error');
-        setTimeout(() => closeModal(), 1500);
-        return;
-      }
-
+      // preload my likes
       try {
-        currentReel = await db.get(C.REELS, reelId);
-        likeCount = currentReel.likes || 0;
-        document.getElementById('like-count').textContent = likeCount;
-        document.getElementById('comment-count').textContent = currentReel.comments || 0;
-        document.getElementById('video-title').textContent = currentReel.title || '';
-        await loadCreatorInfo();
-        loadVideoPlayer();
-        await checkIfLiked();
-        setupTapHandlers();
-      } catch (error) {
-        console.error('Init error:', error);
-        showToast('Error loading video', 'error');
+        const likes = await db.list(C.LIKES, [Query.equal('userId', MY_UID), Query.limit(200)]);
+        likes.documents.forEach(l => LIKED.add(l.reelId));
+      } catch (e) { console.log('likes preload skip'); }
+
+      // load feed
+      try {
+        const res = await db.list(C.REELS, [
+          Query.equal('isDeleted', false),
+          Query.orderDesc('uploadedAt'),
+          Query.limit(50)
+        ]);
+        REELS = res.documents;
+      } catch (e) {
+        console.error('Feed load failed:', e?.message || e);
+        document.getElementById('feed-loading').innerHTML = '<p style="color:#888">Could not load videos</p>';
+        return;
       }
+
+      if (!REELS.length) {
+        document.getElementById('feed-loading').innerHTML = '<p style="color:#888">No videos yet</p>';
+        return;
+      }
+
+      // which reel to start on
+      const params = new URLSearchParams(location.search);
+      const startId = params.get('id') || params.get('reelId');
+      let startIndex = REELS.findIndex(r => r.$id === startId);
+      if (startIndex < 0) startIndex = 0;
+
+      buildSlides();
+      document.getElementById('feed-loading').style.display = 'none';
+
+      // jump to start slide
+      const slides = document.querySelectorAll('.reel-slide');
+      if (slides[startIndex]) slides[startIndex].scrollIntoView();
+      setActive(startIndex);
+
+      setupObserver();
+      setupComments();
     }
 
-    async function loadCreatorInfo() {
-      try {
-        creatorDoc = await db.get(C.CREATORS, currentReel.creatorId);
-        document.getElementById('creator-name').textContent = creatorDoc.name || 'Unknown';
-        document.getElementById('creator-handle').textContent = '@' + (creatorDoc.name || 'creator').toLowerCase().replace(/\s+/g, '');
-        document.getElementById('creator-avatar').src = creatorDoc.profilePic || '/logo-suite/primary/logo-khukuri-512x512.png';
+    function buildSlides() {
+      const feed = document.getElementById('reels-feed');
+      feed.innerHTML = '';
+      REELS.forEach((reel, i) => {
+        const liked = LIKED.has(reel.$id);
+        const slide = document.createElement('div');
+        slide.className = 'reel-slide';
+        slide.dataset.index = i;
+        slide.innerHTML = `
+          <video data-index="${i}" loop playsinline preload="none" poster="${getThumb(reel)}"></video>
+          <div class="tap-layer" data-index="${i}"></div>
+          <div class="pp-indicator" data-index="${i}">▶︎</div>
+          <div class="actions">
+            <div class="action-col">
+              <button class="a-btn like ${liked ? 'liked' : ''}" data-index="${i}">${liked ? '❤️' : '🤍'}</button>
+              <span class="a-count like-count">${reel.likes || 0}</span>
+            </div>
+            <div class="action-col">
+              <button class="a-btn comment" data-index="${i}">💬</button>
+              <span class="a-count comment-count">${reel.comments || 0}</span>
+            </div>
+            <div class="action-col">
+              <button class="a-btn share" data-index="${i}">↗️</button>
+              <span class="a-count">Share</span>
+            </div>
+          </div>
+          <div class="reel-bottom">
+            <div class="reel-creator">
+              <img class="reel-avatar" src="${reel.creatorProfilePic || '/logo-suite/primary/logo-khukuri-512x512.png'}" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'">
+              <div class="reel-cname">${escapeHtml(reel.creatorName || 'GorkhaReels User')}</div>
+              <button class="reel-follow" data-index="${i}">Follow</button>
+            </div>
+            <div class="reel-title">${escapeHtml(reel.title || '')}</div>
+          </div>
+        `;
+        feed.appendChild(slide);
 
-        const uid = session.getUserId();
-        const followResponse = await db.list(C.FOLLOWERS, [
-          Query.equal('followerID', uid),
-          Query.equal('followingId', creatorDoc.$id)
-        ]);
-        const followBtn = document.getElementById('follow-btn');
-        if (followResponse.documents.length > 0) {
-          followBtn.textContent = 'Following';
-          followBtn.classList.add('following');
+        // wire actions
+        slide.querySelector('.like').onclick = (e) => { e.stopPropagation(); toggleLike(i); };
+        slide.querySelector('.comment').onclick = (e) => { e.stopPropagation(); openComments(i); };
+        slide.querySelector('.share').onclick = (e) => { e.stopPropagation(); shareReel(reel); };
+        slide.querySelector('.reel-follow').onclick = (e) => { e.stopPropagation(); toggleFollow(i, e.currentTarget); };
+
+        // tap layer: single = play/pause, double = like
+        setupTap(slide.querySelector('.tap-layer'), i);
+      });
+    }
+
+    function setupTap(layer, i) {
+      let lastTap = 0, timer = null, firstUnmute = false;
+      layer.addEventListener('click', (e) => {
+        const now = Date.now();
+        if (now - lastTap < 300) {
+          clearTimeout(timer); lastTap = 0;
+          doubleTapLike(i, e.clientX, e.clientY);
         } else {
-          followBtn.textContent = 'Follow';
+          lastTap = now;
+          timer = setTimeout(() => {
+            const v = document.querySelector(`video[data-index="${i}"]`);
+            if (!firstUnmute && v.muted) { v.muted = false; firstUnmute = true; flash(i, '🔊'); return; }
+            if (v.paused) { v.play(); flash(i, '▶︎'); } else { v.pause(); flash(i, '❚❚'); }
+          }, 280);
         }
-        followBtn.onclick = () => toggleFollow(creatorDoc.$id);
-      } catch (error) {
-        // Creator doc missing (old/deleted account) — use reel's stored info, don't break the page
-        console.log('Creator doc not found, using reel fallback');
-        document.getElementById('creator-name').textContent = currentReel.creatorName || 'GorkhaReels User';
-        document.getElementById('creator-handle').textContent = '@' + (currentReel.creatorName || 'user').toLowerCase().replace(/\s+/g, '');
-        document.getElementById('creator-avatar').src = currentReel.creatorProfilePic || '/logo-suite/primary/logo-khukuri-512x512.png';
-        const followBtn = document.getElementById('follow-btn');
-        followBtn.style.display = 'none';
-      }
+      });
     }
 
-    function loadVideoPlayer() {
-      const video = document.getElementById('modal-video');
-      video.src = currentReel.videoUrl;
-      document.title = `${currentReel.title} - GorkhaReels`;
+    function flash(i, sym) {
+      const el = document.querySelector(`.pp-indicator[data-index="${i}"]`);
+      if (!el) return;
+      el.textContent = sym; el.classList.add('show');
+      clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), 450);
     }
 
-    async function checkIfLiked() {
-      try {
-        const uid = session.getUserId();
-        const likeResponse = await db.list(C.LIKES, [
-          Query.equal('reelId', currentReel.$id),
-          Query.equal('userId', uid)
-        ]);
-        isLiked = likeResponse.documents.length > 0;
-        updateLikeButton();
-      } catch (error) {
-        console.error('Like check error:', error);
-      }
+    function doubleTapLike(i, x, y) {
+      const slide = document.querySelector(`.reel-slide[data-index="${i}"]`);
+      const rect = slide.getBoundingClientRect();
+      const heart = document.createElement('div');
+      heart.className = 'heart-pop'; heart.textContent = '❤️';
+      heart.style.left = (x - rect.left) + 'px';
+      heart.style.top = (y - rect.top) + 'px';
+      slide.appendChild(heart);
+      setTimeout(() => heart.remove(), 800);
+      if (!LIKED.has(REELS[i].$id)) toggleLike(i, true);
     }
 
-    // Core like toggle. forceLike=true means "only like, never unlike" (used by double-tap)
-    let likeBusy = false;
-    async function toggleLike(forceLike = false) {
-      if (likeBusy) return; // prevent overlapping operations from rapid taps
-      likeBusy = true;
-      const uid = session.getUserId();
-      try {
-        if (isLiked && !forceLike) {
-          // unlike
-          const likeResponse = await db.list(C.LIKES, [
-            Query.equal('reelId', currentReel.$id),
-            Query.equal('userId', uid)
-          ]);
-          if (likeResponse.documents.length > 0) {
-            await db.remove(C.LIKES, likeResponse.documents[0].$id);
+    // IntersectionObserver: play visible, pause others, set src lazily
+    function setupObserver() {
+      const obs = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          const i = parseInt(entry.target.dataset.index);
+          const v = entry.target.querySelector('video');
+          if (entry.isIntersecting && entry.intersectionRatio > 0.6) {
+            // load src if not yet
+            if (!v.src) v.src = REELS[i].videoUrl;
+            v.muted = false;
+            v.play().catch(() => { v.muted = true; v.play().catch(()=>{}); });
+            setActive(i);
+            countView(i);
+          } else {
+            v.pause();
           }
-          isLiked = false;
-          likeCount = Math.max(0, likeCount - 1);
-        } else if (!isLiked) {
-          // like
+        });
+      }, { threshold: [0, 0.6, 1] });
+      document.querySelectorAll('.reel-slide').forEach(s => obs.observe(s));
+    }
+
+    function setActive(i) {
+      currentIndex = i;
+      currentReel = REELS[i];
+    }
+
+    const viewed = new Set();
+    async function countView(i) {
+      const reel = REELS[i];
+      if (viewed.has(reel.$id)) return;
+      viewed.add(reel.$id);
+      try {
+        const newViews = (reel.views || 0) + 1;
+        await db.update(C.REELS, reel.$id, { views: newViews });
+        reel.views = newViews;
+      } catch (e) {}
+    }
+
+    async function toggleLike(i, forceLike) {
+      const reel = REELS[i];
+      if (likeBusy.has(reel.$id)) return;
+      likeBusy.add(reel.$id);
+      const slide = document.querySelector(`.reel-slide[data-index="${i}"]`);
+      const btn = slide.querySelector('.like');
+      const countEl = slide.querySelector('.like-count');
+      try {
+        if (LIKED.has(reel.$id) && !forceLike) {
+          const likes = await db.list(C.LIKES, [Query.equal('reelId', reel.$id), Query.equal('userId', MY_UID)]);
+          if (likes.documents.length) await db.remove(C.LIKES, likes.documents[0].$id);
+          LIKED.delete(reel.$id);
+          reel.likes = Math.max(0, (reel.likes || 1) - 1);
+          btn.textContent = '🤍'; btn.classList.remove('liked');
+        } else if (!LIKED.has(reel.$id)) {
           const likeId = ID.unique();
           try {
             await db.create(C.LIKES, {
-              likeId,
-              reelId: currentReel.$id,
-              creatorId: currentReel.creatorId, // LIKES requires this
-              userId: uid,
-              createdAt: new Date().toISOString()
+              likeId, reelId: reel.$id, creatorId: reel.creatorId, userId: MY_UID, createdAt: new Date().toISOString()
             }, likeId);
-            likeCount = likeCount + 1;
-          } catch (createErr) {
-            // 409 = already liked (e.g. created by a previous rapid tap) → treat as success
-            if (createErr && createErr.code === 409) {
-              console.log('Already liked, syncing state');
-            } else {
-              throw createErr;
-            }
+            reel.likes = (reel.likes || 0) + 1;
+          } catch (err) {
+            if (!(err && err.code === 409)) throw err;
           }
-          isLiked = true;
-        } else {
-          return; // forceLike but already liked → no-op
-        }
-
-        updateLikeButton();
-        document.getElementById('like-count').textContent = likeCount;
-        // persist count on reel
-        try { await db.update(C.REELS, currentReel.$id, { likes: likeCount }); } catch (e) {}
-      } catch (error) {
-        console.error('Like error:', error);
-        showToast('Could not update like', 'error');
+          LIKED.add(reel.$id);
+          btn.textContent = '❤️'; void btn.offsetWidth; btn.classList.add('liked');
+        } else { return; }
+        countEl.textContent = reel.likes;
+        try { await db.update(C.REELS, reel.$id, { likes: reel.likes }); } catch (e) {}
+      } catch (err) {
+        console.error('Like error:', err?.message || err);
+        toast('Could not update like', true);
       } finally {
-        likeBusy = false;
+        likeBusy.delete(reel.$id);
       }
     }
 
-    function updateLikeButton() {
-      const btn = document.getElementById('like-btn');
-      btn.textContent = isLiked ? '❤️' : '🤍';
-      btn.classList.remove('liked');
-      // retrigger bounce animation
-      void btn.offsetWidth;
-      if (isLiked) btn.classList.add('liked');
-    }
-
-    async function toggleFollow(creatorId) {
+    async function toggleFollow(i, btn) {
+      const reel = REELS[i];
       try {
-        const uid = session.getUserId();
-        const followResponse = await db.list(C.FOLLOWERS, [
-          Query.equal('followerID', uid),
-          Query.equal('followingId', creatorId)
+        const followRes = await db.list(C.FOLLOWERS, [
+          Query.equal('followerID', MY_UID),
+          Query.equal('followingId', reel.creatorId)
         ]);
-        const btn = document.getElementById('follow-btn');
-        if (followResponse.documents.length > 0) {
-          await db.remove(C.FOLLOWERS, followResponse.documents[0].$id);
-          btn.textContent = 'Follow';
-          btn.classList.remove('following');
+        if (followRes.documents.length > 0) {
+          await db.remove(C.FOLLOWERS, followRes.documents[0].$id);
+          btn.textContent = 'Follow'; btn.classList.remove('following');
         } else {
           const followId = ID.unique();
           await db.create(C.FOLLOWERS, {
-            followId,
-            followerID: uid,
-            followingId: creatorId,
-            CreatorId: creatorId,
-            createdAt: new Date().toISOString()
+            followId, followerID: MY_UID, followingId: reel.creatorId, CreatorId: reel.creatorId, createdAt: new Date().toISOString()
           }, followId);
-          btn.textContent = 'Following';
-          btn.classList.add('following');
+          btn.textContent = 'Following'; btn.classList.add('following');
         }
-      } catch (error) {
-        console.error('Follow error:', error);
-        showToast('Could not update follow status', 'error');
+      } catch (err) {
+        console.error('Follow error:', err?.message || err);
+        toast('Could not update follow', true);
       }
     }
 
-    // ===== TAP HANDLING: single tap = play/pause, double tap = like =====
-    function setupTapHandlers() {
-      const tapLayer = document.getElementById('tap-layer');
-      const video = document.getElementById('modal-video');
-      let lastTap = 0;
-      let singleTimer = null;
-      let firstUnmuteDone = false;
-
-      const onTap = (clientX, clientY) => {
-        const now = Date.now();
-        if (now - lastTap < 300) {
-          // DOUBLE TAP
-          clearTimeout(singleTimer);
-          lastTap = 0;
-          doDoubleTapLike(clientX, clientY);
-        } else {
-          lastTap = now;
-          singleTimer = setTimeout(() => {
-            // SINGLE TAP — first interaction unmutes, otherwise play/pause
-            if (!firstUnmuteDone && video.muted) {
-              video.muted = false;
-              firstUnmuteDone = true;
-              flashIndicator('🔊');
-              return;
-            }
-            togglePlayPause();
-          }, 280);
-        }
-      };
-
-      tapLayer.addEventListener('click', (e) => onTap(e.clientX, e.clientY));
-    }
-
-    function togglePlayPause() {
-      const video = document.getElementById('modal-video');
-      if (video.paused) { video.play(); flashIndicator('▶︎'); }
-      else { video.pause(); flashIndicator('❚❚'); }
-    }
-
-    function flashIndicator(symbol) {
-      const el = document.getElementById('pp-indicator');
-      el.textContent = symbol;
-      el.classList.add('show');
-      clearTimeout(el._t);
-      el._t = setTimeout(() => el.classList.remove('show'), 450);
-    }
-
-    function doDoubleTapLike(clientX, clientY) {
-      // heart at tap location
-      const wrap = document.getElementById('modal-video-wrap');
-      const rect = wrap.getBoundingClientRect();
-      const heart = document.createElement('div');
-      heart.className = 'heart-pop';
-      heart.textContent = '❤️';
-      heart.style.left = (clientX - rect.left) + 'px';
-      heart.style.top = (clientY - rect.top) + 'px';
-      wrap.appendChild(heart);
-      setTimeout(() => heart.remove(), 800);
-      // like (never unlike on double-tap)
-      toggleLike(true);
-    }
-
-    // ===== Comments =====
-    async function loadComments() {
+    async function shareReel(reel) {
+      const url = `${location.origin}/video-modal.html?reelId=${reel.$id}`;
       try {
-        const response = await db.list(C.COMMENTS, [
+        if (navigator.share) await navigator.share({ title: reel.title, url });
+        else { await navigator.clipboard.writeText(url); toast('Link copied!'); }
+      } catch (e) {}
+    }
+
+    // ===== COMMENTS =====
+    function setupComments() {
+      document.getElementById('sheet-backdrop').onclick = closeComments;
+      document.getElementById('c-post').onclick = postComment;
+      document.getElementById('c-input').addEventListener('keypress', (e) => { if (e.key === 'Enter') postComment(); });
+    }
+
+    function openComments(i) {
+      setActive(i);
+      document.getElementById('sheet-backdrop').classList.add('open');
+      document.getElementById('comments-sheet').classList.add('open');
+      loadComments();
+    }
+    function closeComments() {
+      document.getElementById('sheet-backdrop').classList.remove('open');
+      document.getElementById('comments-sheet').classList.remove('open');
+    }
+
+    async function loadComments() {
+      const list = document.getElementById('c-list');
+      list.innerHTML = '<div class="c-empty">Loading...</div>';
+      try {
+        const res = await db.list(C.COMMENTS, [
           Query.equal('reelId', currentReel.$id),
-          Query.limit(50)
+          Query.limit(100)
         ]);
-        const list = document.getElementById('comments-list');
-        const comments = response.documents;
-        if (comments.length === 0) {
-          list.innerHTML = '<div style="padding: 20px; text-align: center; color: #a3a3a3;">No comments yet</div>';
-          return;
-        }
-        list.innerHTML = comments.map(comment => `
-          <div class="comment-item">
-            <div class="comment-author">${escapeHtml(comment.creatorName || 'User')}</div>
-            <div class="comment-text">${escapeHtml(comment.text)}</div>
-            <div class="comment-meta">${formatDate(comment.updatedAt || comment.createdAt)}</div>
+        const comments = res.documents.filter(c => !c.isDeleted);
+        if (!comments.length) { list.innerHTML = '<div class="c-empty">No comments yet. Be the first!</div>'; return; }
+        list.innerHTML = comments.map(c => `
+          <div class="c-item">
+            <img class="c-avatar" src="${c.creatorProfilePic || '/logo-suite/primary/logo-khukuri-512x512.png'}" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'">
+            <div class="c-body">
+              <div class="c-author">${escapeHtml(c.creatorName || 'User')}</div>
+              <div class="c-text">${escapeHtml(c.text)}</div>
+              <div class="c-meta">${formatDate(c.createdAt)}</div>
+            </div>
           </div>
         `).join('');
-      } catch (error) {
-        console.error('Comments load error:', error);
+      } catch (err) {
+        console.error('Comments load error:', err?.message || err);
+        list.innerHTML = '<div class="c-empty">Could not load comments</div>';
       }
     }
 
     async function postComment() {
+      const input = document.getElementById('c-input');
+      const text = input.value.trim();
+      if (!text) return;
+      const postBtn = document.getElementById('c-post');
+      postBtn.disabled = true; postBtn.textContent = '...';
+
+      // commenter identity (fall back to account name if CREATORS doc missing)
+      let cName = 'User', cPic = '';
       try {
-        const input = document.getElementById('comment-input');
-        const text = input.value.trim();
-        if (!text) { showToast('Comment cannot be empty', 'error'); return; }
-        const uid = session.getUserId();
-        // Get commenter name/pic; fall back to account name if CREATORS doc is missing
-        let creatorName = 'User';
-        let creatorProfilePic = '';
-        try {
-          const user = await db.get(C.CREATORS, uid);
-          creatorName = user.name || 'User';
-          creatorProfilePic = user.profilePic || '';
-        } catch (e) {
-          const acct = session.getUser();
-          if (acct && acct.name) creatorName = acct.name;
-        }
+        const u = await db.get(C.CREATORS, MY_UID);
+        cName = u.name || 'User'; cPic = u.profilePic || '';
+      } catch (e) {
+        const acct = session.getUser();
+        if (acct && acct.name) cName = acct.name;
+      }
+
+      try {
         const commentId = ID.unique();
         await db.create(C.COMMENTS, {
           commentId,
           reelId: currentReel.$id,
-          creatorId: uid,
-          creatorName: creatorName,
-          creatorProfilePic: creatorProfilePic,
+          creatorId: MY_UID,
+          creatorName: cName,
+          creatorProfilePic: cPic,
           text,
           likes: 0,
           isDeleted: false,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         }, commentId);
+
         input.value = '';
+        // bump count on reel + UI
         try {
           const newCount = (currentReel.comments || 0) + 1;
           await db.update(C.REELS, currentReel.$id, { comments: newCount });
           currentReel.comments = newCount;
-          document.getElementById('comment-count').textContent = newCount;
+          const slide = document.querySelector(`.reel-slide[data-index="${currentIndex}"]`);
+          if (slide) slide.querySelector('.comment-count').textContent = newCount;
         } catch (e) {}
         await loadComments();
-        showToast('Comment posted!', 'success');
-      } catch (error) {
-        console.error('Post comment error:', error);
-        showToast('Could not post comment', 'error');
+        toast('Comment posted!');
+      } catch (err) {
+        console.error('Post comment error:', err?.code, err?.message || err);
+        toast('Could not post comment', true);
+      } finally {
+        postBtn.disabled = false; postBtn.textContent = 'Post';
       }
     }
 
-    function openComments() {
-      const backdrop = document.getElementById('comments-backdrop');
-      const sheet = document.getElementById('comments-sheet');
-      backdrop.style.display = 'block';
-      sheet.classList.add('open');
-      loadComments();
-      backdrop.onclick = closeComments;
+    function formatDate(ds) {
+      const d = new Date(ds), now = new Date(), diff = now - d;
+      const m = Math.floor(diff/60000), h = Math.floor(diff/3600000), days = Math.floor(diff/86400000);
+      if (m < 1) return 'now';
+      if (m < 60) return m + 'm';
+      if (h < 24) return h + 'h';
+      if (days < 7) return days + 'd';
+      return d.toLocaleDateString();
     }
-
-    function closeComments() {
-      document.getElementById('comments-backdrop').style.display = 'none';
-      document.getElementById('comments-sheet').classList.remove('open');
-    }
-
-    function closeModal() { window.history.back(); }
-
-    function showToast(message, type = 'success') {
-      const toast = document.createElement('div');
-      toast.className = `toast ${type}`;
-      toast.textContent = message;
-      document.body.appendChild(toast);
-      setTimeout(() => toast.remove(), 3000);
-    }
-
-    function formatDate(dateString) {
-      const date = new Date(dateString);
-      const now = new Date();
-      const diff = now - date;
-      const minutes = Math.floor(diff / 60000);
-      const hours = Math.floor(diff / 3600000);
-      const days = Math.floor(diff / 86400000);
-      if (minutes < 1) return 'now';
-      if (minutes < 60) return `${minutes}m ago`;
-      if (hours < 24) return `${hours}h ago`;
-      if (days < 7) return `${days}d ago`;
-      return date.toLocaleDateString();
-    }
-
-    // Like button (right side) toggles normally
-    document.getElementById('like-btn').addEventListener('click', () => toggleLike(false));
-    document.getElementById('share-btn').addEventListener('click', async () => {
-      const url = `${location.origin}/video-modal.html?reelId=${currentReel.$id}`;
-      try {
-        if (navigator.share) await navigator.share({ title: currentReel.title, url });
-        else { await navigator.clipboard.writeText(url); showToast('Link copied!'); }
-      } catch (e) {}
-    });
 
     init();
   </script>
