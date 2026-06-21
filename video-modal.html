@@ -6,71 +6,106 @@
   <title>Video - GorkhaReels</title>
   <meta name="description" content="Watch videos on GorkhaReels - Gorkha community short-form videos">
   <meta name="theme-color" content="#0f0f0f">
-  
+
   <link rel="icon" type="image/png" href="/logo-suite/favicon/logo-khukuri-32x32.png">
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
-  
+
   <style>
     body { overflow: hidden; }
     .modal-overlay { position: fixed; inset: 0; background: #000; z-index: 1000; }
     .modal { position: fixed; inset: 0; z-index: 1001; display: flex; flex-direction: column; }
-    .modal-video { flex: 1; background: #000; display: flex; align-items: center; justify-content: center; position: relative; }
+    .modal-video { flex: 1; background: #000; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
     .modal-video video { width: 100%; height: 100%; object-fit: contain; }
-    .modal-controls {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.8) 100%);
-      padding: 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-      z-index: 1002;
+
+    /* transparent layer that captures taps for play/pause + double-tap-like */
+    .tap-layer { position: absolute; inset: 0; z-index: 1001; }
+
+    /* play/pause indicator (brief flash on single tap) */
+    .pp-indicator {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%) scale(0.8);
+      font-size: 64px; color: #fff; opacity: 0; pointer-events: none;
+      text-shadow: 0 2px 16px rgba(0,0,0,0.5); transition: opacity 0.25s, transform 0.25s; z-index: 1002;
     }
-    .close-btn { position: fixed; top: 16px; left: 16px; z-index: 1003; background: rgba(0,0,0,0.6); border: none; color: #fff; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 20px; }
-    .action-buttons { display: flex; flex-direction: column; gap: 16px; }
-    .action-btn { background: none; border: none; color: #fff; font-size: 24px; cursor: pointer; transition: transform 0.2s; }
-    .action-btn:active { transform: scale(1.2); }
-    .action-btn.liked { color: #ff4458; }
+    .pp-indicator.show { opacity: 0.92; transform: translate(-50%,-50%) scale(1); }
+
+    /* double-tap heart pop */
+    .heart-pop {
+      position: absolute; font-size: 88px; pointer-events: none; z-index: 1004;
+      transform: translate(-50%,-50%) scale(0) rotate(-18deg);
+      animation: heartPop 0.8s cubic-bezier(0.17, 0.89, 0.32, 1.28) forwards;
+      filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4));
+    }
+    @keyframes heartPop {
+      0%   { transform: translate(-50%,-50%) scale(0)   rotate(-18deg); opacity: 0; }
+      15%  { transform: translate(-50%,-50%) scale(1.25) rotate(-18deg); opacity: 1; }
+      35%  { transform: translate(-50%,-50%) scale(1)   rotate(-18deg); opacity: 1; }
+      70%  { transform: translate(-50%,-50%) scale(1.05) rotate(-18deg); opacity: 1; }
+      100% { transform: translate(-50%,-50%) scale(1.5) rotate(-18deg); opacity: 0; }
+    }
+
+    .modal-controls {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.85) 100%);
+      padding: 16px; display: flex; justify-content: space-between; align-items: flex-end;
+      z-index: 1003; pointer-events: none;
+    }
+    .modal-controls > * { pointer-events: auto; }
+
+    .close-btn { position: fixed; top: 16px; left: 16px; z-index: 1005; background: rgba(0,0,0,0.45); backdrop-filter: blur(6px); border: none; color: #fff; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 20px; }
+
+    .action-buttons { display: flex; flex-direction: column; gap: 18px; align-items: center; }
+    .action-col { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .action-btn { background: none; border: none; color: #fff; font-size: 30px; cursor: pointer; transition: transform 0.18s; line-height: 1; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.4)); }
+    .action-btn:active { transform: scale(1.25); }
+    .action-count { font-size: 12px; color: #fff; font-weight: 600; text-shadow: 0 1px 4px rgba(0,0,0,0.5); }
+    .action-btn.liked { animation: likeBounce 0.35s ease; }
+    @keyframes likeBounce { 0%{transform:scale(1);} 40%{transform:scale(1.35);} 100%{transform:scale(1);} }
+
     .creator-info { display: flex; align-items: center; gap: 12px; flex: 1; }
-    .creator-avatar { width: 40px; height: 40px; border-radius: 50%; background: #0B5E6B; object-fit: cover; }
+    .creator-avatar { width: 44px; height: 44px; border-radius: 50%; background: #0B5E6B; object-fit: cover; border: 2px solid rgba(255,255,255,0.85); }
     .creator-details { min-width: 0; }
-    .creator-name { font-size: 14px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: 'Space Grotesk', sans-serif; }
-    .creator-handle { font-size: 12px; color: #a3a3a3; }
-    .follow-btn { background: #0B5E6B; border: none; color: #fff; padding: 6px 16px; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: 600; transition: all 0.2s; }
-    .follow-btn:hover { background: #0D7377; }
-    .follow-btn.following { background: transparent; border: 1px solid #fff; }
+    .creator-name { font-size: 15px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: 'Space Grotesk', sans-serif; text-shadow: 0 1px 6px rgba(0,0,0,0.5); }
+    .creator-handle { font-size: 12px; color: rgba(255,255,255,0.85); }
+    .follow-btn { background: #0B5E6B; border: none; color: #fff; padding: 7px 16px; border-radius: 8px; font-size: 12px; cursor: pointer; font-weight: 700; transition: all 0.2s; }
+    .follow-btn:active { transform: scale(0.95); }
+    .follow-btn.following { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.6); }
+
+    .video-title-overlay { position: fixed; left: 16px; right: 90px; bottom: 84px; z-index: 1003; color: #fff; font-size: 14px; text-shadow: 0 1px 8px rgba(0,0,0,0.6); }
+
     .bottom-sheet-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 400; display: none; }
     .bottom-sheet { position: fixed; bottom: 0; left: 0; right: 0; background: #1a1a1a; z-index: 410; border-radius: 16px 16px 0 0; max-height: 80vh; overflow-y: auto; transform: translateY(100%); transition: transform 0.3s; }
     .bottom-sheet.open { transform: translateY(0); }
-    .sheet-header { padding: 16px; border-bottom: 1px solid #2d2d2d; font-size: 16px; font-weight: 600; color: #fff; }
+    .sheet-header { padding: 16px; border-bottom: 1px solid #2d2d2d; font-size: 16px; font-weight: 600; color: #fff; position: sticky; top: 0; background: #1a1a1a; }
     .comment-item { padding: 12px 16px; border-bottom: 1px solid #2d2d2d; }
     .comment-author { font-size: 13px; font-weight: 600; color: #fff; margin-bottom: 4px; }
     .comment-text { font-size: 13px; color: #a3a3a3; }
     .comment-meta { font-size: 11px; color: #737373; margin-top: 6px; }
-    .comment-form { padding: 12px 16px; border-top: 1px solid #2d2d2d; display: flex; gap: 8px; }
-    .comment-input { flex: 1; background: #242424; border: 1px solid #2d2d2d; padding: 8px 12px; border-radius: 6px; color: #fff; font-size: 13px; }
+    .comment-form { padding: 12px 16px; border-top: 1px solid #2d2d2d; display: flex; gap: 8px; position: sticky; bottom: 0; background: #1a1a1a; }
+    .comment-input { flex: 1; background: #242424; border: 1px solid #2d2d2d; padding: 10px 12px; border-radius: 8px; color: #fff; font-size: 14px; }
     .comment-input::placeholder { color: #737373; }
-    .comment-btn { background: #0B5E6B; border: none; color: #fff; padding: 8px 16px; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: 600; }
+    .comment-btn { background: #0B5E6B; border: none; color: #fff; padding: 10px 16px; border-radius: 8px; font-size: 13px; cursor: pointer; font-weight: 600; }
     .toast { position: fixed; top: 20px; right: 20px; padding: 12px 20px; background: #0B5E6B; color: #fff; border-radius: 8px; z-index: 2000; }
     .toast.error { background: #dc2626; }
   </style>
 </head>
 <body>
   <div class="modal-overlay"></div>
-  
+
   <div class="modal">
     <button class="close-btn" onclick="closeModal()">✕</button>
-    
-    <div class="modal-video">
-      <video id="modal-video" controls autoplay muted></video>
+
+    <div class="modal-video" id="modal-video-wrap">
+      <video id="modal-video" autoplay muted loop playsinline></video>
+      <div class="tap-layer" id="tap-layer"></div>
+      <div class="pp-indicator" id="pp-indicator">▶︎</div>
     </div>
+
+    <div class="video-title-overlay" id="video-title"></div>
 
     <div class="modal-controls">
       <div class="creator-info">
-        <img id="creator-avatar" class="creator-avatar" src="" alt="Creator">
+        <img id="creator-avatar" class="creator-avatar" src="/logo-suite/primary/logo-khukuri-512x512.png" alt="Creator" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'">
         <div class="creator-details">
           <div class="creator-name" id="creator-name">Loading...</div>
           <div class="creator-handle" id="creator-handle">@creator</div>
@@ -79,9 +114,18 @@
       </div>
 
       <div class="action-buttons">
-        <button class="action-btn" id="like-btn" title="Like">❤️</button>
-        <button class="action-btn" id="comment-btn" title="Comment" onclick="openComments()">💬</button>
-        <button class="action-btn" id="share-btn" title="Share">📤</button>
+        <div class="action-col">
+          <button class="action-btn" id="like-btn" title="Like">🤍</button>
+          <span class="action-count" id="like-count">0</span>
+        </div>
+        <div class="action-col">
+          <button class="action-btn" id="comment-btn" title="Comment" onclick="openComments()">💬</button>
+          <span class="action-count" id="comment-count">0</span>
+        </div>
+        <div class="action-col">
+          <button class="action-btn" id="share-btn" title="Share">↗️</button>
+          <span class="action-count">Share</span>
+        </div>
       </div>
     </div>
   </div>
@@ -103,33 +147,37 @@
   <script>
     const C = APPWRITE_CONFIG.COLLECTIONS;
     let currentReel = null;
-    let currentUser = null;
+    let creatorDoc = null;
     let isLiked = false;
+    let likeCount = 0;
 
-    // Initialize
     async function init() {
-      const uid = session.getUserId();
+      const uid = session.getUserId() || (await session.refresh(), session.getUserId());
       if (!uid) {
         showToast('Please log in to watch videos', 'error');
-        setTimeout(() => closeModal(), 2000);
+        setTimeout(() => closeModal(), 1500);
         return;
       }
 
       const params = new URLSearchParams(window.location.search);
-      const reelId = params.get('id');
+      const reelId = params.get('id') || params.get('reelId'); // accept both
 
       if (!reelId) {
         showToast('Video not found', 'error');
-        setTimeout(() => closeModal(), 2000);
+        setTimeout(() => closeModal(), 1500);
         return;
       }
 
       try {
         currentReel = await db.get(C.REELS, reelId);
+        likeCount = currentReel.likes || 0;
+        document.getElementById('like-count').textContent = likeCount;
+        document.getElementById('comment-count').textContent = currentReel.comments || 0;
+        document.getElementById('video-title').textContent = currentReel.title || '';
         await loadCreatorInfo();
-        await loadVideoPlayer();
+        loadVideoPlayer();
         await checkIfLiked();
-        setupAutoUnmute();
+        setupTapHandlers();
       } catch (error) {
         console.error('Init error:', error);
         showToast('Error loading video', 'error');
@@ -138,19 +186,16 @@
 
     async function loadCreatorInfo() {
       try {
-        const creator = await db.get(C.CREATORS, currentReel.creatorId);
-        currentUser = creator;
-        
-        document.getElementById('creator-name').textContent = creator.name || 'Unknown';
-        document.getElementById('creator-handle').textContent = `@${creator.name || 'creator'}`;
-        document.getElementById('creator-avatar').src = creator.profilePic || '';
+        creatorDoc = await db.get(C.CREATORS, currentReel.creatorId);
+        document.getElementById('creator-name').textContent = creatorDoc.name || 'Unknown';
+        document.getElementById('creator-handle').textContent = '@' + (creatorDoc.name || 'creator').toLowerCase().replace(/\s+/g, '');
+        document.getElementById('creator-avatar').src = creatorDoc.profilePic || '/logo-suite/primary/logo-khukuri-512x512.png';
 
         const uid = session.getUserId();
         const followResponse = await db.list(C.FOLLOWERS, [
           Query.equal('followerID', uid),
-          Query.equal('followingId', creator.$id)
+          Query.equal('followingId', creatorDoc.$id)
         ]);
-
         const followBtn = document.getElementById('follow-btn');
         if (followResponse.documents.length > 0) {
           followBtn.textContent = 'Following';
@@ -158,14 +203,13 @@
         } else {
           followBtn.textContent = 'Follow';
         }
-
-        followBtn.onclick = () => toggleFollow(creator.$id);
+        followBtn.onclick = () => toggleFollow(creatorDoc.$id);
       } catch (error) {
         console.error('Creator load error:', error);
       }
     }
 
-    async function loadVideoPlayer() {
+    function loadVideoPlayer() {
       const video = document.getElementById('modal-video');
       video.src = currentReel.videoUrl;
       document.title = `${currentReel.title} - GorkhaReels`;
@@ -178,7 +222,6 @@
           Query.equal('reelId', currentReel.$id),
           Query.equal('userId', uid)
         ]);
-
         isLiked = likeResponse.documents.length > 0;
         updateLikeButton();
       } catch (error) {
@@ -186,11 +229,12 @@
       }
     }
 
-    async function toggleLike() {
+    // Core like toggle. forceLike=true means "only like, never unlike" (used by double-tap)
+    async function toggleLike(forceLike = false) {
+      const uid = session.getUserId();
       try {
-        const uid = session.getUserId();
-        
-        if (isLiked) {
+        if (isLiked && !forceLike) {
+          // unlike
           const likeResponse = await db.list(C.LIKES, [
             Query.equal('reelId', currentReel.$id),
             Query.equal('userId', uid)
@@ -199,33 +243,40 @@
             await db.remove(C.LIKES, likeResponse.documents[0].$id);
           }
           isLiked = false;
-        } else {
+          likeCount = Math.max(0, likeCount - 1);
+        } else if (!isLiked) {
+          // like
           const likeId = ID.unique();
           await db.create(C.LIKES, {
             likeId,
             reelId: currentReel.$id,
+            creatorId: currentReel.creatorId, // LIKES requires this
             userId: uid,
             createdAt: new Date().toISOString()
           }, likeId);
           isLiked = true;
+          likeCount = likeCount + 1;
+        } else {
+          return; // forceLike but already liked → no-op
         }
 
         updateLikeButton();
+        document.getElementById('like-count').textContent = likeCount;
+        // persist count on reel
+        try { await db.update(C.REELS, currentReel.$id, { likes: likeCount }); } catch (e) {}
       } catch (error) {
         console.error('Like error:', error);
-        showToast('Could not update like: ' + error.message, 'error');
+        showToast('Could not update like', 'error');
       }
     }
 
     function updateLikeButton() {
       const btn = document.getElementById('like-btn');
-      if (isLiked) {
-        btn.classList.add('liked');
-        btn.textContent = '❤️';
-      } else {
-        btn.classList.remove('liked');
-        btn.textContent = '🤍';
-      }
+      btn.textContent = isLiked ? '❤️' : '🤍';
+      btn.classList.remove('liked');
+      // retrigger bounce animation
+      void btn.offsetWidth;
+      if (isLiked) btn.classList.add('liked');
     }
 
     async function toggleFollow(creatorId) {
@@ -235,9 +286,7 @@
           Query.equal('followerID', uid),
           Query.equal('followingId', creatorId)
         ]);
-
         const btn = document.getElementById('follow-btn');
-
         if (followResponse.documents.length > 0) {
           await db.remove(C.FOLLOWERS, followResponse.documents[0].$id);
           btn.textContent = 'Follow';
@@ -260,21 +309,81 @@
       }
     }
 
+    // ===== TAP HANDLING: single tap = play/pause, double tap = like =====
+    function setupTapHandlers() {
+      const tapLayer = document.getElementById('tap-layer');
+      const video = document.getElementById('modal-video');
+      let lastTap = 0;
+      let singleTimer = null;
+      let firstUnmuteDone = false;
+
+      const onTap = (clientX, clientY) => {
+        const now = Date.now();
+        if (now - lastTap < 300) {
+          // DOUBLE TAP
+          clearTimeout(singleTimer);
+          lastTap = 0;
+          doDoubleTapLike(clientX, clientY);
+        } else {
+          lastTap = now;
+          singleTimer = setTimeout(() => {
+            // SINGLE TAP — first interaction unmutes, otherwise play/pause
+            if (!firstUnmuteDone && video.muted) {
+              video.muted = false;
+              firstUnmuteDone = true;
+              flashIndicator('🔊');
+              return;
+            }
+            togglePlayPause();
+          }, 280);
+        }
+      };
+
+      tapLayer.addEventListener('click', (e) => onTap(e.clientX, e.clientY));
+    }
+
+    function togglePlayPause() {
+      const video = document.getElementById('modal-video');
+      if (video.paused) { video.play(); flashIndicator('▶︎'); }
+      else { video.pause(); flashIndicator('❚❚'); }
+    }
+
+    function flashIndicator(symbol) {
+      const el = document.getElementById('pp-indicator');
+      el.textContent = symbol;
+      el.classList.add('show');
+      clearTimeout(el._t);
+      el._t = setTimeout(() => el.classList.remove('show'), 450);
+    }
+
+    function doDoubleTapLike(clientX, clientY) {
+      // heart at tap location
+      const wrap = document.getElementById('modal-video-wrap');
+      const rect = wrap.getBoundingClientRect();
+      const heart = document.createElement('div');
+      heart.className = 'heart-pop';
+      heart.textContent = '❤️';
+      heart.style.left = (clientX - rect.left) + 'px';
+      heart.style.top = (clientY - rect.top) + 'px';
+      wrap.appendChild(heart);
+      setTimeout(() => heart.remove(), 800);
+      // like (never unlike on double-tap)
+      toggleLike(true);
+    }
+
+    // ===== Comments =====
     async function loadComments() {
       try {
         const response = await db.list(C.COMMENTS, [
           Query.equal('reelId', currentReel.$id),
           Query.limit(50)
         ]);
-
         const list = document.getElementById('comments-list');
         const comments = response.documents;
-
         if (comments.length === 0) {
           list.innerHTML = '<div style="padding: 20px; text-align: center; color: #a3a3a3;">No comments yet</div>';
           return;
         }
-
         list.innerHTML = comments.map(comment => `
           <div class="comment-item">
             <div class="comment-author">${escapeHtml(comment.authorName || 'User')}</div>
@@ -291,15 +400,9 @@
       try {
         const input = document.getElementById('comment-input');
         const text = input.value.trim();
-
-        if (!text) {
-          showToast('Comment cannot be empty', 'error');
-          return;
-        }
-
+        if (!text) { showToast('Comment cannot be empty', 'error'); return; }
         const uid = session.getUserId();
         const user = await db.get(C.CREATORS, uid);
-
         const commentId = ID.unique();
         await db.create(C.COMMENTS, {
           commentId,
@@ -310,7 +413,6 @@
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         }, commentId);
-
         input.value = '';
         await loadComments();
         showToast('Comment posted!', 'success');
@@ -326,20 +428,15 @@
       backdrop.style.display = 'block';
       sheet.classList.add('open');
       loadComments();
-
       backdrop.onclick = closeComments;
     }
 
     function closeComments() {
-      const backdrop = document.getElementById('comments-backdrop');
-      const sheet = document.getElementById('comments-sheet');
-      backdrop.style.display = 'none';
-      sheet.classList.remove('open');
+      document.getElementById('comments-backdrop').style.display = 'none';
+      document.getElementById('comments-sheet').classList.remove('open');
     }
 
-    function closeModal() {
-      window.history.back();
-    }
+    function closeModal() { window.history.back(); }
 
     function showToast(message, type = 'success') {
       const toast = document.createElement('div');
@@ -356,7 +453,6 @@
       const minutes = Math.floor(diff / 60000);
       const hours = Math.floor(diff / 3600000);
       const days = Math.floor(diff / 86400000);
-
       if (minutes < 1) return 'now';
       if (minutes < 60) return `${minutes}m ago`;
       if (hours < 24) return `${hours}h ago`;
@@ -364,14 +460,15 @@
       return date.toLocaleDateString();
     }
 
-    function setupAutoUnmute() {
-      const video = document.getElementById('modal-video');
-      document.addEventListener('click', () => {
-        video.muted = false;
-      }, { once: true });
-    }
-
-    document.getElementById('like-btn').addEventListener('click', toggleLike);
+    // Like button (right side) toggles normally
+    document.getElementById('like-btn').addEventListener('click', () => toggleLike(false));
+    document.getElementById('share-btn').addEventListener('click', async () => {
+      const url = `${location.origin}/video-modal.html?reelId=${currentReel.$id}`;
+      try {
+        if (navigator.share) await navigator.share({ title: currentReel.title, url });
+        else { await navigator.clipboard.writeText(url); showToast('Link copied!'); }
+      } catch (e) {}
+    });
 
     init();
   </script>
