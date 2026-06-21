@@ -588,7 +588,6 @@
             await db.create(C.LIKES, {
               likeId,
               reelId: reel.$id,
-              creatorId: reel.creatorId,   // ← REQUIRED field that was missing
               userId: uid,
               createdAt: new Date().toISOString()
             }, likeId);
