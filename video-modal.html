@@ -212,7 +212,13 @@
         }
         followBtn.onclick = () => toggleFollow(creatorDoc.$id);
       } catch (error) {
-        console.error('Creator load error:', error);
+        // Creator doc missing (old/deleted account) — use reel's stored info, don't break the page
+        console.log('Creator doc not found, using reel fallback');
+        document.getElementById('creator-name').textContent = currentReel.creatorName || 'GorkhaReels User';
+        document.getElementById('creator-handle').textContent = '@' + (currentReel.creatorName || 'user').toLowerCase().replace(/\s+/g, '');
+        document.getElementById('creator-avatar').src = currentReel.creatorProfilePic || '/logo-suite/primary/logo-khukuri-512x512.png';
+        const followBtn = document.getElementById('follow-btn');
+        followBtn.style.display = 'none';
       }
     }
 
@@ -237,7 +243,10 @@
     }
 
     // Core like toggle. forceLike=true means "only like, never unlike" (used by double-tap)
+    let likeBusy = false;
     async function toggleLike(forceLike = false) {
+      if (likeBusy) return; // prevent overlapping operations from rapid taps
+      likeBusy = true;
       const uid = session.getUserId();
       try {
         if (isLiked && !forceLike) {
@@ -254,15 +263,24 @@
         } else if (!isLiked) {
           // like
           const likeId = ID.unique();
-          await db.create(C.LIKES, {
-            likeId,
-            reelId: currentReel.$id,
-            creatorId: currentReel.creatorId, // LIKES requires this
-            userId: uid,
-            createdAt: new Date().toISOString()
-          }, likeId);
+          try {
+            await db.create(C.LIKES, {
+              likeId,
+              reelId: currentReel.$id,
+              creatorId: currentReel.creatorId, // LIKES requires this
+              userId: uid,
+              createdAt: new Date().toISOString()
+            }, likeId);
+            likeCount = likeCount + 1;
+          } catch (createErr) {
+            // 409 = already liked (e.g. created by a previous rapid tap) → treat as success
+            if (createErr && createErr.code === 409) {
+              console.log('Already liked, syncing state');
+            } else {
+              throw createErr;
+            }
+          }
           isLiked = true;
-          likeCount = likeCount + 1;
         } else {
           return; // forceLike but already liked → no-op
         }
@@ -274,6 +292,8 @@
       } catch (error) {
         console.error('Like error:', error);
         showToast('Could not update like', 'error');
+      } finally {
+        likeBusy = false;
       }
     }
 
@@ -409,14 +429,24 @@
         const text = input.value.trim();
         if (!text) { showToast('Comment cannot be empty', 'error'); return; }
         const uid = session.getUserId();
-        const user = await db.get(C.CREATORS, uid);
+        // Get commenter name/pic; fall back to account name if CREATORS doc is missing
+        let creatorName = 'User';
+        let creatorProfilePic = '';
+        try {
+          const user = await db.get(C.CREATORS, uid);
+          creatorName = user.name || 'User';
+          creatorProfilePic = user.profilePic || '';
+        } catch (e) {
+          const acct = session.getUser();
+          if (acct && acct.name) creatorName = acct.name;
+        }
         const commentId = ID.unique();
         await db.create(C.COMMENTS, {
           commentId,
           reelId: currentReel.$id,
           creatorId: uid,
-          creatorName: user.name,
-          creatorProfilePic: user.profilePic || '',
+          creatorName: creatorName,
+          creatorProfilePic: creatorProfilePic,
           text,
           likes: 0,
           isDeleted: false,
