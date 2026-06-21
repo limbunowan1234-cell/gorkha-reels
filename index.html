@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>GorkhaReels</title>
-  <link rel="icon" type="image/png" href="/icons/favicon/logo-3-minimalist-icon-32x32.png">
+  <link rel="icon" type="image/png" href="/logo-suite/favicon/logo-khukuri-32x32.png">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     body { background: #0f0f0f; color: #fff; font-family: system-ui; }
@@ -140,7 +140,7 @@
   <!-- ===== BRAND BANNER ===== -->
   <header class="banner">
     <div class="banner-left">
-      <img class="banner-logo" src="/icons/wordmark/logo-2-wordmark-300x300.png" alt="GorkhaReels">
+      <img class="banner-logo" src="/logo-suite/primary/logo-khukuri-256x256.png" alt="GorkhaReels">
       <div class="banner-text">
         <div class="banner-title">GorkhaReels</div>
         <div class="banner-tagline">Gorkha Stories, Global Reach</div>
@@ -183,7 +183,7 @@
   <div class="drawer-backdrop" id="drawer-backdrop"></div>
   <aside class="drawer" id="drawer">
     <div class="drawer-head">
-      <img src="/icons/wordmark/logo-2-wordmark-300x300.png" alt="">
+      <img src="/logo-suite/primary/logo-khukuri-256x256.png" alt="">
       <div>
         <div class="dh-title">GorkhaReels</div>
         <div class="dh-sub">Gorkha Stories, Global Reach</div>
@@ -212,7 +212,7 @@
     // as a blank box instead of falling back.
     function getThumbSrc(reel) {
       const t = reel && reel.thumbnail;
-      const fallback = '/icons/primary/logo-1-app-icon-180x180.png';
+      const fallback = '/logo-suite/primary/logo-khukuri-512x512.png';
       if (!t) return fallback;
       if (/\.(mp4|mov|webm|m4v)(\?|$)/i.test(t)) return fallback;
       return t;
@@ -289,13 +289,13 @@
           post.innerHTML = `
             <div class="post-header">
               <div class="creator-avatar">
-                <img src="${reel.creatorProfilePic || '/icons/primary/logo-1-app-icon-180x180.png'}" onerror="this.src='/icons/primary/logo-1-app-icon-180x180.png'">
+                <img src="${reel.creatorProfilePic || '/logo-suite/primary/logo-khukuri-512x512.png'}" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'">
               </div>
               <div class="creator-name">${escapeHtml(reel.creatorName || 'Creator')}${isVerified ? ' <span class="verified-badge">✓</span>' : ''}</div>
               <button class="post-more">⋯</button>
             </div>
             <div class="post-thumbnail">
-              <img src="${getThumbSrc(reel)}" alt="Video" onerror="this.src='/icons/primary/logo-1-app-icon-180x180.png'">
+              <img src="${getThumbSrc(reel)}" alt="Video" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'">
               <div class="play-icon">▶️</div>
             </div>
             <div class="post-title">${escapeHtml(reel.title || '')}</div>
@@ -410,5 +410,3 @@
   </script>
 </body>
 </html>
-
-
