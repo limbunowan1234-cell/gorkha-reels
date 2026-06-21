@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Video - GorkhaReels</title>
   <meta name="description" content="Watch videos on GorkhaReels - Gorkha community short-form videos">
   <meta name="theme-color" content="#0f0f0f">
@@ -12,14 +12,15 @@
   <link rel="stylesheet" href="css/styles.css">
 
   <style>
-    body { overflow: hidden; }
+    body { overflow: hidden; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+    * { -webkit-tap-highlight-color: transparent; }
     .modal-overlay { position: fixed; inset: 0; background: #000; z-index: 1000; }
     .modal { position: fixed; inset: 0; z-index: 1001; display: flex; flex-direction: column; }
     .modal-video { flex: 1; background: #000; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
     .modal-video video { width: 100%; height: 100%; object-fit: contain; }
 
     /* transparent layer that captures taps for play/pause + double-tap-like */
-    .tap-layer { position: absolute; inset: 0; z-index: 1001; }
+    .tap-layer { position: absolute; inset: 0; z-index: 1001; touch-action: manipulation; }
 
     /* play/pause indicator (brief flash on single tap) */
     .pp-indicator {
@@ -90,6 +91,12 @@
   </style>
 </head>
 <body>
+  <script>
+    // Block iOS pinch-zoom (double-tap zoom is handled by touch-action: manipulation)
+    document.addEventListener('gesturestart', e => e.preventDefault());
+    document.addEventListener('gesturechange', e => e.preventDefault());
+    document.addEventListener('gestureend', e => e.preventDefault());
+  </script>
   <div class="modal-overlay"></div>
 
   <div class="modal">
@@ -386,7 +393,7 @@
         }
         list.innerHTML = comments.map(comment => `
           <div class="comment-item">
-            <div class="comment-author">${escapeHtml(comment.authorName || 'User')}</div>
+            <div class="comment-author">${escapeHtml(comment.creatorName || 'User')}</div>
             <div class="comment-text">${escapeHtml(comment.text)}</div>
             <div class="comment-meta">${formatDate(comment.updatedAt || comment.createdAt)}</div>
           </div>
@@ -407,13 +414,22 @@
         await db.create(C.COMMENTS, {
           commentId,
           reelId: currentReel.$id,
-          userId: uid,
-          authorName: user.name,
+          creatorId: uid,
+          creatorName: user.name,
+          creatorProfilePic: user.profilePic || '',
           text,
+          likes: 0,
+          isDeleted: false,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         }, commentId);
         input.value = '';
+        try {
+          const newCount = (currentReel.comments || 0) + 1;
+          await db.update(C.REELS, currentReel.$id, { comments: newCount });
+          currentReel.comments = newCount;
+          document.getElementById('comment-count').textContent = newCount;
+        } catch (e) {}
         await loadComments();
         showToast('Comment posted!', 'success');
       } catch (error) {
