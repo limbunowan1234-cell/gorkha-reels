@@ -336,29 +336,31 @@ class ConversationManager {
   static async sendMessage(senderId, recipientId, messageText, messageType = 'text', mediaUrl = null, mediaThumbnail = null) {
     try {
       const conversationId = this.getConversationId(senderId, recipientId);
-      
+
+      // Generate ID - used as both document ID and the messageId attribute
+      const messageId = ID.unique();
+
       const messageData = {
-        messageText,
-        messageType,
-        mediaUrl,
-        mediaThumbnail,
-        conversationId,
-        senderId,
-        recipientId,
-        isRead: false,
-        createdAt: new Date().toISOString()
+        messageId,                          // required attribute
+        conversationId,                     // required
+        senderId,                           // required
+        recipientId,                        // required
+        messageText: messageText || '',     // optional, but never null
+        messageType,                        // required
+        mediaUrl: mediaUrl || '',           // never null
+        mediaThumbnail: mediaThumbnail || '', // required - empty string for text messages
+        isRead: false,                      // required
+        createdAt: new Date().toISOString() // required
       };
 
       // No document-level permissions - relies on collection-level (Users role)
-      // Appwrite blocks granting read/update to OTHER users at create time,
-      // so we use collection-level security instead (set in Appwrite Console)
       const result = await databases.createDocument(
         APPWRITE_CONFIG.DATABASE_ID,
         APPWRITE_CONFIG.COLLECTIONS.MESSAGES,
-        ID.unique(),
+        messageId,
         messageData
       );
-      
+
       return result;
     } catch (error) {
       console.error('Error sending message:', error);
