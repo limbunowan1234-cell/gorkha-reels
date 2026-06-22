@@ -94,6 +94,13 @@
       min-width: 76px;
       flex-shrink: 0;
     }
+    .suggested-card a {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
     .suggested-avatar {
       width: 56px;
       height: 56px;
@@ -245,7 +252,7 @@
   <!-- ===== SUGGESTED CREATORS BANNER ===== -->
   <div class="suggested-banner" id="suggested-banner">
     <div class="suggested-header">
-      <span class="suggested-title">✨ Suggested Creators</span>
+      <span class="suggested-title">✨ Creators You May Like</span>
       <button class="suggested-close" id="close-suggested" onclick="document.getElementById('suggested-banner').classList.add('hidden')">✕</button>
     </div>
     <div class="suggested-scroll" id="suggested-scroll"></div>
@@ -364,9 +371,11 @@
         }
         scroll.innerHTML = creators.documents.map(creator => `
           <div class="suggested-card">
-            <img class="suggested-avatar" src="${creator.profilePic || '/logo-suite/primary/logo-khukuri-512x512.png'}" 
-                 onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'" alt="${escapeHtml(creator.name)}">
-            <div class="suggested-name">${escapeHtml(creator.name || 'Creator')}</div>
+            <a href="creator-profile.html?creatorId=${creator.$id}" style="text-decoration: none; color: inherit; display: flex; flex-direction: column; align-items: center; gap: 8px;">
+              <img class="suggested-avatar" src="${creator.profilePic || '/logo-suite/primary/logo-khukuri-512x512.png'}" 
+                   onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'" alt="${escapeHtml(creator.name)}">
+              <div class="suggested-name">${escapeHtml(creator.name || 'Creator')}</div>
+            </a>
             <button class="suggested-follow-btn ${FOLLOWING_SET.has(creator.$id) ? 'following' : ''}" 
                     data-creator-id="${creator.$id}" 
                     onclick="toggleSuggestedFollow(event, '${creator.$id}')">
