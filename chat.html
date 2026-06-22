@@ -42,6 +42,13 @@
 
     .header-info {
       flex: 1;
+      min-width: 0;
+    }
+
+    .header-top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .header-name {
@@ -49,9 +56,29 @@
       font-size: 15px;
     }
 
+    .online-status {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+    }
+
+    .online-status.offline {
+      background: #6b7280;
+    }
+
     .header-status {
       font-size: 12px;
       color: #999;
+    }
+
+    .header-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #0B5E6B, #0d2d3a);
+      object-fit: cover;
+      flex-shrink: 0;
     }
 
     .messages-container {
@@ -61,16 +88,46 @@
       display: flex;
       flex-direction: column;
       gap: 8px;
+      scroll-behavior: smooth;
+    }
+
+    .message-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .message-date {
+      text-align: center;
+      font-size: 12px;
+      color: #666;
+      margin: 8px 0;
+      padding: 4px 0;
     }
 
     .message {
       display: flex;
       gap: 8px;
-      margin-bottom: 8px;
-      position: relative;
+      margin-bottom: 4px;
+      animation: messageSlideIn 0.3s ease-out;
+    }
+
+    @keyframes messageSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .message.sent {
+      justify-content: flex-end;
+    }
+
+    .message.sent .message-wrapper {
       justify-content: flex-end;
     }
 
@@ -79,14 +136,14 @@
       display: flex;
       align-items: flex-end;
       flex: 1;
+      max-width: 80%;
     }
 
     .message.sent .message-wrapper {
-      justify-content: flex-end;
+      max-width: 85%;
     }
 
     .message-content {
-      max-width: 70%;
       position: relative;
     }
 
@@ -95,6 +152,16 @@
       border-radius: 18px;
       word-wrap: break-word;
       position: relative;
+      animation: bubblePop 0.2s ease-out;
+    }
+
+    @keyframes bubblePop {
+      from {
+        transform: scale(0.95);
+      }
+      to {
+        transform: scale(1);
+      }
     }
 
     .message.sent .message-bubble {
@@ -124,7 +191,6 @@
       font-size: 11px;
       color: #999;
       margin-top: 4px;
-      text-align: right;
     }
 
     .message.sent .message-timestamp {
@@ -172,21 +238,43 @@
       right: 0;
     }
 
-    .message-actions {
+    /* Typing Indicator */
+    .typing-indicator {
       display: flex;
-      gap: 8px;
-      justify-content: flex-end;
-      padding-right: 16px;
+      align-items: center;
+      gap: 4px;
+      padding: 12px 16px;
+      background: #2d2d2d;
+      border-radius: 18px;
+      width: fit-content;
+      margin-top: 8px;
     }
 
-    .message-actions button {
-      background: #2d2d2d;
-      border: none;
-      color: #999;
-      font-size: 12px;
-      padding: 4px 8px;
-      border-radius: 4px;
-      cursor: pointer;
+    .typing-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #999;
+      animation: typingBounce 1.4s infinite;
+    }
+
+    .typing-dot:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .typing-dot:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes typingBounce {
+      0%, 60%, 100% {
+        transform: translateY(0);
+        opacity: 0.5;
+      }
+      30% {
+        transform: translateY(-8px);
+        opacity: 1;
+      }
     }
 
     .input-area {
@@ -213,6 +301,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      transition: transform 0.2s;
     }
 
     .action-btn:active {
@@ -254,6 +343,7 @@
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
+      transition: all 0.2s;
     }
 
     .send-btn:active {
@@ -308,6 +398,10 @@
       background: #c33;
     }
 
+    .toast.success {
+      background: #10b981;
+    }
+
     @keyframes slideUp {
       from {
         opacity: 0;
@@ -320,7 +414,7 @@
     }
 
     @media (max-width: 600px) {
-      .message-bubble {
+      .message-wrapper {
         max-width: 85%;
       }
     }
@@ -329,8 +423,12 @@
 <body>
   <div class="header">
     <button class="back-btn" onclick="goBack()">←</button>
+    <img id="otherUserAvatar" class="header-avatar" src="" alt="">
     <div class="header-info">
-      <div class="header-name" id="otherUserName">Loading...</div>
+      <div class="header-top">
+        <div class="header-name" id="otherUserName">Loading...</div>
+        <div class="online-status" id="onlineIndicator"></div>
+      </div>
       <div class="header-status" id="onlineStatus">Online</div>
     </div>
   </div>
@@ -362,7 +460,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
   <script src="js/appwrite-config.js"></script>
-  <script src="messages-config.js"></script>
 
   <script>
     let currentUserId = null;
@@ -371,6 +468,7 @@
     let messages = [];
     let messageUnsubscribe = null;
     let isSending = false;
+    let isTyping = false;
 
     async function init() {
       await session.refresh();
@@ -381,7 +479,6 @@
 
       currentUserId = session.getUserId();
 
-      // Get URL params
       const params = new URLSearchParams(window.location.search);
       conversationId = params.get('conv');
       otherUserId = params.get('user');
@@ -392,28 +489,23 @@
         return;
       }
 
-      // Load creator info
       try {
         const creator = await db.get('creators', otherUserId);
         document.getElementById('otherUserName').textContent = creator.name;
+        document.getElementById('otherUserAvatar').src = creator.profilePic || `https://ui-avatars.com/api/?name=${encodeURIComponent(creator.name)}&background=0B5E6B&color=fff`;
       } catch {
         document.getElementById('otherUserName').textContent = 'User';
       }
 
-      // Load messages
       await loadMessages();
-
-      // Subscribe to new messages
       subscribeToMessages();
 
-      // Auto-resize textarea
       const textarea = document.getElementById('messageInput');
       textarea.addEventListener('input', () => {
         textarea.style.height = 'auto';
         textarea.style.height = Math.min(textarea.scrollHeight, 100) + 'px';
       });
 
-      // Send on Enter
       textarea.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
           e.preventDefault();
@@ -428,7 +520,6 @@
         renderMessages();
         scrollToBottom();
 
-        // Mark messages as read
         messages.forEach(async (msg) => {
           if (msg.recipientId === currentUserId && !msg.isRead) {
             await ConversationManager.markAsRead(msg.$id);
@@ -436,6 +527,7 @@
         });
       } catch (error) {
         console.error('Error loading messages:', error);
+        showToast('Failed to load messages', 'error');
       }
     }
 
@@ -446,12 +538,36 @@
           renderMessages();
           scrollToBottom();
 
-          // Mark as read if recipient
           if (newMessage.recipientId === currentUserId && !newMessage.isRead) {
             ConversationManager.markAsRead(newMessage.$id);
           }
         }
       });
+    }
+
+    function groupMessagesByDate(msgs) {
+      const groups = {};
+      msgs.forEach(msg => {
+        const date = new Date(msg.createdAt).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric'
+        });
+        if (!groups[date]) groups[date] = [];
+        groups[date].push(msg);
+      });
+      return groups;
+    }
+
+    function formatDateSeparator(dateStr) {
+      const date = new Date(dateStr);
+      const today = new Date();
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+
+      if (date.toDateString() === today.toDateString()) return 'Today';
+      if (date.toDateString() === yesterday.toDateString()) return 'Yesterday';
+      return dateStr;
     }
 
     function renderMessages() {
@@ -462,61 +578,67 @@
         return;
       }
 
-      container.innerHTML = messages.map(msg => {
-        const isSent = msg.senderId === currentUserId;
-        const timestamp = new Date(msg.createdAt).toLocaleTimeString('en-US', { 
-          hour: 'numeric', 
-          minute: '2-digit',
-          hour12: true 
-        });
+      const groups = groupMessagesByDate(messages);
+      let html = '';
 
-        let contentHtml = '';
-        if (msg.messageType === 'text') {
-          contentHtml = `<div class="message-bubble">${escapeHtml(msg.messageText)}</div>`;
-        } else if (msg.messageType === 'image') {
-          contentHtml = `
-            <div class="message-bubble">
-              <img src="${msg.mediaUrl}" alt="Image" class="message-image" onclick="openMediaViewer('${msg.mediaUrl}')">
-            </div>
-          `;
-        } else if (msg.messageType === 'video') {
-          contentHtml = `
-            <div class="message-bubble">
-              <video class="message-video" controls>
-                <source src="${msg.mediaUrl}" type="video/mp4">
-              </video>
-            </div>
-          `;
-        }
+      Object.keys(groups).forEach(date => {
+        html += `<div class="message-date">${formatDateSeparator(date)}</div>`;
+        
+        groups[date].forEach(msg => {
+          const isSent = msg.senderId === currentUserId;
+          const timestamp = new Date(msg.createdAt).toLocaleTimeString('en-US', { 
+            hour: 'numeric', 
+            minute: '2-digit',
+            hour12: true 
+          });
 
-        const readReceipt = isSent && msg.isRead ? '<span class="read-receipt">✓✓</span>' : '';
-        const deleteBtn = isSent ? `<button class="message-delete-btn" onclick="deleteMessage('${msg.$id}')">🗑️</button>` : '';
-
-        return `
-          <div class="message ${isSent ? 'sent' : 'received'}">
-            <div class="message-wrapper" data-message-id="${msg.$id}">
-              <div class="message-content">
-                ${contentHtml}
-                <div class="message-timestamp">${timestamp}${readReceipt}</div>
+          let contentHtml = '';
+          if (msg.messageType === 'text') {
+            contentHtml = `<div class="message-bubble">${escapeHtml(msg.messageText)}</div>`;
+          } else if (msg.messageType === 'image') {
+            contentHtml = `
+              <div class="message-bubble">
+                <img src="${msg.mediaUrl}" alt="Image" class="message-image" onclick="openMediaViewer('${msg.mediaUrl}')">
               </div>
-              ${deleteBtn}
-            </div>
-          </div>
-        `;
-      }).join('');
+            `;
+          } else if (msg.messageType === 'video') {
+            contentHtml = `
+              <div class="message-bubble">
+                <video class="message-video" controls>
+                  <source src="${msg.mediaUrl}" type="video/mp4">
+                </video>
+              </div>
+            `;
+          }
 
-      // Attach swipe and long-press handlers
+          const readReceipt = isSent && msg.isRead ? '<span class="read-receipt">✓✓</span>' : '';
+          const deleteBtn = isSent ? `<button class="message-delete-btn" onclick="deleteMessage('${msg.$id}')">🗑️</button>` : '';
+
+          html += `
+            <div class="message ${isSent ? 'sent' : 'received'}">
+              <div class="message-wrapper" data-message-id="${msg.$id}">
+                <div class="message-content">
+                  ${contentHtml}
+                  <div class="message-timestamp">${timestamp}${readReceipt}</div>
+                </div>
+                ${deleteBtn}
+              </div>
+            </div>
+          `;
+        });
+      });
+
+      container.innerHTML = html;
       attachMessageHandlers();
     }
 
     function attachMessageHandlers() {
       messages.forEach(msg => {
-        if (msg.senderId !== currentUserId) return; // Only own messages can be deleted
+        if (msg.senderId !== currentUserId) return;
         
         const wrapper = document.querySelector(`[data-message-id="${msg.$id}"]`);
         if (!wrapper) return;
 
-        // Long-press handler (350ms)
         let longPressTimer;
         wrapper.addEventListener('touchstart', () => {
           longPressTimer = setTimeout(() => {
@@ -530,7 +652,6 @@
           clearTimeout(longPressTimer);
         });
 
-        // Swipe-left handler
         let startX = 0;
         wrapper.addEventListener('touchstart', (e) => {
           startX = e.touches[0].clientX;
@@ -540,19 +661,14 @@
           const currentX = e.touches[0].clientX;
           const diff = startX - currentX;
           
-          if (diff > 30) { // Swiped left
+          if (diff > 30) {
             wrapper.classList.add('swiped');
-          } else if (diff < -30) { // Swiped right
+          } else if (diff < -30) {
             wrapper.classList.remove('swiped');
           }
         });
-
-        wrapper.addEventListener('touchend', () => {
-          // Keep swiped state until user taps elsewhere
-        });
       });
 
-      // Tap elsewhere to close swipe
       document.getElementById('messagesContainer').addEventListener('touchstart', (e) => {
         if (!e.target.closest('.message-delete-btn')) {
           document.querySelectorAll('.message-wrapper.swiped').forEach(w => {
@@ -604,7 +720,7 @@
           result.url
         );
         
-        showToast('Image sent!');
+        showToast('Image sent!', 'success');
         event.target.value = '';
       } catch (error) {
         showToast(error.message || 'Failed to upload image', 'error');
@@ -628,7 +744,7 @@
           result.thumbnail
         );
         
-        showToast('Video sent!');
+        showToast('Video sent!', 'success');
         event.target.value = '';
       } catch (error) {
         showToast(error.message || 'Failed to upload video', 'error');
@@ -638,10 +754,9 @@
     async function deleteMessage(messageId) {
       try {
         await ConversationManager.deleteMessage(messageId);
-        // Remove from local array
         messages = messages.filter(m => m.$id !== messageId);
         renderMessages();
-        showToast('Message deleted');
+        showToast('Message deleted', 'success');
       } catch (error) {
         showToast('Failed to delete message', 'error');
         console.error('Delete error:', error);
@@ -671,13 +786,11 @@
     }
 
     function goBack() {
-      // Clean up subscription
       if (messageUnsubscribe) messageUnsubscribe();
       realtime.unsubscribeAll();
       window.location.href = 'messages.html';
     }
 
-    // Cleanup on page unload
     window.addEventListener('beforeunload', () => {
       if (messageUnsubscribe) messageUnsubscribe();
       realtime.unsubscribeAll();
