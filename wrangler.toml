@@ -1,0 +1,13 @@
+name = "gorkha-reels-share"
+main = "share-worker.js"
+type = "javascript"
+compatibility_date = "2024-01-01"
+
+[build]
+command = ""
+
+[env.production]
+routes = [
+  { pattern = "gorkha-reels.pages.dev/share.html*", zone_name = "gorkha-reels.pages.dev" }
+]
+vars = { APPWRITE_ENDPOINT = "https://fra.cloud.appwrite.io/v1", APPWRITE_PROJECT = "gorkhareels" }
