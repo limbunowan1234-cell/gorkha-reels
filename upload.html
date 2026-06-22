@@ -1173,9 +1173,9 @@
         // Create status document with VALID Appwrite documentId
         const now = new Date();
         const expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-        
-        // Generate valid Appwrite document ID
-        const statusId = 'status_' + Date.now() + '_' + Math.random().toString(36).substr(2, 8);
+
+        // ID.unique() ALWAYS returns a valid Appwrite document ID (20 chars)
+        const statusId = ID.unique();
 
         const statusData = {
           statusId,
