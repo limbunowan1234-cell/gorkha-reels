@@ -779,7 +779,14 @@
         if (session.isLoggedIn()) {
           MY_USER_ID = session.getUserId();
           console.log('[Init] User:', MY_USER_ID);
-          lastSeenTracker.init(MY_USER_ID);
+          // Guard: last-seen-tracker.js may not be deployed — never let it crash init
+          try {
+            if (typeof lastSeenTracker !== 'undefined' && lastSeenTracker.init) {
+              lastSeenTracker.init(MY_USER_ID);
+            }
+          } catch (e) {
+            console.warn('[Init] lastSeenTracker unavailable:', e.message);
+          }
           await new Promise(resolve => setTimeout(resolve, 100));
         }
 
