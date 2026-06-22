@@ -236,8 +236,8 @@
       animation: buttonGlow 0.5s ease; 
     }
     .reel-follow.following { 
-      background: rgba(255,255,255,0.15); 
-      border: 1px solid rgba(255,255,255,0.6); 
+      background: transparent; 
+      border: 1.5px solid #0B5E6B; 
     }
     .reel-title { 
       font-size: 14px; 
@@ -449,7 +449,6 @@
   <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
   <script src="js/appwrite-config.js"></script>
   <script>
-    // Inline utility functions
     function escapeHtml(text) {
       if (!text) return '';
       const div = document.createElement('div');
@@ -497,7 +496,6 @@
           Query.orderDesc('uploadedAt'),
           Query.limit(50)
         ]);
-        // Skip broken reels (made when login was broken) that have no playable video
         REELS = res.documents.filter(r => r.videoUrl && String(r.videoUrl).trim() !== '');
       } catch (e) {
         document.getElementById('feed-loading').innerHTML = '<p style="color:#888">Could not load videos</p>';
@@ -553,7 +551,7 @@
           </div>
           <div class="reel-bottom">
             <div class="reel-creator" data-creator-id="${reel.creatorId || ''}">
-              <img class="reel-avatar" src="${reel.creatorProfilePic || '/logo-suite/primary/logo-khukuri-512x512.png'}" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'" alt="${escapeHtml(reel.creatorName || 'Creator')}">
+              <img class="reel-avatar" src="${(reel.creatorProfilePic || '/logo-suite/primary/logo-khukuri-512x512.png') + '?t=' + Date.now()}" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'" alt="${escapeHtml(reel.creatorName || 'Creator')}">
               <div class="reel-creator-info">
                 <div class="reel-cname">${escapeHtml(reel.creatorName || 'GorkhaReels')}</div>
               </div>
@@ -568,7 +566,6 @@
         slide.querySelector('.comment').onclick = (e) => { e.stopPropagation(); openComments(i); };
         slide.querySelector('.share').onclick = (e) => { e.stopPropagation(); shareReel(reel); };
         
-        // Creator profile click → navigate to creator-profile.html
         slide.querySelector('.reel-creator').onclick = (e) => {
           const creatorId = e.currentTarget.dataset.creatorId;
           if (creatorId) {
@@ -730,7 +727,6 @@
       } catch (e) {}
     }
 
-    // ===== COMMENTS =====
     function setupComments() {
       document.getElementById('sheet-backdrop').onclick = closeComments;
       document.getElementById('c-post').onclick = postComment;
@@ -760,7 +756,7 @@
         if (!comments.length) { list.innerHTML = '<div class="c-empty">No comments yet. Be the first!</div>'; return; }
         list.innerHTML = comments.map(c => `
           <div class="c-item">
-            <img class="c-avatar" src="${c.creatorProfilePic || '/logo-suite/primary/logo-khukuri-512x512.png'}" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'" alt="${escapeHtml(c.creatorName || 'User')}">
+            <img class="c-avatar" src="${(c.creatorProfilePic || '/logo-suite/primary/logo-khukuri-512x512.png') + '?t=' + Date.now()}" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'" alt="${escapeHtml(c.creatorName || 'User')}">
             <div class="c-body">
               <div class="c-author">${escapeHtml(c.creatorName || 'User')}</div>
               <div class="c-text">${escapeHtml(c.text)}</div>
