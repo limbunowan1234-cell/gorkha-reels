@@ -208,46 +208,10 @@
       <button class="action-btn-primary" id="upload-btn">+ Upload</button>
     </div>
 
-    <!-- ===== ANALYTICS SECTION ===== -->
-    <div class="analytics-section">
-      <div class="section-title">📊 Performance Analytics</div>
-      
-      <!-- Views Trend Chart - REAL DATA -->
-      <div class="analytics-card">
-        <h3 style="font-size: 14px; font-weight: 600; margin-bottom: 12px;">Views Trend (Last 7 Days)</h3>
-        <div class="chart-container">
-          <canvas id="viewsChart"></canvas>
-        </div>
-      </div>
+    <!-- Analytics Button -->
+    <button class="action-btn-primary" id="analytics-btn" style="width: 100%; margin-bottom: 24px; padding: 12px;">📊 View Detailed Analytics</button>
 
-      <!-- Stats Grid - ALL REAL DATA -->
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-card-num" id="avg-views">0</div>
-          <div class="stat-card-label">Avg Views/Video</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-card-num" id="total-engagement">0</div>
-          <div class="stat-card-label">Total Engagement</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-card-num" id="engagement-rate">0%</div>
-          <div class="stat-card-label">Engagement Rate</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-card-num" id="estimated-earnings">₹0</div>
-          <div class="stat-card-label">Est. Monthly</div>
-        </div>
-      </div>
-
-      <!-- Top Video Card - REAL DATA -->
-      <div style="margin-top: 12px;">
-        <h3 style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">🔥 Your Best Video</h3>
-        <div class="top-video-card" id="top-video-card">
-          <div class="empty-state" style="padding: 20px;">No videos yet</div>
-        </div>
-      </div>
-    </div>
+    <!-- Analytics button above, detailed view on analytics.html -->
 
     <div class="earnings-strip">
       <div class="earnings-left">
@@ -388,6 +352,7 @@
       document.getElementById('drawer-logout').onclick = async () => { try { await session.logout(); } catch (e) {} window.location = 'login.html'; };
       document.getElementById('edit-profile-btn').onclick = openEditProfileSheet;
       document.getElementById('upload-btn').onclick = () => window.location = 'upload.html';
+      document.getElementById('analytics-btn').onclick = () => window.location = 'creator-analytics.html';
       document.getElementById('withdraw-btn').onclick = () => showToast('Withdrawal coming soon!');
       document.getElementById('edit-profile-drawer').onclick = openEditProfileSheet;
       document.getElementById('video-menu-cancel').onclick = closeVideoMenu;
