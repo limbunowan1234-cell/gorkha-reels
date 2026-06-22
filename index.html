@@ -17,6 +17,7 @@
     @keyframes shimmer { 0% { background-position: -1000px 0; } 100% { background-position: 1000px 0; } }
     @keyframes buttonScale { 0% { transform: scale(1); } 50% { transform: scale(0.95); } 100% { transform: scale(1); } }
     @keyframes toastBounce { 0% { transform: translateY(-20px); opacity: 0; } 50% { transform: translateY(0); } 100% { opacity: 0; transform: translateY(0); } }
+    @keyframes slideInFromRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
     .banner {
       position: sticky; top: 0; z-index: 100;
@@ -39,6 +40,92 @@
       transition: all 0.2s; position: relative;
     }
     .banner-btn:active { transform: scale(0.92); background: rgba(255,255,255,0.28); }
+
+    /* ===== SUGGESTED CREATORS BANNER ===== */
+    .suggested-banner { 
+      background: linear-gradient(135deg, #1a1a1a, #0d2d3a);
+      border-bottom: 1px solid #2d2d2d;
+      padding: 16px;
+      animation: slideInFromRight 0.4s ease;
+      position: relative;
+      z-index: 99;
+    }
+    .suggested-banner.hidden { display: none; }
+    .suggested-header { 
+      display: flex; 
+      align-items: center; 
+      justify-content: space-between; 
+      margin-bottom: 12px;
+    }
+    .suggested-title { 
+      font-size: 14px; 
+      font-weight: 700; 
+      color: #0B5E6B;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    .suggested-close {
+      background: none;
+      border: none;
+      color: #666;
+      font-size: 18px;
+      cursor: pointer;
+      padding: 4px 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .suggested-close:active { color: #fff; }
+    
+    .suggested-scroll {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      padding: 4px 0;
+    }
+    .suggested-scroll::-webkit-scrollbar { display: none; }
+    
+    .suggested-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      min-width: 76px;
+      flex-shrink: 0;
+    }
+    .suggested-avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: #0B5E6B;
+      object-fit: cover;
+      border: 2px solid rgba(255,255,255,0.1);
+    }
+    .suggested-name {
+      font-size: 11px;
+      font-weight: 600;
+      text-align: center;
+      line-height: 1.2;
+      white-space: normal;
+      word-break: break-word;
+      max-width: 70px;
+      color: #fff;
+    }
+    .suggested-follow-btn {
+      padding: 5px 12px;
+      background: #0B5E6B;
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      min-width: 55px;
+    }
+    .suggested-follow-btn:active { transform: scale(0.92); background: #0D7377; }
+    .suggested-follow-btn.following { background: transparent; border: 1px solid #0B5E6B; color: #0B5E6B; }
 
     .feed { max-width: 100%; margin-bottom: 90px; }
 
@@ -86,6 +173,18 @@
     .loading { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 400px; gap: 12px; }
     .spinner { width: 40px; height: 40px; border: 3px solid #2d2d2d; border-top-color: #0B5E6B; border-radius: 50%; animation: spin 1s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    .load-more-spinner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      gap: 12px;
+      color: #888;
+      font-size: 13px;
+    }
+    .load-more-spinner .spinner { width: 32px; height: 32px; }
 
     .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #1a1a1a; border-top: 1px solid #2d2d2d; display: flex; justify-content: space-around; align-items: center; padding: 8px 0; z-index: 100; }
     .nav-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; background: none; border: none; color: #666; cursor: pointer; flex: 1; padding: 10px; font-size: 18px; transition: color 0.2s; }
@@ -143,11 +242,26 @@
     </div>
   </header>
 
+  <!-- ===== SUGGESTED CREATORS BANNER ===== -->
+  <div class="suggested-banner" id="suggested-banner">
+    <div class="suggested-header">
+      <span class="suggested-title">✨ Suggested Creators</span>
+      <button class="suggested-close" id="close-suggested" onclick="document.getElementById('suggested-banner').classList.add('hidden')">✕</button>
+    </div>
+    <div class="suggested-scroll" id="suggested-scroll"></div>
+  </div>
+
   <div class="feed" id="feed">
     <div class="loading">
       <div class="spinner"></div>
       <p>Loading videos...</p>
     </div>
+  </div>
+
+  <!-- ===== INFINITE SCROLL LOADER ===== -->
+  <div class="load-more-spinner" id="load-more-spinner" style="display:none;">
+    <div class="spinner"></div>
+    <p>Loading more videos...</p>
   </div>
 
   <nav class="bottom-nav">
@@ -187,6 +301,11 @@
   </script>
   <script>
     let MY_USER_ID = null;
+    let CURRENT_OFFSET = 0;
+    const PAGE_SIZE = 10;
+    let IS_LOADING = false;
+    let HAS_MORE = true;
+    let FOLLOWING_SET = new Set();
 
     function getThumbSrc(reel) {
       const t = reel && reel.thumbnail;
@@ -209,37 +328,129 @@
         await session.refresh();
         if (session.isLoggedIn()) {
           MY_USER_ID = session.getUserId();
+          await loadFollowing();
         }
         setupDrawer();
-        loadVideos();
+        await loadSuggestedCreators();
+        await loadVideos();
+        setupInfiniteScroll();
       } catch (err) {
         console.error('Init error:', err);
         setupDrawer();
-        loadVideos();
+        await loadVideos();
       }
     }
 
-    function setupDrawer() {
-      const open = () => { document.getElementById('drawer').classList.add('open'); document.getElementById('drawer-backdrop').classList.add('open'); };
-      const close = () => { document.getElementById('drawer').classList.remove('open'); document.getElementById('drawer-backdrop').classList.remove('open'); };
-      document.getElementById('open-drawer').onclick = open;
-      document.getElementById('drawer-backdrop').onclick = close;
-      document.querySelectorAll('.drawer-item').forEach(btn => btn.addEventListener('click', close));
-      document.getElementById('drawer-logout').onclick = async () => { try { await session.logout(); } catch (e) {} window.location = 'login.html'; };
-      document.getElementById('post-menu-cancel').onclick = closePostMenu;
-      document.getElementById('post-menu-backdrop').onclick = closePostMenu;
+    async function loadFollowing() {
+      try {
+        const follows = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [
+          Query.equal('followerId', MY_USER_ID),
+          Query.limit(100)
+        ]);
+        follows.documents.forEach(f => FOLLOWING_SET.add(f.followingId));
+      } catch (e) {}
     }
 
-    async function loadVideos() {
+    async function loadSuggestedCreators() {
       try {
+        const creators = await db.list(APPWRITE_CONFIG.COLLECTIONS.CREATORS, [
+          Query.orderDesc('followers'),
+          Query.limit(5)
+        ]);
+        const scroll = document.getElementById('suggested-scroll');
+        if (!creators.documents.length) {
+          document.getElementById('suggested-banner').classList.add('hidden');
+          return;
+        }
+        scroll.innerHTML = creators.documents.map(creator => `
+          <div class="suggested-card">
+            <img class="suggested-avatar" src="${creator.profilePic || '/logo-suite/primary/logo-khukuri-512x512.png'}" 
+                 onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'" alt="${escapeHtml(creator.name)}">
+            <div class="suggested-name">${escapeHtml(creator.name || 'Creator')}</div>
+            <button class="suggested-follow-btn ${FOLLOWING_SET.has(creator.$id) ? 'following' : ''}" 
+                    data-creator-id="${creator.$id}" 
+                    onclick="toggleSuggestedFollow(event, '${creator.$id}')">
+              ${FOLLOWING_SET.has(creator.$id) ? 'Following' : 'Follow'}
+            </button>
+          </div>
+        `).join('');
+      } catch (err) {
+        console.error('Suggested creators error:', err);
+      }
+    }
+
+    async function toggleSuggestedFollow(e, creatorId) {
+      e.stopPropagation();
+      if (!MY_USER_ID) { window.location = 'login.html'; return; }
+      const btn = e.target;
+      btn.disabled = true;
+      try {
+        if (FOLLOWING_SET.has(creatorId)) {
+          const follows = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [
+            Query.equal('followerId', MY_USER_ID),
+            Query.equal('followingId', creatorId)
+          ]);
+          if (follows.documents.length) await db.remove(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, follows.documents[0].$id);
+          FOLLOWING_SET.delete(creatorId);
+          btn.classList.remove('following');
+          btn.textContent = 'Follow';
+        } else {
+          const existing = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [
+            Query.equal('followerId', MY_USER_ID),
+            Query.equal('followingId', creatorId)
+          ]);
+          if (existing.total === 0) {
+            await db.create(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, {
+              followId: ID.unique(),
+              followerId: MY_USER_ID,
+              followingId: creatorId,
+              CreatorId: creatorId,
+              createdAt: new Date().toISOString()
+            });
+          }
+          FOLLOWING_SET.add(creatorId);
+          btn.classList.add('following');
+          btn.textContent = 'Following';
+        }
+      } catch (err) {
+        console.error('Follow error:', err);
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    async function loadVideos(append = false) {
+      try {
+        if (!append) {
+          document.getElementById('feed').innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading videos...</p></div>';
+          CURRENT_OFFSET = 0;
+          HAS_MORE = true;
+        }
+
+        if (!HAS_MORE || IS_LOADING) return;
+        IS_LOADING = true;
+        
+        if (append) {
+          document.getElementById('load-more-spinner').style.display = 'flex';
+        }
+
         const reels = await db.list(
           APPWRITE_CONFIG.COLLECTIONS.REELS,
-          [Query.equal('isDeleted', false), Query.orderDesc('uploadedAt'), Query.limit(50)]
+          [Query.equal('isDeleted', false), Query.orderDesc('uploadedAt'), Query.offset(CURRENT_OFFSET), Query.limit(PAGE_SIZE)]
         );
 
-        if (!reels.documents.length) {
+        if (append) {
+          document.getElementById('load-more-spinner').style.display = 'none';
+        }
+
+        if (!reels.documents.length && CURRENT_OFFSET === 0) {
           document.getElementById('feed').innerHTML = '<div class="loading"><p>No videos yet</p></div>';
+          IS_LOADING = false;
           return;
+        }
+
+        if (reels.documents.length < PAGE_SIZE) {
+          HAS_MORE = false;
         }
 
         const VERIFIED = new Set();
@@ -257,8 +468,8 @@
           });
         } catch (e) {}
 
-        const feed = document.getElementById('feed');
-        feed.innerHTML = '';
+        const feed = append ? document.getElementById('feed') : (document.getElementById('feed').innerHTML = '', document.getElementById('feed'));
+        
         reels.documents.forEach(reel => {
           const isOwner = MY_USER_ID && MY_USER_ID === reel.creatorId;
           const isVerified = VERIFIED.has(reel.creatorId);
@@ -291,10 +502,32 @@
           post.querySelector('.post-more').onclick = (e) => { e.stopPropagation(); openPostMenu(reel, post, isOwner); };
           feed.appendChild(post);
         });
+
+        CURRENT_OFFSET += PAGE_SIZE;
+        IS_LOADING = false;
       } catch (err) {
         console.error('Load error:', err);
-        document.getElementById('feed').innerHTML = '<div class="loading"><p>Error loading videos</p></div>';
+        if (!append) {
+          document.getElementById('feed').innerHTML = '<div class="loading"><p>Error loading videos</p></div>';
+        }
+        IS_LOADING = false;
       }
+    }
+
+    function setupInfiniteScroll() {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting && HAS_MORE && !IS_LOADING) {
+            loadVideos(true);
+          }
+        });
+      }, { rootMargin: '200px' });
+
+      // Create a sentinel element
+      const sentinel = document.createElement('div');
+      sentinel.id = 'scroll-sentinel';
+      document.getElementById('feed').appendChild(sentinel);
+      observer.observe(sentinel);
     }
 
     async function shareReel(reel) {
@@ -340,6 +573,17 @@
         post.style.animation = 'slideUp 0.3s ease-out reverse';
         setTimeout(() => post.remove(), 300);
       } catch (e) { alert('Could not delete'); }
+    }
+
+    function setupDrawer() {
+      const open = () => { document.getElementById('drawer').classList.add('open'); document.getElementById('drawer-backdrop').classList.add('open'); };
+      const close = () => { document.getElementById('drawer').classList.remove('open'); document.getElementById('drawer-backdrop').classList.remove('open'); };
+      document.getElementById('open-drawer').onclick = open;
+      document.getElementById('drawer-backdrop').onclick = close;
+      document.querySelectorAll('.drawer-item').forEach(btn => btn.addEventListener('click', close));
+      document.getElementById('drawer-logout').onclick = async () => { try { await session.logout(); } catch (e) {} window.location = 'login.html'; };
+      document.getElementById('post-menu-cancel').onclick = closePostMenu;
+      document.getElementById('post-menu-backdrop').onclick = closePostMenu;
     }
 
     document.addEventListener('DOMContentLoaded', init);
