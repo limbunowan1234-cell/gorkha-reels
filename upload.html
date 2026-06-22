@@ -8,22 +8,60 @@
   <link rel="icon" type="image/png" href="/logo-suite/favicon/logo-khukuri-32x32.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700https://fonts.googleapis.com/css2?family=Poppins:wght@700;800;900&display=swapdisplay=swap"display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&family=Poppins:wght@700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
 
-  <!-- 🚨 ERUDA BLOCKER - MUST BE FIRST -->
+  <!-- 🚨 AGGRESSIVE ERUDA BLOCKER - MUST BE FIRST -->
   <script>
-    if (typeof window !== 'undefined') {
+    // Complete Eruda nuclear option - blocks it completely
+    (function() {
+      // Block all Eruda references
       window.eruda = null;
       window.Eruda = null;
+      window.erudaInit = null;
+      
+      // Prevent reassignment
+      Object.defineProperty(window, 'eruda', {
+        value: null,
+        writable: false,
+        configurable: false
+      });
+      
+      Object.defineProperty(window, 'Eruda', {
+        value: null,
+        writable: false,
+        configurable: false
+      });
+      
+      // Block script loading
+      const origScript = document.createElement;
+      document.createElement = function(tagName) {
+        const el = origScript.call(document, tagName);
+        if (tagName === 'script') {
+          const origSrc = Object.getOwnPropertyDescriptor(el, 'src') || {};
+          Object.defineProperty(el, 'src', {
+            set: function(url) {
+              if (url && url.includes('eruda')) {
+                console.warn('Eruda script blocked:', url);
+                return;
+              }
+              if (origSrc.set) origSrc.set.call(this, url);
+            },
+            get: origSrc.get
+          });
+        }
+        return el;
+      };
+      
+      // Block fetch
       const origFetch = window.fetch;
-      window.fetch = function(...args) {
-        if (args[0] && args[0].includes && args[0].includes('eruda')) {
+      window.fetch = function(url, ...args) {
+        if (url && String(url).includes('eruda')) {
           return Promise.reject(new Error('Eruda blocked'));
         }
-        return origFetch.apply(this, args);
+        return origFetch.apply(this, arguments);
       };
-    }
+    })();
   </script>
 
   <style>
