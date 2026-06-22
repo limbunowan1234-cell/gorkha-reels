@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Story - GorkhaReels</title>
+  <link rel="icon" type="image/png" href="logo-suite/favicon/logo-khukuri-32x32.png">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #000;
+      color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      overflow: hidden;
+      height: 100vh;
+    }
+
+    .story-container {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+      background: #000;
+    }
+
+    .story-media {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* Progress Bars */
+    .progress-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      gap: 4px;
+      padding: 16px 12px;
+      z-index: 50;
+      background: linear-gradient(180deg, rgba(0,0,0,0.3) 0%, transparent 100%);
+    }
+
+    .progress-bar {
+      flex: 1;
+      height: 2px;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 1px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: #fff;
+      width: 0%;
+      animation: progressFill 5s linear forwards;
+    }
+
+    .progress-fill.paused {
+      animation-play-state: paused;
+    }
+
+    @keyframes progressFill {
+      from { width: 0%; }
+      to { width: 100%; }
+    }
+
+    /* Top Header */
+    .story-header {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: 24px 16px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 40;
+      background: linear-gradient(180deg, rgba(0,0,0,0.4) 0%, transparent 100%);
+    }
+
+    .story-user {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .story-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #0B5E6B, #0d2d3a);
+      object-fit: cover;
+      flex-shrink: 0;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .story-user-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .story-username {
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 2px;
+    }
+
+    .story-time {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .story-actions {
+      display: flex;
+      gap: 16px;
+    }
+
+    .action-icon {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 24px;
+      cursor: pointer;
+      padding: 8px;
+      transition: transform 0.2s;
+    }
+
+    .action-icon:active {
+      transform: scale(0.9);
+    }
+
+    /* Bottom Reply Area */
+    .story-footer {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 16px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.5) 100%);
+      z-index: 30;
+    }
+
+    .reply-box {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 24px;
+      padding: 12px 16px;
+      color: #fff;
+      font-size: 14px;
+      font-family: inherit;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .reply-box::placeholder {
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .reply-box:focus {
+      outline: none;
+      background: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.4);
+    }
+
+    .reaction-btn,
+    .share-btn {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 24px;
+      cursor: pointer;
+      padding: 8px;
+      transition: transform 0.2s;
+    }
+
+    .reaction-btn:active,
+    .share-btn:active {
+      transform: scale(0.9);
+    }
+
+    /* Tap Areas */
+    .tap-area {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 50%;
+      z-index: 20;
+      cursor: pointer;
+    }
+
+    .tap-area.left {
+      left: 0;
+    }
+
+    .tap-area.right {
+      right: 0;
+    }
+
+    /* Close Button */
+    .close-btn {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: #fff;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      font-size: 24px;
+      cursor: pointer;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(10px);
+      transition: all 0.2s;
+    }
+
+    .close-btn:active {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Loading */
+    .loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 50px;
+      height: 50px;
+      border: 4px solid rgba(255, 255, 255, 0.2);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      z-index: 10;
+    }
+
+    @keyframes spin {
+      to { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.8);
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      z-index: 1000;
+      animation: slideUp 0.3s ease-out;
+      backdrop-filter: blur(10px);
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+    }
+
+    /* Swipe Indicator */
+    .swipe-indicator {
+      position: absolute;
+      bottom: 80px;
+      right: 16px;
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 12px;
+      pointer-events: none;
+      animation: fadeInOut 2s ease-in-out infinite;
+    }
+
+    @keyframes fadeInOut {
+      0%, 100% { opacity: 0; }
+      50% { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div class="story-container" id="storyContainer">
+    <div class="loading" id="loadingSpinner"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
+  <script src="js/appwrite-config.js"></script>
+  <script src="last-seen-tracker.js"></script>
+
+  <script>
+    let currentStories = [];
+    let currentCreatorIndex = 0;
+    let currentStoryIndex = 0;
+    let currentUserId = null;
+    let isPaused = false;
+    let startX = 0;
+    let currentX = 0;
+
+    async function init() {
+      await session.refresh();
+      if (!session.isLoggedIn()) {
+        window.location.href = 'index.html';
+        return;
+      }
+
+      currentUserId = session.getUserId();
+      lastSeenTracker.init(currentUserId);
+
+      const params = new URLSearchParams(window.location.search);
+      const creatorId = params.get('creator');
+      const storyId = params.get('story');
+
+      if (creatorId) {
+        // View specific creator's story
+        await loadCreatorStories(creatorId);
+      } else if (storyId) {
+        // View specific story
+        await loadSpecificStory(storyId);
+      } else {
+        // View stories from followed creators
+        await loadFollowedCreatorStories();
+      }
+
+      if (currentStories.length === 0) {
+        window.location.href = 'index.html';
+        return;
+      }
+
+      renderStory();
+      setupEventListeners();
+      startProgressTimer();
+    }
+
+    async function loadCreatorStories(creatorId) {
+      try {
+        const stories = await db.list('status', [
+          Query.equal('creatorId', creatorId),
+          Query.greaterThan('expiresAt', new Date().toISOString()),
+          Query.orderDesc('createdAt'),
+          Query.limit(50)
+        ]);
+
+        currentStories = stories.documents;
+        currentCreatorIndex = 0;
+        currentStoryIndex = 0;
+      } catch (err) {
+        console.error('Error loading creator stories:', err);
+        currentStories = [];
+      }
+    }
+
+    async function loadSpecificStory(storyId) {
+      try {
+        const story = await db.get('status', storyId);
+        currentStories = [story];
+        currentCreatorIndex = 0;
+        currentStoryIndex = 0;
+      } catch (err) {
+        console.error('Error loading story:', err);
+        currentStories = [];
+      }
+    }
+
+    async function loadFollowedCreatorStories() {
+      try {
+        // Get creators user follows
+        const followers = await db.list('followers', [
+          Query.equal('followingId', currentUserId),
+          Query.limit(100)
+        ]);
+
+        const creatorIds = followers.documents.map(f => f.followerId);
+
+        if (creatorIds.length === 0) {
+          currentStories = [];
+          return;
+        }
+
+        // Get recent stories from followed creators
+        const now = new Date().toISOString();
+        const allStories = await Promise.all(
+          creatorIds.map(id =>
+            db.list('status', [
+              Query.equal('creatorId', id),
+              Query.greaterThan('expiresAt', now),
+              Query.orderDesc('createdAt'),
+              Query.limit(10)
+            ]).catch(() => ({ documents: [] }))
+          )
+        );
+
+        currentStories = allStories.flatMap(result => result.documents);
+      } catch (err) {
+        console.error('Error loading followed stories:', err);
+        currentStories = [];
+      }
+    }
+
+    async function renderStory() {
+      if (currentStories.length === 0) {
+        document.getElementById('storyContainer').innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #999;">No stories available</div>';
+        return;
+      }
+
+      const story = currentStories[currentStoryIndex];
+
+      try {
+        const creator = await db.get('creators', story.creatorId);
+
+        let mediaHtml = '';
+        if (story.mediaType === 'image') {
+          mediaHtml = `<img src="${story.videoUrl}" class="story-media" alt="Story">`;
+        } else {
+          mediaHtml = `<video class="story-media" autoplay muted playsinline><source src="${story.videoUrl}" type="video/mp4"></video>`;
+        }
+
+        const storyCount = currentStories.length;
+        let progressBars = '';
+        for (let i = 0; i < storyCount; i++) {
+          const isCurrent = i === currentStoryIndex;
+          progressBars += `
+            <div class="progress-bar">
+              <div class="progress-fill ${isCurrent ? '' : 'paused'}" id="progress-${i}"></div>
+            </div>
+          `;
+        }
+
+        const timeAgo = formatTimeAgo(story.createdAt);
+
+        document.getElementById('storyContainer').innerHTML = `
+          <div class="story-container">
+            ${mediaHtml}
+
+            <div class="progress-container">
+              ${progressBars}
+            </div>
+
+            <div class="story-header">
+              <button class="close-btn" onclick="goBack()">←</button>
+              <div class="story-user">
+                <img src="${creator.profilePic || `https://ui-avatars.com/api/?name=${encodeURIComponent(creator.name)}&background=0B5E6B&color=fff`}" alt="${creator.name}" class="story-avatar">
+                <div class="story-user-info">
+                  <div class="story-username">${escapeHtml(creator.name)}</div>
+                  <div class="story-time">${timeAgo}</div>
+                </div>
+              </div>
+              <div class="story-actions">
+                <button class="action-icon" onclick="showToast('Shared!')">➤</button>
+                <button class="action-icon" onclick="showMoreOptions()">⋮</button>
+              </div>
+            </div>
+
+            <div class="story-footer">
+              <input type="text" class="reply-box" placeholder="Reply..." readonly>
+              <button class="reaction-btn" onclick="reactToStory('❤️')">🤍</button>
+              <button class="share-btn" onclick="shareStory()">📤</button>
+            </div>
+
+            <div class="tap-area left" ontouchstart="handleTouchStart" ontouchend="handleTouchEnd" onmousedown="handleMouseDown" onmouseup="handleMouseUp"></div>
+            <div class="tap-area right" ontouchstart="handleTouchStart" ontouchend="handleTouchEnd" onmousedown="handleMouseDown" onmouseup="handleMouseUp"></div>
+          </div>
+        `;
+
+        // Bind pause/play
+        const media = document.querySelector('.story-media');
+        if (media) {
+          media.addEventListener('touchstart', pauseStory);
+          media.addEventListener('touchend', playStory);
+          media.addEventListener('mousedown', pauseStory);
+          media.addEventListener('mouseup', playStory);
+        }
+
+        // Re-attach event listeners
+        setupEventListeners();
+      } catch (err) {
+        console.error('Error rendering story:', err);
+      }
+    }
+
+    function setupEventListeners() {
+      const leftTap = document.querySelector('.tap-area.left');
+      const rightTap = document.querySelector('.tap-area.right');
+
+      if (leftTap) {
+        leftTap.addEventListener('click', previousStory);
+        leftTap.addEventListener('touchstart', handleTouchStart);
+        leftTap.addEventListener('touchend', handleTouchEnd);
+      }
+
+      if (rightTap) {
+        rightTap.addEventListener('click', nextStory);
+        rightTap.addEventListener('touchstart', handleTouchStart);
+        rightTap.addEventListener('touchend', handleTouchEnd);
+      }
+    }
+
+    let touchStartX = 0;
+    let touchStartTime = 0;
+
+    function handleTouchStart(e) {
+      touchStartX = e.touches[0].clientX;
+      touchStartTime = Date.now();
+      pauseStory();
+    }
+
+    function handleTouchEnd(e) {
+      const touchEndX = e.changedTouches[0].clientX;
+      const duration = Date.now() - touchStartTime;
+      const distance = touchEndX - touchStartX;
+
+      if (duration < 500 && Math.abs(distance) < 50) {
+        // Tap
+        if (touchStartX < window.innerWidth / 2) {
+          previousStory();
+        } else {
+          nextStory();
+        }
+      } else if (distance > 50) {
+        // Swipe left
+        nextStory();
+      } else if (distance < -50) {
+        // Swipe right
+        previousStory();
+      }
+
+      playStory();
+    }
+
+    function handleMouseDown(e) {
+      touchStartX = e.clientX;
+      touchStartTime = Date.now();
+      pauseStory();
+    }
+
+    function handleMouseUp(e) {
+      const duration = Date.now() - touchStartTime;
+      const distance = e.clientX - touchStartX;
+
+      if (duration < 500 && Math.abs(distance) < 50) {
+        // Tap
+        if (touchStartX < window.innerWidth / 2) {
+          previousStory();
+        } else {
+          nextStory();
+        }
+      } else if (distance > 50) {
+        // Swipe left
+        nextStory();
+      } else if (distance < -50) {
+        // Swipe right
+        previousStory();
+      }
+
+      playStory();
+    }
+
+    function nextStory() {
+      currentStoryIndex++;
+      if (currentStoryIndex >= currentStories.length) {
+        goBack();
+        return;
+      }
+      renderStory();
+      startProgressTimer();
+    }
+
+    function previousStory() {
+      currentStoryIndex--;
+      if (currentStoryIndex < 0) {
+        goBack();
+        return;
+      }
+      renderStory();
+      startProgressTimer();
+    }
+
+    function pauseStory() {
+      isPaused = true;
+      const fills = document.querySelectorAll('.progress-fill');
+      fills.forEach(fill => fill.classList.add('paused'));
+      const video = document.querySelector('.story-media');
+      if (video && video.tagName === 'VIDEO') {
+        video.pause();
+      }
+    }
+
+    function playStory() {
+      isPaused = false;
+      const fills = document.querySelectorAll('.progress-fill');
+      fills.forEach(fill => fill.classList.remove('paused'));
+      const video = document.querySelector('.story-media');
+      if (video && video.tagName === 'VIDEO') {
+        video.play();
+      }
+    }
+
+    function startProgressTimer() {
+      const currentFill = document.getElementById(`progress-${currentStoryIndex}`);
+      if (currentFill) {
+        currentFill.style.animation = 'none';
+        setTimeout(() => {
+          currentFill.style.animation = 'progressFill 5s linear forwards';
+        }, 10);
+      }
+
+      setTimeout(() => {
+        if (!isPaused) {
+          nextStory();
+        }
+      }, 5000);
+    }
+
+    function reactToStory(emoji) {
+      showToast(`Reacted with ${emoji}`);
+    }
+
+    function shareStory() {
+      const story = currentStories[currentStoryIndex];
+      const shareUrl = `${window.location.origin}/story.html?story=${story.$id}`;
+      
+      if (navigator.share) {
+        navigator.share({
+          title: 'GorkhaReels Story',
+          url: shareUrl
+        });
+      } else {
+        navigator.clipboard.writeText(shareUrl);
+        showToast('Link copied!');
+      }
+    }
+
+    function showMoreOptions() {
+      const story = currentStories[currentStoryIndex];
+      if (story.creatorId === currentUserId) {
+        if (confirm('Delete this story?')) {
+          deleteStory(story.$id);
+        }
+      } else {
+        if (confirm('Report this story?')) {
+          reportStory(story.$id);
+        }
+      }
+    }
+
+    async function deleteStory(storyId) {
+      try {
+        await db.remove('status', storyId);
+        currentStories = currentStories.filter(s => s.$id !== storyId);
+        if (currentStories.length === 0) {
+          goBack();
+        } else {
+          renderStory();
+        }
+        showToast('Story deleted', 'success');
+      } catch (err) {
+        showToast('Failed to delete story', 'error');
+      }
+    }
+
+    function reportStory(storyId) {
+      showToast('Story reported');
+    }
+
+    function formatTimeAgo(isoDate) {
+      const date = new Date(isoDate);
+      const now = new Date();
+      const diffMs = now - date;
+      const diffMin = Math.floor(diffMs / 60000);
+      const diffHours = Math.floor(diffMs / 3600000);
+
+      if (diffMin < 1) return 'just now';
+      if (diffMin < 60) return `${diffMin}m ago`;
+      if (diffHours < 24) return `${diffHours}h ago`;
+      return date.toLocaleDateString();
+    }
+
+    function showToast(message, type = 'success') {
+      const toast = document.createElement('div');
+      toast.className = `toast`;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 2000);
+    }
+
+    function goBack() {
+      lastSeenTracker.stopTracking();
+      window.location.href = 'index.html';
+    }
+
+    init();
+  </script>
+</body>
+</html>
