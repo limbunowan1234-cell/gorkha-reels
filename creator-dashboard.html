@@ -508,16 +508,27 @@
           try {
             // Upload to Bunny CDN
             const fileName = `profile_${session.getUserId()}_${Date.now()}.jpg`;
-            const uploadRes = await fetch(`https://storage.bunnycdn.com/${bunny.STORAGE_ZONE}/profile-pics/${fileName}`, {
+            const bunnyStorageZone = 'gorkhareels';
+            const bunnyApiKey = 'cf694f78-8568-4497-9e764c8848c4-728e-4d89';
+            
+            const uploadRes = await fetch(`https://storage.bunnycdn.com/${bunnyStorageZone}/profile-pics/${fileName}`, {
               method: 'PUT',
-              headers: { 'AccessKey': bunny.API_KEY, 'Content-Type': 'image/jpeg' },
+              headers: { 
+                'AccessKey': bunnyApiKey,
+                'Content-Type': 'image/jpeg'
+              },
               body: SELECTED_PROFILE_PIC
             });
-            if (uploadRes.status !== 201) throw new Error(`Bunny upload failed: ${uploadRes.status}`);
-            profilePicUrl = `${bunny.PULL_ZONE_URL}profile-pics/${fileName}`;
+            
+            if (!uploadRes.ok) {
+              const errText = await uploadRes.text();
+              throw new Error(`Bunny upload failed (${uploadRes.status}): ${errText}`);
+            }
+            
+            profilePicUrl = `https://gorkhareel-video.b-cdn.net/profile-pics/${fileName}`;
           } catch (uploadErr) {
             console.error('Picture upload failed:', uploadErr);
-            showToast('Could not upload picture', true);
+            showToast('Could not upload picture: ' + uploadErr.message, true);
             saveBtn.disabled = false;
             saveBtn.textContent = 'Save Changes';
             return;
