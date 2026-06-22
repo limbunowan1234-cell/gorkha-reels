@@ -512,7 +512,7 @@
       let startIndex = REELS.findIndex(r => r.$id === startId);
       if (startIndex < 0) startIndex = 0;
 
-      buildSlides();
+      await buildSlides();
       document.getElementById('feed-loading').style.display = 'none';
 
       const slides = document.querySelectorAll('.reel-slide');
@@ -523,11 +523,26 @@
       setupComments();
     }
 
-    function buildSlides() {
+    async function buildSlides() {
       const feed = document.getElementById('reels-feed');
       feed.innerHTML = '';
+
+      // Fetch fresh creator data for all reels
+      const CREATORS_MAP = {};
+      const uniqueCreatorIds = [...new Set(REELS.map(r => r.creatorId).filter(Boolean))];
+      try {
+        const creatorDocs = await Promise.all(
+          uniqueCreatorIds.map(id => db.get(C.CREATORS, id).catch(() => null))
+        );
+        creatorDocs.forEach(c => { if (c) CREATORS_MAP[c.$id] = c; });
+      } catch (e) {}
+
       REELS.forEach((reel, i) => {
         const liked = LIKED.has(reel.$id);
+        const creator = CREATORS_MAP[reel.creatorId] || {};
+        const creatorName = creator.name || reel.creatorName || 'GorkhaReels';
+        const creatorProfilePic = creator.profilePic || reel.creatorProfilePic || '/logo-suite/primary/logo-khukuri-512x512.png';
+        
         const slide = document.createElement('div');
         slide.className = 'reel-slide';
         slide.dataset.index = i;
@@ -551,9 +566,9 @@
           </div>
           <div class="reel-bottom">
             <div class="reel-creator" data-creator-id="${reel.creatorId || ''}">
-              <img class="reel-avatar" src="${(reel.creatorProfilePic || '/logo-suite/primary/logo-khukuri-512x512.png') + '?t=' + Date.now()}" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'" alt="${escapeHtml(reel.creatorName || 'Creator')}">
+              <img class="reel-avatar" src="${creatorProfilePic + '?t=' + Date.now()}" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'" alt="${escapeHtml(creatorName)}">
               <div class="reel-creator-info">
-                <div class="reel-cname">${escapeHtml(reel.creatorName || 'GorkhaReels')}</div>
+                <div class="reel-cname">${escapeHtml(creatorName)}</div>
               </div>
               ${reel.creatorId ? `<button class="reel-follow" data-index="${i}" onclick="event.stopPropagation();">Follow</button>` : ''}
             </div>
