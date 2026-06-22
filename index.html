@@ -540,10 +540,19 @@
     }
 
     async function shareReel(reel) {
-      const url = `${location.origin}/video-modal.html?reelId=${reel.$id}`;
+      const shareUrl = `${location.origin}/share.html?reelId=${reel.$id}`;
       try {
-        if (navigator.share) { await navigator.share({ title: reel.title, url }); }
-        else { await navigator.clipboard.writeText(url); toast('Link copied!'); }
+        if (navigator.share) { 
+          await navigator.share({ 
+            title: reel.title, 
+            text: `Check out "${reel.title}" on GorkhaReels`,
+            url: shareUrl 
+          }); 
+        }
+        else { 
+          await navigator.clipboard.writeText(shareUrl); 
+          toast('Share link copied!'); 
+        }
       } catch (e) {}
     }
 
@@ -563,7 +572,7 @@
       } else {
         add('↗️ Share', () => shareReel(reel));
         add('🔗 Copy link', async () => {
-          try { await navigator.clipboard.writeText(`${location.origin}/video-modal.html?reelId=${reel.$id}`); toast('Link copied!'); } catch (e) {}
+          try { await navigator.clipboard.writeText(`${location.origin}/share.html?reelId=${reel.$id}`); toast('Link copied!'); } catch (e) {}
         });
       }
       document.getElementById('post-menu-backdrop').classList.add('open');
