@@ -540,7 +540,7 @@
     }
 
     async function shareReel(reel) {
-      const shareUrl = `${location.origin}/share.html?reelId=${reel.$id}`;
+      const shareUrl = `${location.origin}/share?reelId=${reel.$id}`;
       try {
         if (navigator.share) { 
           await navigator.share({ 
@@ -572,7 +572,7 @@
       } else {
         add('↗️ Share', () => shareReel(reel));
         add('🔗 Copy link', async () => {
-          try { await navigator.clipboard.writeText(`${location.origin}/share.html?reelId=${reel.$id}`); toast('Link copied!'); } catch (e) {}
+          try { await navigator.clipboard.writeText(`${location.origin}/share?reelId=${reel.$id}`); toast('Link copied!'); } catch (e) {}
         });
       }
       document.getElementById('post-menu-backdrop').classList.add('open');
