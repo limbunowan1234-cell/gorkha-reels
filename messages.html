@@ -327,7 +327,16 @@
       }
 
       currentUserId = session.getUserId();
-      await loadSuggestedFriends();
+      
+      // Load friends (non-blocking - don't break if it fails)
+      try {
+        await loadSuggestedFriends();
+      } catch (err) {
+        console.warn('Friends section disabled:', err);
+        document.getElementById('suggestedList').innerHTML = '<p style="color: #666; font-size: 12px; padding: 8px;">Start a conversation below</p>';
+      }
+
+      // Load conversations (required)
       await loadConversations();
     }
 
@@ -335,12 +344,14 @@
       try {
         // Get users you follow
         const followers = await db.list('followers', [
-          Query.equal('followerID', currentUserId),
+          Query.equal('followingId', currentUserId),
           Query.limit(20)
         ]);
 
+        console.log('Followers loaded:', followers.documents.length);
+
         if (followers.documents.length === 0) {
-          document.getElementById('suggestedList').innerHTML = '<p style="color: #666; font-size: 12px;">Follow creators to message them</p>';
+          document.getElementById('suggestedList').innerHTML = '<p style="color: #666; font-size: 12px; padding: 8px;">Follow creators to message them</p>';
           return;
         }
 
@@ -348,8 +359,10 @@
         const creators = await Promise.all(
           followers.documents.map(async (follow) => {
             try {
-              return await db.get('creators', follow.followingId);
-            } catch {
+              const creator = await db.get('creators', follow.followerId);
+              return creator;
+            } catch (err) {
+              console.error('Error loading creator:', follow.followerId, err);
               return null;
             }
           })
@@ -358,7 +371,7 @@
         const validCreators = creators.filter(c => c !== null);
 
         if (validCreators.length === 0) {
-          document.getElementById('suggestedList').innerHTML = '<p style="color: #666; font-size: 12px;">No creators found</p>';
+          document.getElementById('suggestedList').innerHTML = '<p style="color: #666; font-size: 12px; padding: 8px;">No creators found</p>';
           return;
         }
 
@@ -368,6 +381,7 @@
               src="${creator.profilePic || `https://ui-avatars.com/api/?name=${encodeURIComponent(creator.name)}&background=0B5E6B&color=fff`}" 
               alt="${creator.name}" 
               class="friend-avatar"
+              onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(creator.name)}&background=0B5E6B&color=fff'"
             >
             <div class="friend-name">${escapeHtml(creator.name)}</div>
           </div>
@@ -376,7 +390,7 @@
         document.getElementById('suggestedList').innerHTML = html;
       } catch (error) {
         console.error('Error loading suggested friends:', error);
-        document.getElementById('suggestedList').innerHTML = '<p style="color: #666; font-size: 12px;">Error loading friends</p>';
+        document.getElementById('suggestedList').innerHTML = '<p style="color: #666; font-size: 12px; padding: 8px;">Unable to load friends</p>';
       }
     }
 
