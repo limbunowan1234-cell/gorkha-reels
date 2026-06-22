@@ -1,4 +1,4 @@
-name = "gorkha-reels-share"
+name = "gorkha-reels"
 main = "share-worker.js"
 type = "javascript"
 compatibility_date = "2024-01-01"
