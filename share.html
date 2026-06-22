@@ -181,13 +181,23 @@
           creatorName = creator.name || creatorName;
         } catch (e) {}
 
-        // Get thumbnail
+        // Get thumbnail - use actual Bunny CDN thumbnail if available
         const getThumb = (reel) => {
-          const t = reel && reel.thumbnail;
+          const thumb = reel && reel.thumbnail;
+          const vid = reel && reel.videoUrl;
           const fb = '/logo-suite/primary/logo-khukuri-512x512.png';
-          if (!t) return fb;
-          if (/\.(mp4|mov|webm|m4v)(\?|$)/i.test(t)) return fb;
-          return t;
+          
+          // If no thumbnail field, use fallback
+          if (!thumb) return fb;
+          
+          // If thumbnail is a Bunny CDN image (ends with .jpg/.jpeg/.png), use it
+          if (/\.(jpg|jpeg|png|webp)(\?|$)/i.test(thumb)) return thumb;
+          
+          // If thumbnail is a video file or same as video, use fallback
+          if (/\.(mp4|mov|webm|m4v)(\?|$)/i.test(thumb) || thumb === vid) return fb;
+          
+          // Otherwise return thumbnail
+          return thumb;
         };
 
         const thumbUrl = getThumb(reel);
