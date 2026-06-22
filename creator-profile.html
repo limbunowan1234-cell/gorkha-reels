@@ -12,6 +12,15 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #0f0f0f; color: #fff; font-family: system-ui; }
 
+    @keyframes profileGlow {
+      0%, 100% {
+        box-shadow: 0 0 16px rgba(11, 94, 107, 0.8), inset 0 0 16px rgba(11, 94, 107, 0.4);
+      }
+      50% {
+        box-shadow: 0 0 24px rgba(11, 94, 107, 1), inset 0 0 20px rgba(11, 94, 107, 0.5);
+      }
+    }
+
     /* ===== BRAND BANNER (pinned) ===== */
     .banner {
       position: sticky; top: 0; z-index: 100;
@@ -34,7 +43,23 @@
     .banner-btn:active { background: rgba(255,255,255,0.3); }
 
     .profile-header { padding: 20px; text-align: center; background: transparent; border-bottom: 1px solid #2d2d2d; }
-    .profile-pic-large { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid #0B5E6B; margin-bottom: 12px; }
+    .profile-pic-large { 
+      width: 100px; 
+      height: 100px; 
+      border-radius: 50%; 
+      object-fit: cover; 
+      border: 3px solid #0B5E6B; 
+      margin-bottom: 12px;
+      transition: all 0.3s;
+    }
+
+    /* GLOW for unseen stories - TEAL COLOR */
+    .profile-pic-large.has-unseen {
+      border: 3px solid #0B5E6B;
+      box-shadow: 0 0 16px rgba(11, 94, 107, 0.8), inset 0 0 16px rgba(11, 94, 107, 0.4);
+      animation: profileGlow 2s ease-in-out infinite;
+    }
+
     .profile-name { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
     .verified-badge {
       display: inline-flex; align-items: center; justify-content: center;
@@ -102,7 +127,7 @@
     .list-name { font-size: 15px; font-weight: 600; flex: 1; }
     .list-empty { text-align: center; color: #888; padding: 40px 20px; }
 
-    /* ===== BOTTOM BAR: 3 main buttons ===== */
+    /* ===== BOTTOM BAR: 4 main buttons ===== */
     .bottom-nav {
       position: fixed; bottom: 0; left: 0; right: 0;
       background: #1a1a1a; border-top: 1px solid #2d2d2d;
@@ -185,13 +210,16 @@
     <div class="list-body" id="list-body"></div>
   </div>
 
-  <!-- ===== BOTTOM: 3-button nav ===== -->
+  <!-- ===== BOTTOM: 4-button nav ===== -->
   <nav class="bottom-nav">
     <button class="nav-btn" onclick="window.location='index.html'">
       <span>🏠</span><span class="nav-label">Home</span>
     </button>
     <button class="nav-btn" onclick="window.location='upload.html'">
       <span>＋</span><span class="nav-label">Create</span>
+    </button>
+    <button class="nav-btn" onclick="window.location='messages.html'">
+      <span>💬</span><span class="nav-label">Messages</span>
     </button>
     <button class="nav-btn active" onclick="window.location='creator-dashboard.html'">
       <span>👤</span><span class="nav-label">Profile</span>
@@ -249,6 +277,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
   <script src="js/appwrite-config.js"></script>
+  <script src="last-seen-tracker.js"></script>
   <script>
     function getThumbSrc(reel) {
       const t = reel && reel.thumbnail;
@@ -365,6 +394,23 @@
           document.getElementById('creator-bio').textContent = this.creator.bio || '';
           document.getElementById('profile-pic').src = this.creator.profilePic || '/logo-suite/primary/logo-khukuri-512x512.png';
 
+          // Check for unseen stories and add glow
+          try {
+            const now = new Date().toISOString();
+            const stories = await db.list('status', [
+              Query.equal('creatorId', this.creatorId),
+              Query.greaterThan('expiresAt', now),
+              Query.limit(1)
+            ]);
+
+            if (stories.total > 0) {
+              const profilePic = document.getElementById('profile-pic');
+              profilePic.classList.add('has-unseen');
+            }
+          } catch (err) {
+            console.error('Story check failed:', err);
+          }
+
           const followers = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [Query.equal('followingId', this.creatorId)]);
           const following = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [Query.equal('followerId', this.creatorId)]);
           document.getElementById('followers-count').textContent = followers.total;
@@ -453,7 +499,7 @@
               Query.limit(1)
             ]);
             if (existing.total === 0) {
-              await db.create(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, {
+              await db.create(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, ID.unique(), {
                 followId: ID.unique(),
                 followerId: session.getUserId(),
                 followingId: this.creatorId,
