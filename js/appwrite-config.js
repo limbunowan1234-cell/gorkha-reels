@@ -349,20 +349,14 @@ class ConversationManager {
         createdAt: new Date().toISOString()
       };
 
-      // Permissions: both can read, only sender can update/delete
-      const permissions = [
-        Permission.read(Role.user(senderId)),
-        Permission.read(Role.user(recipientId)),
-        Permission.update(Role.user(senderId)),
-        Permission.delete(Role.user(senderId))
-      ];
-
+      // No document-level permissions - relies on collection-level (Users role)
+      // Appwrite blocks granting read/update to OTHER users at create time,
+      // so we use collection-level security instead (set in Appwrite Console)
       const result = await databases.createDocument(
         APPWRITE_CONFIG.DATABASE_ID,
         APPWRITE_CONFIG.COLLECTIONS.MESSAGES,
         ID.unique(),
-        messageData,
-        permissions
+        messageData
       );
       
       return result;
