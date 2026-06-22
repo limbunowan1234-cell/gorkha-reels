@@ -376,9 +376,35 @@
       backdrop-filter: blur(10px);
       opacity: 0;
       transition: all 0.2s;
+      z-index: 10;
     }
 
     .story-media-preview:hover .story-remove-btn {
+      opacity: 1;
+    }
+
+    .edit-media-btn {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: rgba(11, 94, 107, 0.9);
+      border: none;
+      color: #fff;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(10px);
+      opacity: 0;
+      transition: all 0.2s;
+      z-index: 10;
+    }
+
+    .story-media-preview:hover .edit-media-btn {
       opacity: 1;
     }
 
@@ -409,7 +435,7 @@
       z-index: 50;
     }
 
-    #post-btn {
+    #post-btn, #story-post-btn {
       width: 100%;
       padding: 16px;
       background: linear-gradient(135deg, #0B5E6B, #0D7377);
@@ -422,8 +448,178 @@
       box-shadow: 0 4px 20px rgba(11,94,107,0.3);
     }
 
-    #post-btn:active { transform: scale(0.98); }
-    #post-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    #post-btn:active, #story-post-btn:active { transform: scale(0.98); }
+    #post-btn:disabled, #story-post-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* IMAGE EDITOR MODAL */
+    .image-editor-modal {
+      position: fixed;
+      inset: 0;
+      background: #000;
+      z-index: 200;
+      display: none;
+      flex-direction: column;
+      animation: slideUp 0.3s ease;
+    }
+
+    .image-editor-modal.open {
+      display: flex;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+
+    .editor-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: #1a1a1a;
+      border-bottom: 1px solid #2d2d2d;
+    }
+
+    .editor-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .editor-close {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 28px;
+      cursor: pointer;
+      padding: 0;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .editor-canvas-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      background: #000;
+      position: relative;
+    }
+
+    #editor-canvas {
+      max-width: 100%;
+      max-height: 100%;
+      touch-action: none;
+    }
+
+    .editor-controls {
+      background: #1a1a1a;
+      border-top: 1px solid #2d2d2d;
+      padding: 12px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .control-label {
+      font-size: 12px;
+      color: #888;
+      font-weight: 600;
+    }
+
+    .control-slider {
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: #2d2d2d;
+      outline: none;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    .control-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #0B5E6B;
+      cursor: pointer;
+    }
+
+    .control-slider::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #0B5E6B;
+      cursor: pointer;
+      border: none;
+    }
+
+    .control-buttons {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .control-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: #2d2d2d;
+      border: none;
+      color: #fff;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .control-btn:active {
+      background: #0B5E6B;
+    }
+
+    .editor-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      padding: 12px;
+      background: #1a1a1a;
+      border-top: 1px solid #2d2d2d;
+    }
+
+    .editor-btn {
+      padding: 12px;
+      border: 1px solid #2d2d2d;
+      border-radius: 8px;
+      background: transparent;
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .editor-btn.apply {
+      background: #0B5E6B;
+      border-color: #0B5E6B;
+      grid-column: 2;
+    }
+
+    .editor-btn:active {
+      transform: scale(0.96);
+    }
   </style>
 </head>
 <body>
@@ -523,6 +719,7 @@
           <div class="story-upload-subtext">Max 30 seconds for video</div>
         </div>
         <button class="story-remove-btn" id="storyRemoveBtn" onclick="removeStoryMedia(event)" style="display: none;">✕</button>
+        <button class="edit-media-btn" id="storyEditBtn" onclick="openImageEditor(event)" style="display: none;">✏️</button>
       </div>
 
       <div class="form-field">
@@ -549,6 +746,57 @@
     </div>
   </div>
 
+  <!-- IMAGE EDITOR MODAL -->
+  <div class="image-editor-modal" id="imageEditorModal">
+    <div class="editor-header">
+      <span class="editor-title">Edit Image</span>
+      <button class="editor-close" onclick="closeImageEditor()">✕</button>
+    </div>
+
+    <div class="editor-canvas-container">
+      <canvas id="editor-canvas"></canvas>
+    </div>
+
+    <div class="editor-controls">
+      <div class="control-group">
+        <label class="control-label">Crop</label>
+        <div class="control-buttons">
+          <button class="control-btn" onclick="resetZoom()" title="Reset">🔄</button>
+          <button class="control-btn" onclick="zoomImage(0.1)" title="Zoom In">🔍+</button>
+          <button class="control-btn" onclick="zoomImage(-0.1)" title="Zoom Out">🔍−</button>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label class="control-label">Rotate</label>
+        <div class="control-buttons">
+          <button class="control-btn" onclick="rotateImage(-90)">↺ 90°</button>
+          <button class="control-btn" onclick="rotateImage(90)">↻ 90°</button>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label class="control-label">Brightness</label>
+        <input type="range" id="brightness-slider" class="control-slider" min="50" max="150" value="100" oninput="applyFilters()">
+      </div>
+
+      <div class="control-group">
+        <label class="control-label">Contrast</label>
+        <input type="range" id="contrast-slider" class="control-slider" min="50" max="150" value="100" oninput="applyFilters()">
+      </div>
+
+      <div class="control-group">
+        <label class="control-label">Saturation</label>
+        <input type="range" id="saturation-slider" class="control-slider" min="0" max="200" value="100" oninput="applyFilters()">
+      </div>
+    </div>
+
+    <div class="editor-actions">
+      <button class="editor-btn" onclick="closeImageEditor()">Cancel</button>
+      <button class="editor-btn apply" onclick="saveEditedImage()">✓ Apply</button>
+    </div>
+  </div>
+
   <input type="file" id="storyMediaInput" accept="image/*,video/*" onchange="handleStoryMediaUpload(event)" style="display: none;">
 
   <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
@@ -561,17 +809,29 @@
     let selectedStoryMediaType = null;
     let storyPrivacy = 'followers';
 
+    // Image Editor State
+    let editorState = {
+      originalImage: null,
+      canvas: null,
+      ctx: null,
+      rotation: 0,
+      zoomLevel: 1,
+      offsetX: 0,
+      offsetY: 0,
+      brightness: 100,
+      contrast: 100,
+      saturation: 100,
+      isDragging: false,
+      dragStartX: 0,
+      dragStartY: 0
+    };
+
     function switchTab(tab) {
-      // Update tab styling
       document.getElementById('reel-tab').classList.toggle('active', tab === 'reel');
       document.getElementById('story-tab').classList.toggle('active', tab === 'story');
-
-      // Update content visibility
       document.getElementById('step-pick').style.display = tab === 'reel' ? 'flex' : 'none';
       document.getElementById('step-details').style.display = tab === 'reel' ? 'none' : 'none';
       document.getElementById('step-story').style.display = tab === 'story' ? 'flex' : 'none';
-
-      // Update header
       document.getElementById('upload-header-title').textContent = tab === 'reel' ? 'New Reel' : 'New Story';
     }
 
@@ -608,12 +868,15 @@
         const preview = document.getElementById('storyMediaPreview');
         
         if (selectedStoryMediaType === 'image') {
-          preview.innerHTML = `<img src="${e.target.result}" alt="Preview"><button class="story-remove-btn" onclick="removeStoryMedia(event)">✕</button>`;
+          preview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+          document.getElementById('storyEditBtn').style.display = 'flex';
         } else {
-          preview.innerHTML = `<video src="${e.target.result}" controls><button class="story-remove-btn" onclick="removeStoryMedia(event)">✕</button></video>`;
+          preview.innerHTML = `<video src="${e.target.result}"></video>`;
+          document.getElementById('storyEditBtn').style.display = 'none';
         }
         
         preview.classList.add('has-media');
+        document.getElementById('storyRemoveBtn').style.display = 'flex';
       };
       reader.readAsDataURL(file);
     }
@@ -633,6 +896,234 @@
       `;
       preview.classList.remove('has-media');
       document.getElementById('storyMediaInput').value = '';
+      document.getElementById('storyRemoveBtn').style.display = 'none';
+      document.getElementById('storyEditBtn').style.display = 'none';
+    }
+
+    // IMAGE EDITOR FUNCTIONS
+    function openImageEditor(event) {
+      event?.stopPropagation?.();
+      
+      if (!selectedStoryMedia || selectedStoryMediaType !== 'image') {
+        alert('Please select an image first');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          editorState.originalImage = img;
+          editorState.rotation = 0;
+          editorState.zoomLevel = 1;
+          editorState.offsetX = 0;
+          editorState.offsetY = 0;
+          document.getElementById('brightness-slider').value = 100;
+          document.getElementById('contrast-slider').value = 100;
+          document.getElementById('saturation-slider').value = 100;
+          
+          initializeCanvas();
+          document.getElementById('imageEditorModal').classList.add('open');
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(selectedStoryMedia);
+    }
+
+    function initializeCanvas() {
+      const canvas = document.getElementById('editor-canvas');
+      editorState.canvas = canvas;
+      editorState.ctx = canvas.getContext('2d');
+
+      const container = document.querySelector('.editor-canvas-container');
+      canvas.width = container.clientWidth;
+      canvas.height = container.clientHeight;
+
+      // Touch events for dragging
+      canvas.addEventListener('touchstart', handleCanvasStart);
+      canvas.addEventListener('touchmove', handleCanvasMove);
+      canvas.addEventListener('touchend', handleCanvasEnd);
+      canvas.addEventListener('mousedown', handleCanvasStart);
+      canvas.addEventListener('mousemove', handleCanvasMove);
+      canvas.addEventListener('mouseup', handleCanvasEnd);
+
+      // Pinch zoom
+      canvas.addEventListener('touchmove', handlePinchZoom, { passive: false });
+
+      redrawCanvas();
+    }
+
+    function redrawCanvas() {
+      const ctx = editorState.ctx;
+      const canvas = editorState.canvas;
+      const img = editorState.originalImage;
+
+      if (!img) return;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.save();
+
+      // Center and apply transformations
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+
+      ctx.translate(centerX, centerY);
+      ctx.rotate((editorState.rotation * Math.PI) / 180);
+      ctx.scale(editorState.zoomLevel, editorState.zoomLevel);
+      ctx.translate(editorState.offsetX, editorState.offsetY);
+
+      // Calculate image dimensions
+      const maxWidth = canvas.width / editorState.zoomLevel;
+      const maxHeight = canvas.height / editorState.zoomLevel;
+      let imgWidth = img.width;
+      let imgHeight = img.height;
+
+      const ratio = Math.min(maxWidth / imgWidth, maxHeight / imgHeight);
+      imgWidth *= ratio;
+      imgHeight *= ratio;
+
+      ctx.drawImage(img, -imgWidth / 2, -imgHeight / 2, imgWidth, imgHeight);
+
+      // Apply filters
+      applyCanvasFilters(ctx, canvas);
+
+      ctx.restore();
+    }
+
+    function applyFilters() {
+      redrawCanvas();
+    }
+
+    function applyCanvasFilters(ctx, canvas) {
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const data = imageData.data;
+
+      const brightness = parseFloat(document.getElementById('brightness-slider').value) / 100;
+      const contrast = parseFloat(document.getElementById('contrast-slider').value) / 100;
+      const saturation = parseFloat(document.getElementById('saturation-slider').value) / 100;
+
+      for (let i = 0; i < data.length; i += 4) {
+        let r = data[i];
+        let g = data[i + 1];
+        let b = data[i + 2];
+
+        // Brightness
+        r = Math.min(255, r * brightness);
+        g = Math.min(255, g * brightness);
+        b = Math.min(255, b * brightness);
+
+        // Contrast
+        r = Math.max(0, (r - 128) * contrast + 128);
+        g = Math.max(0, (g - 128) * contrast + 128);
+        b = Math.max(0, (b - 128) * contrast + 128);
+
+        // Saturation
+        const gray = r * 0.299 + g * 0.587 + b * 0.114;
+        r = Math.round(gray + (r - gray) * saturation);
+        g = Math.round(gray + (g - gray) * saturation);
+        b = Math.round(gray + (b - gray) * saturation);
+
+        data[i] = Math.max(0, Math.min(255, r));
+        data[i + 1] = Math.max(0, Math.min(255, g));
+        data[i + 2] = Math.max(0, Math.min(255, b));
+      }
+
+      ctx.putImageData(imageData, 0, 0);
+    }
+
+    function handleCanvasStart(e) {
+      editorState.isDragging = true;
+      editorState.dragStartX = e.clientX || e.touches[0].clientX;
+      editorState.dragStartY = e.clientY || e.touches[0].clientY;
+    }
+
+    function handleCanvasMove(e) {
+      if (!editorState.isDragging) return;
+
+      const currentX = e.clientX || e.touches[0].clientX;
+      const currentY = e.clientY || e.touches[0].clientY;
+
+      const deltaX = (currentX - editorState.dragStartX) / editorState.zoomLevel;
+      const deltaY = (currentY - editorState.dragStartY) / editorState.zoomLevel;
+
+      editorState.offsetX += deltaX;
+      editorState.offsetY += deltaY;
+
+      editorState.dragStartX = currentX;
+      editorState.dragStartY = currentY;
+
+      redrawCanvas();
+    }
+
+    function handleCanvasEnd() {
+      editorState.isDragging = false;
+    }
+
+    function handlePinchZoom(e) {
+      if (e.touches.length !== 2) return;
+      e.preventDefault();
+
+      const touch1 = e.touches[0];
+      const touch2 = e.touches[1];
+      const distance = Math.hypot(
+        touch2.clientX - touch1.clientX,
+        touch2.clientY - touch1.clientY
+      );
+
+      if (editorState.lastDistance) {
+        const scale = distance / editorState.lastDistance;
+        editorState.zoomLevel *= scale;
+        editorState.zoomLevel = Math.max(0.5, Math.min(3, editorState.zoomLevel));
+        redrawCanvas();
+      }
+
+      editorState.lastDistance = distance;
+    }
+
+    function zoomImage(delta) {
+      editorState.zoomLevel += delta;
+      editorState.zoomLevel = Math.max(0.5, Math.min(3, editorState.zoomLevel));
+      redrawCanvas();
+    }
+
+    function resetZoom() {
+      editorState.zoomLevel = 1;
+      editorState.offsetX = 0;
+      editorState.offsetY = 0;
+      document.getElementById('brightness-slider').value = 100;
+      document.getElementById('contrast-slider').value = 100;
+      document.getElementById('saturation-slider').value = 100;
+      redrawCanvas();
+    }
+
+    function rotateImage(degrees) {
+      editorState.rotation = (editorState.rotation + degrees) % 360;
+      redrawCanvas();
+    }
+
+    function saveEditedImage() {
+      const canvas = editorState.canvas;
+      canvas.toBlob((blob) => {
+        selectedStoryMedia = blob;
+        selectedStoryMedia.name = 'edited-image.png';
+
+        // Update preview
+        const dataUrl = canvas.toDataURL('image/png');
+        const preview = document.getElementById('storyMediaPreview');
+        preview.innerHTML = `<img src="${dataUrl}" alt="Edited">`;
+        preview.classList.add('has-media');
+        document.getElementById('storyRemoveBtn').style.display = 'flex';
+
+        closeImageEditor();
+      }, 'image/png');
+    }
+
+    function closeImageEditor() {
+      document.getElementById('imageEditorModal').classList.remove('open');
+      editorState.canvas?.removeEventListener('touchstart', handleCanvasStart);
+      editorState.canvas?.removeEventListener('touchmove', handleCanvasMove);
+      editorState.canvas?.removeEventListener('touchend', handleCanvasEnd);
+      editorState.canvas = null;
     }
 
     function setStoryPrivacy(privacy) {
@@ -679,11 +1170,13 @@
           mediaUrl = result.url;
         }
 
-        // Create status document
+        // Create status document with VALID Appwrite documentId
         const now = new Date();
         const expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+        
+        // Generate valid Appwrite document ID
+        const statusId = 'status_' + Date.now() + '_' + Math.random().toString(36).substr(2, 8);
 
-        const statusId = ID.unique();
         const statusData = {
           statusId,
           creatorId: currentUserId,
@@ -697,7 +1190,7 @@
 
         await db.create('status', statusId, statusData);
 
-        alert('Story posted!');
+        alert('Story posted! ✅');
         setTimeout(() => {
           window.location.href = 'index.html';
         }, 1000);
