@@ -36,34 +36,28 @@
       font-weight: 700;
     }
 
-    .new-message-btn {
-      background: #0B5E6B;
-      color: #fff;
-      border: none;
-      border-radius: 50%;
-      width: 44px;
-      height: 44px;
-      font-size: 24px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .new-message-btn:active {
-      transform: scale(0.95);
-    }
-
     .suggested-section {
-      background: #0f0f0f;
+      background: linear-gradient(135deg, #1a2a2a 0%, #0f1f1f 100%);
       border-bottom: 1px solid #2d2d2d;
       padding: 12px 16px;
+      animation: slideDown 0.3s ease-out;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .suggested-label {
       font-size: 12px;
       font-weight: 600;
-      color: #999;
+      color: #0B5E6B;
       margin-bottom: 12px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
@@ -99,11 +93,24 @@
       cursor: pointer;
       padding: 8px;
       border-radius: 8px;
-      transition: background 0.2s;
+      transition: all 0.2s;
+      animation: friendCardIn 0.3s ease-out;
+    }
+
+    @keyframes friendCardIn {
+      from {
+        opacity: 0;
+        transform: scale(0.9);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
     }
 
     .friend-card:active {
       background: #1a1a1a;
+      transform: scale(0.95);
     }
 
     .friend-avatar {
@@ -116,6 +123,12 @@
       justify-content: center;
       font-size: 24px;
       object-fit: cover;
+      border: 2px solid rgba(11, 94, 107, 0.3);
+      transition: all 0.2s;
+    }
+
+    .friend-card:active .friend-avatar {
+      border-color: #0B5E6B;
     }
 
     .friend-name {
@@ -126,6 +139,7 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      font-weight: 500;
     }
 
     .conversations-list {
@@ -138,11 +152,24 @@
       padding: 12px 16px;
       border-bottom: 1px solid #2d2d2d;
       cursor: pointer;
-      transition: background 0.2s;
+      transition: all 0.2s;
+      animation: conversationSlideIn 0.3s ease-out;
+    }
+
+    @keyframes conversationSlideIn {
+      from {
+        opacity: 0;
+        transform: translateX(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
     }
 
     .conversation-item:active {
       background: #1a1a1a;
+      transform: scale(0.99);
     }
 
     .conversation-avatar {
@@ -157,6 +184,12 @@
       flex-shrink: 0;
       margin-right: 12px;
       object-fit: cover;
+      border: 2px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .conversation-item:active .conversation-avatar {
+      border-color: #0B5E6B;
     }
 
     .conversation-info {
@@ -201,6 +234,16 @@
       font-weight: 700;
       margin-left: 12px;
       flex-shrink: 0;
+      animation: badgePulse 2s infinite;
+    }
+
+    @keyframes badgePulse {
+      0%, 100% {
+        box-shadow: 0 0 0 0 rgba(11, 94, 107, 0.7);
+      }
+      50% {
+        box-shadow: 0 0 0 4px rgba(11, 94, 107, 0.2);
+      }
     }
 
     .empty-state {
@@ -211,15 +254,36 @@
       height: 60vh;
       color: #666;
       text-align: center;
+      animation: fadeIn 0.5s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
     }
 
     .empty-state-icon {
       font-size: 48px;
       margin-bottom: 16px;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(-8px);
+      }
     }
 
     .empty-state p {
       font-size: 14px;
+      line-height: 1.6;
     }
 
     .loading {
@@ -266,6 +330,11 @@
       flex-direction: column;
       align-items: center;
       gap: 4px;
+      transition: all 0.2s;
+    }
+
+    .nav-item:active {
+      transform: scale(0.95);
     }
 
     .nav-item.active {
@@ -275,17 +344,44 @@
     .nav-item-icon {
       font-size: 24px;
     }
+
+    .toast {
+      position: fixed;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #2d2d2d;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      z-index: 1000;
+      animation: slideUp 0.3s ease-out;
+    }
+
+    .toast.error {
+      background: #c33;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+    }
   </style>
 </head>
 <body>
   <div class="header">
     <h1>Messages</h1>
-    <button class="new-message-btn" onclick="openNewMessage()">✏️</button>
   </div>
 
   <!-- Suggested Friends Section -->
-  <div class="suggested-section">
-    <div class="suggested-label">Friends</div>
+  <div class="suggested-section" id="suggestedSection">
+    <div class="suggested-label">✨ Friends</div>
     <div class="suggested-list" id="suggestedList"></div>
   </div>
 
@@ -312,14 +408,12 @@
 
   <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
   <script src="js/appwrite-config.js"></script>
-  <script src="messages-config.js"></script>
 
   <script>
     let currentUserId = null;
     let allConversations = [];
 
     async function init() {
-      // Refresh session
       await session.refresh();
       if (!session.isLoggedIn()) {
         window.location.href = 'index.html';
@@ -327,22 +421,17 @@
       }
 
       currentUserId = session.getUserId();
-      
-      // Load friends (non-blocking - don't break if it fails)
       try {
         await loadSuggestedFriends();
       } catch (err) {
         console.warn('Friends section disabled:', err);
-        document.getElementById('suggestedList').innerHTML = '<p style="color: #666; font-size: 12px; padding: 8px;">Start a conversation below</p>';
+        document.getElementById('suggestedSection').style.display = 'none';
       }
-
-      // Load conversations (required)
       await loadConversations();
     }
 
     async function loadSuggestedFriends() {
       try {
-        // Get users you follow
         const followers = await db.list('followers', [
           Query.equal('followingId', currentUserId),
           Query.limit(20)
@@ -355,7 +444,6 @@
           return;
         }
 
-        // Fetch creator details for each followed user
         const creators = await Promise.all(
           followers.documents.map(async (follow) => {
             try {
@@ -405,14 +493,13 @@
           content.innerHTML = `
             <div class="empty-state">
               <div class="empty-state-icon">💬</div>
-              <p>No conversations yet</p>
+              <p><strong>No conversations yet</strong></p>
               <p style="font-size: 12px; color: #555; margin-top: 8px;">Start a new message to begin chatting</p>
             </div>
           `;
           return;
         }
 
-        // Fetch creator info for each conversation
         const conversationsWithInfo = await Promise.all(
           allConversations.map(async (conv) => {
             const otherUserId = conv.lastMessage.senderId === currentUserId 
@@ -443,8 +530,8 @@
       const content = document.getElementById('content');
       const html = `
         <ul class="conversations-list">
-          ${conversations.map(conv => `
-            <li class="conversation-item" onclick="openChat('${conv.conversationId}', '${conv.otherUser.$id}')">
+          ${conversations.map((conv, idx) => `
+            <li class="conversation-item" style="animation-delay: ${idx * 0.05}s" onclick="openChat('${conv.conversationId}', '${conv.otherUser.$id}')">
               <img 
                 src="${conv.otherUser.profilePic || `https://ui-avatars.com/api/?name=${encodeURIComponent(conv.otherUser.name)}&background=0B5E6B&color=fff`}" 
                 alt="${conv.otherUser.name}" 
@@ -481,10 +568,6 @@
       window.location.href = `chat.html?conv=${conversationId}&user=${userId}`;
     }
 
-    function openNewMessage() {
-      alert('Select a creator from Friends above to message them');
-    }
-
     function formatTime(isoDate) {
       const date = new Date(isoDate);
       const now = new Date();
@@ -501,7 +584,6 @@
       return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     }
 
-    // Initialize on page load
     init();
   </script>
 </body>
