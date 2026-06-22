@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>New Reel - GorkhaReels</title>
+  <title>Create - GorkhaReels</title>
   <meta name="theme-color" content="#121212">
   <link rel="icon" type="image/png" href="/logo-suite/favicon/logo-khukuri-32x32.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -11,56 +11,12 @@
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&family=Poppins:wght@700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
 
-  <!-- 🚨 AGGRESSIVE ERUDA BLOCKER - MUST BE FIRST -->
   <script>
-    // Complete Eruda nuclear option - blocks it completely
     (function() {
-      // Block all Eruda references
       window.eruda = null;
       window.Eruda = null;
-      window.erudaInit = null;
-      
-      // Prevent reassignment
-      Object.defineProperty(window, 'eruda', {
-        value: null,
-        writable: false,
-        configurable: false
-      });
-      
-      Object.defineProperty(window, 'Eruda', {
-        value: null,
-        writable: false,
-        configurable: false
-      });
-      
-      // Block script loading
-      const origScript = document.createElement;
-      document.createElement = function(tagName) {
-        const el = origScript.call(document, tagName);
-        if (tagName === 'script') {
-          const origSrc = Object.getOwnPropertyDescriptor(el, 'src') || {};
-          Object.defineProperty(el, 'src', {
-            set: function(url) {
-              if (url && url.includes('eruda')) {
-                console.warn('Eruda script blocked:', url);
-                return;
-              }
-              if (origSrc.set) origSrc.set.call(this, url);
-            },
-            get: origSrc.get
-          });
-        }
-        return el;
-      };
-      
-      // Block fetch
-      const origFetch = window.fetch;
-      window.fetch = function(url, ...args) {
-        if (url && String(url).includes('eruda')) {
-          return Promise.reject(new Error('Eruda blocked'));
-        }
-        return origFetch.apply(this, arguments);
-      };
+      Object.defineProperty(window, 'eruda', { value: null, writable: false, configurable: false });
+      Object.defineProperty(window, 'Eruda', { value: null, writable: false, configurable: false });
     })();
   </script>
 
@@ -96,6 +52,47 @@
 
     .header-spacer { width: 36px; }
 
+    /* Tab Toggle */
+    .tab-container {
+      display: flex;
+      gap: 0;
+      background: #0f0f0f;
+      border-bottom: 1px solid #2d2d2d;
+      padding: 0 16px;
+      position: sticky;
+      top: 60px;
+      z-index: 50;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 14px;
+      background: none;
+      border: none;
+      color: #888;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      position: relative;
+      transition: color 0.2s;
+    }
+
+    .tab.active {
+      color: #0B5E6B;
+    }
+
+    .tab.active::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: #0B5E6B;
+      border-radius: 1.5px;
+    }
+
+    /* Reel Upload Section */
     #step-pick {
       display: flex;
       flex-direction: column;
@@ -143,6 +140,13 @@
     }
 
     #step-details {
+      display: none;
+      flex-direction: column;
+      min-height: calc(100vh - 60px);
+      padding-bottom: 100px;
+    }
+
+    #step-story {
       display: none;
       flex-direction: column;
       min-height: calc(100vh - 60px);
@@ -296,6 +300,105 @@
       padding: 0;
     }
 
+    /* Story Upload */
+    .story-section {
+      padding: 20px 16px;
+      flex: 1;
+    }
+
+    .story-media-preview {
+      position: relative;
+      background: #1a1a1a;
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 24px;
+      aspect-ratio: 9 / 16;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border: 2px dashed #2d2d2d;
+      transition: all 0.2s;
+    }
+
+    .story-media-preview:hover {
+      border-color: #0B5E6B;
+      background: #1f1f1f;
+    }
+
+    .story-media-preview.has-media {
+      border: none;
+      cursor: default;
+    }
+
+    .story-media-preview img,
+    .story-media-preview video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .story-upload-placeholder {
+      text-align: center;
+      color: #666;
+    }
+
+    .story-upload-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+
+    .story-upload-text {
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+
+    .story-upload-subtext {
+      font-size: 12px;
+      color: #555;
+    }
+
+    .story-remove-btn {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: rgba(0, 0, 0, 0.6);
+      border: none;
+      color: #fff;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      font-size: 24px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(10px);
+      opacity: 0;
+      transition: all 0.2s;
+    }
+
+    .story-media-preview:hover .story-remove-btn {
+      opacity: 1;
+    }
+
+    .char-count {
+      font-size: 11px;
+      color: #737373;
+      text-align: right;
+      margin-top: 4px;
+    }
+
+    .info-box {
+      background: rgba(11, 94, 107, 0.1);
+      border: 1px solid rgba(11, 94, 107, 0.3);
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-size: 12px;
+      color: #aaa;
+      margin-bottom: 20px;
+    }
+
     .post-btn-container {
       position: fixed;
       bottom: 0;
@@ -321,23 +424,23 @@
 
     #post-btn:active { transform: scale(0.98); }
     #post-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-    .char-count {
-      font-size: 11px;
-      color: #737373;
-      text-align: right;
-      margin-top: 4px;
-    }
   </style>
 </head>
 <body>
 
   <div class="upload-header">
     <button class="upload-back" onclick="history.length > 1 ? history.back() : window.location.href='./index.html'">‹</button>
-    <span id="upload-header-title">New Reel</span>
+    <span id="upload-header-title">Create</span>
     <div class="header-spacer"></div>
   </div>
 
+  <!-- Tab Toggle -->
+  <div class="tab-container">
+    <button class="tab active" id="reel-tab" onclick="switchTab('reel')">🎬 Reel</button>
+    <button class="tab" id="story-tab" onclick="switchTab('story')">📱 Story</button>
+  </div>
+
+  <!-- REEL UPLOAD SECTION -->
   <div id="step-pick">
     <div id="dropzone">
       <div class="dropzone-icon">🎬</div>
@@ -369,7 +472,6 @@
         <div class="char-count" id="desc-count">0/300</div>
       </div>
 
-      <!-- HASHTAG SECTION -->
       <div class="form-field">
         <div class="hashtag-section">
           <div class="hashtag-label">
@@ -411,44 +513,219 @@
     </div>
   </div>
 
+  <!-- STORY UPLOAD SECTION -->
+  <div id="step-story">
+    <div class="story-section">
+      <div class="story-media-preview" id="storyMediaPreview" onclick="document.getElementById('storyMediaInput').click()">
+        <div class="story-upload-placeholder">
+          <div class="story-upload-icon">📸</div>
+          <div class="story-upload-text">Tap to add photo or video</div>
+          <div class="story-upload-subtext">Max 30 seconds for video</div>
+        </div>
+        <button class="story-remove-btn" id="storyRemoveBtn" onclick="removeStoryMedia(event)" style="display: none;">✕</button>
+      </div>
+
+      <div class="form-field">
+        <label class="form-label">Caption (Optional)</label>
+        <textarea id="storyCaption" class="form-textarea" rows="3" placeholder="Add a caption..." maxlength="200"></textarea>
+        <div class="char-count"><span id="storyCharCount">0</span>/200</div>
+      </div>
+
+      <div class="info-box">
+        <span>ℹ️</span> Your story will automatically disappear after 24 hours.
+      </div>
+
+      <div class="form-field">
+        <label class="form-label">Who can see</label>
+        <div class="form-row">
+          <button class="form-input" id="privacy-followers" style="background: #0B5E6B; border: 1px solid #0B5E6B; cursor: pointer; padding: 12px;" onclick="setStoryPrivacy('followers')">👥 Followers</button>
+          <button class="form-input" id="privacy-everyone" style="background: transparent; border: 1px solid #2d2d2d; cursor: pointer; padding: 12px;" onclick="setStoryPrivacy('everyone')">🌍 Everyone</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="post-btn-container">
+      <button id="story-post-btn" type="button" onclick="postStory()">📤 Share Story</button>
+    </div>
+  </div>
+
+  <input type="file" id="storyMediaInput" accept="image/*,video/*" onchange="handleStoryMediaUpload(event)" style="display: none;">
+
   <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
   <script src="js/appwrite-config.js"></script>
+  <script src="last-seen-tracker.js"></script>
   <script src="js/upload.js"></script>
 
   <script>
+    let selectedStoryMedia = null;
+    let selectedStoryMediaType = null;
+    let storyPrivacy = 'followers';
+
+    function switchTab(tab) {
+      // Update tab styling
+      document.getElementById('reel-tab').classList.toggle('active', tab === 'reel');
+      document.getElementById('story-tab').classList.toggle('active', tab === 'story');
+
+      // Update content visibility
+      document.getElementById('step-pick').style.display = tab === 'reel' ? 'flex' : 'none';
+      document.getElementById('step-details').style.display = tab === 'reel' ? 'none' : 'none';
+      document.getElementById('step-story').style.display = tab === 'story' ? 'flex' : 'none';
+
+      // Update header
+      document.getElementById('upload-header-title').textContent = tab === 'reel' ? 'New Reel' : 'New Story';
+    }
+
+    function handleStoryMediaUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
+        alert('Please select an image or video');
+        return;
+      }
+
+      if (file.type.startsWith('video/')) {
+        const video = document.createElement('video');
+        video.onloadedmetadata = () => {
+          if (video.duration > 30) {
+            alert('Video must be 30 seconds or less');
+            return;
+          }
+          processStoryMedia(file);
+        };
+        video.src = URL.createObjectURL(file);
+      } else {
+        processStoryMedia(file);
+      }
+    }
+
+    function processStoryMedia(file) {
+      selectedStoryMedia = file;
+      selectedStoryMediaType = file.type.startsWith('image/') ? 'image' : 'video';
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const preview = document.getElementById('storyMediaPreview');
+        
+        if (selectedStoryMediaType === 'image') {
+          preview.innerHTML = `<img src="${e.target.result}" alt="Preview"><button class="story-remove-btn" onclick="removeStoryMedia(event)">✕</button>`;
+        } else {
+          preview.innerHTML = `<video src="${e.target.result}" controls><button class="story-remove-btn" onclick="removeStoryMedia(event)">✕</button></video>`;
+        }
+        
+        preview.classList.add('has-media');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function removeStoryMedia(event) {
+      event?.stopPropagation?.();
+      selectedStoryMedia = null;
+      selectedStoryMediaType = null;
+      
+      const preview = document.getElementById('storyMediaPreview');
+      preview.innerHTML = `
+        <div class="story-upload-placeholder">
+          <div class="story-upload-icon">📸</div>
+          <div class="story-upload-text">Tap to add photo or video</div>
+          <div class="story-upload-subtext">Max 30 seconds for video</div>
+        </div>
+      `;
+      preview.classList.remove('has-media');
+      document.getElementById('storyMediaInput').value = '';
+    }
+
+    function setStoryPrivacy(privacy) {
+      storyPrivacy = privacy;
+      document.getElementById('privacy-followers').style.background = privacy === 'followers' ? '#0B5E6B' : 'transparent';
+      document.getElementById('privacy-followers').style.borderColor = privacy === 'followers' ? '#0B5E6B' : '#2d2d2d';
+      document.getElementById('privacy-followers').style.color = privacy === 'followers' ? '#fff' : '#aaa';
+      
+      document.getElementById('privacy-everyone').style.background = privacy === 'everyone' ? '#0B5E6B' : 'transparent';
+      document.getElementById('privacy-everyone').style.borderColor = privacy === 'everyone' ? '#0B5E6B' : '#2d2d2d';
+      document.getElementById('privacy-everyone').style.color = privacy === 'everyone' ? '#fff' : '#aaa';
+    }
+
+    document.getElementById('storyCaption').addEventListener('input', (e) => {
+      document.getElementById('storyCharCount').textContent = e.target.value.length;
+    });
+
+    async function postStory() {
+      if (!selectedStoryMedia) {
+        alert('Please select a photo or video');
+        return;
+      }
+
+      const btn = document.getElementById('story-post-btn');
+      btn.disabled = true;
+      btn.textContent = '⏳ Posting...';
+
+      try {
+        await session.refresh();
+        if (!session.isLoggedIn()) {
+          window.location.href = 'login.html';
+          return;
+        }
+
+        const currentUserId = session.getUserId();
+
+        // Upload media to Bunny
+        let mediaUrl = '';
+        if (selectedStoryMediaType === 'image') {
+          const result = await mediaUploader.uploadImage(selectedStoryMedia);
+          mediaUrl = result.url;
+        } else {
+          const result = await mediaUploader.uploadVideo(selectedStoryMedia);
+          mediaUrl = result.url;
+        }
+
+        // Create status document
+        const now = new Date();
+        const expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+
+        const statusId = ID.unique();
+        const statusData = {
+          statusId,
+          creatorId: currentUserId,
+          videoUrl: mediaUrl,
+          caption: document.getElementById('storyCaption').value || '',
+          mediaType: selectedStoryMediaType,
+          privacy: storyPrivacy,
+          createdAt: now.toISOString(),
+          expiresAt: expiresAt.toISOString()
+        };
+
+        await db.create('status', statusId, statusData);
+
+        alert('Story posted!');
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 1000);
+      } catch (error) {
+        console.error('Error posting story:', error);
+        alert('Failed to post story: ' + error.message);
+        btn.disabled = false;
+        btn.textContent = '📤 Share Story';
+      }
+    }
+
     // Hashtag extraction helpers
     const COMMON_WORDS = new Set(['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'can', 'your', 'my', 'his', 'her', 'this', 'that', 'it', 'as', 'from', 'by', 'with', 'about', 'into', 'through', 'during', 'before', 'after', 'above', 'below', 'up', 'down', 'out', 'off', 'over', 'under', 'again', 'further', 'then', 'once', 'here', 'there', 'when', 'where', 'why', 'how']);
 
     function extractHashtagsFromText(text) {
       if (!text) return [];
-      
-      // Remove existing hashtags and special chars
-      const words = text
-        .toLowerCase()
-        .replace(/#\S+/g, '') // Remove existing hashtags
-        .split(/[\s\-_.,:;!?()]+/)
-        .filter(w => w.length >= 3 && !COMMON_WORDS.has(w))
-        .slice(0, 8); // Max 8 suggestions
-
-      return [...new Set(words)]; // Remove duplicates
+      const words = text.toLowerCase().replace(/#\S+/g, '').split(/[\s\-_.,:;!?()]+/).filter(w => w.length >= 3 && !COMMON_WORDS.has(w)).slice(0, 8);
+      return [...new Set(words)];
     }
 
     function updateHashtagSuggestions() {
       const title = document.getElementById('post-title').value;
       const desc = document.getElementById('post-description').value;
       const combined = (title + ' ' + desc).trim();
-
       const suggestions = extractHashtagsFromText(combined);
       const categoryVal = document.getElementById('post-category').value.toLowerCase();
-      
-      // Add category as suggestion
-      if (!suggestions.includes(categoryVal)) {
-        suggestions.unshift(categoryVal);
-      }
-
+      if (!suggestions.includes(categoryVal)) suggestions.unshift(categoryVal);
       renderHashtagSuggestions(suggestions);
-
-      // Update char counts
       document.getElementById('title-count').textContent = title.length + '/100';
       document.getElementById('desc-count').textContent = desc.length + '/300';
     }
@@ -456,13 +733,11 @@
     function renderHashtagSuggestions(suggestions) {
       const container = document.getElementById('suggested-hashtags');
       const selected = window.uploader?.selectedHashtags || new Set();
-
       let html = suggestions.map(word => {
         const tag = '#' + word;
         const isActive = selected.has(tag);
         return `<button type="button" class="hashtag-btn ${isActive ? 'active' : ''}" onclick="toggleHashtag('${tag}')">${tag}</button>`;
       }).join('');
-
       container.innerHTML = html;
       updateSelectedHashtagsDisplay();
     }
@@ -480,26 +755,32 @@
     function updateSelectedHashtagsDisplay() {
       const container = document.getElementById('selected-hashtags');
       const selected = window.uploader?.selectedHashtags || new Set();
-
       if (selected.size === 0) {
         container.innerHTML = '';
         document.getElementById('hashtag-count').textContent = '0';
         return;
       }
-
       let html = Array.from(selected).map(tag => `
         <div class="hashtag-badge">
           ${tag}
           <button type="button" onclick="toggleHashtag('${tag}')">✕</button>
         </div>
       `).join('');
-
       container.innerHTML = html;
       document.getElementById('hashtag-count').textContent = selected.size;
     }
 
-    // Update suggestions when category changes
     document.getElementById('post-category').addEventListener('change', updateHashtagSuggestions);
+
+    // Initialize
+    async function init() {
+      await session.refresh();
+      if (session.isLoggedIn()) {
+        lastSeenTracker.init(session.getUserId());
+      }
+    }
+
+    init();
   </script>
 </body>
 </html>
