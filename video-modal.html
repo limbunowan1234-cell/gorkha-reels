@@ -735,7 +735,7 @@
     }
 
     async function shareReel(reel) {
-      const shareUrl = `${location.origin}/share.html?reelId=${reel.$id}`;
+      const shareUrl = `${location.origin}/share?reelId=${reel.$id}`;
       try {
         if (navigator.share) await navigator.share({ title: reel.title, text: `Check out "${reel.title}" on GorkhaReels`, url: shareUrl });
         else { await navigator.clipboard.writeText(shareUrl); toast('Share link copied!'); }
