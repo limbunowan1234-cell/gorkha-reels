@@ -261,7 +261,7 @@
           post.innerHTML = `
             <div class="post-header">
               <div class="creator-avatar">
-                <img src="${reel.creatorProfilePic || '/logo-suite/primary/logo-khukuri-512x512.png'}" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'">
+                <img src="${(reel.creatorProfilePic || '/logo-suite/primary/logo-khukuri-512x512.png') + '?t=' + Date.now()}" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'">
               </div>
               <div class="creator-name">${escapeHtml(reel.creatorName || 'Creator')}${isVerified ? ' <span class="verified-badge">✓</span>' : ''}</div>
               <button class="post-more">⋯</button>
