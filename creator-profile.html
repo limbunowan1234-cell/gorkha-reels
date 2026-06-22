@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Creator Profile - GorkhaReels</title>
   <link rel="icon" type="image/png" href="/logo-suite/favicon/logo-khukuri-32x32.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -48,9 +48,24 @@
     .stat-number { font-size: 20px; font-weight: 700; color: #fff; }
     .stat-label { font-size: 12px; color: #888; margin-top: 2px; }
 
-    .follow-btn { padding: 12px 40px; background: #0B5E6B; color: white; border: 1.5px solid #0B5E6B; border-radius: 25px; font-weight: 700; font-size: 15px; cursor: pointer; margin-top: 10px; transition: all 0.2s; }
-    .follow-btn.following { background: transparent; color: #0B5E6B; border: 1.5px solid #0B5E6B; }
-    .follow-btn:active { transform: scale(0.96); }
+    .action-buttons { display: flex; gap: 10px; justify-content: center; margin-top: 10px; }
+    .follow-btn, .message-btn { 
+      padding: 12px 20px; 
+      color: white; 
+      border: 1.5px solid #0B5E6B; 
+      border-radius: 25px; 
+      font-weight: 700; 
+      font-size: 15px; 
+      cursor: pointer; 
+      transition: all 0.2s;
+      background: #0B5E6B;
+    }
+    .message-btn {
+      background: transparent;
+      color: #0B5E6B;
+    }
+    .follow-btn.following { background: transparent; color: #0B5E6B; }
+    .follow-btn:active, .message-btn:active { transform: scale(0.96); }
 
     .videos-section { padding: 15px; border-bottom: 1px solid #2d2d2d; }
     .videos-title { font-size: 16px; font-weight: 700; margin-bottom: 12px; }
@@ -146,7 +161,10 @@
         </div>
       </div>
 
-      <button id="follow-btn" class="follow-btn">Follow</button>
+      <div class="action-buttons">
+        <button id="follow-btn" class="follow-btn">Follow</button>
+        <button id="message-btn" class="message-btn" style="display:none;">💬 Message</button>
+      </div>
     </div>
 
     <div class="videos-section">
@@ -232,9 +250,6 @@
   <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
   <script src="js/appwrite-config.js"></script>
   <script>
-    // Returns a safe <img> src for a reel thumbnail. If extraction failed
-    // and `thumbnail` ended up being the raw video file (a known fallback
-    // in upload.js), this avoids handing a video URL to an <img> tag.
     function getThumbSrc(reel) {
       const t = reel && reel.thumbnail;
       const fallback = '/logo-suite/primary/logo-khukuri-512x512.png';
@@ -245,7 +260,6 @@
 
     class ProfileManager {
       constructor() {
-        // Accept creatorId (from video-modal), userId, or id (from search/lists)
         const _p = new URLSearchParams(window.location.search);
         this.creatorId = _p.get('creatorId') || _p.get('userId') || _p.get('id');
         this.creator = null;
@@ -260,6 +274,7 @@
         this.setupListModal();
         await this.loadProfile();
         document.getElementById('follow-btn').addEventListener('click', () => this.toggleFollow());
+        document.getElementById('message-btn').addEventListener('click', () => this.openMessage());
       }
 
       setupDrawer() {
@@ -277,6 +292,12 @@
       setupListModal() {
         document.getElementById('list-close').onclick = () => this.closeList();
         document.getElementById('list-backdrop').onclick = () => this.closeList();
+      }
+
+      openMessage() {
+        if (!session.isLoggedIn()) { window.location = 'login.html'; return; }
+        const convId = ConversationManager.getConversationId(session.getUserId(), this.creatorId);
+        window.location = `chat.html?conv=${convId}&user=${this.creatorId}`;
       }
 
       async openFollowersList() {
@@ -349,7 +370,6 @@
           document.getElementById('followers-count').textContent = followers.total;
           document.getElementById('following-count').textContent = following.total;
 
-          // Make stats clickable
           document.getElementById('followers-stat').onclick = () => this.openFollowersList();
           document.getElementById('following-stat').onclick = () => this.openFollowingList();
 
@@ -364,8 +384,10 @@
             this.isFollowing = myFollow.total > 0;
             this.updateFollowButton();
             document.getElementById('follow-btn').style.display = 'inline-block';
+            document.getElementById('message-btn').style.display = 'inline-block';
           } else {
             document.getElementById('follow-btn').style.display = 'none';
+            document.getElementById('message-btn').style.display = 'none';
           }
           document.getElementById('loading').style.display = 'none';
         } catch (error) {
