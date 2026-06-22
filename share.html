@@ -169,6 +169,8 @@
 
         // Fetch reel data
         const reel = await db.get(APPWRITE_CONFIG.COLLECTIONS.REELS, reelId);
+        
+        console.log('📊 Reel data:', reel);
 
         if (!reel || reel.isDeleted) {
           throw new Error('Video not found');
@@ -181,23 +183,41 @@
           creatorName = creator.name || creatorName;
         } catch (e) {}
 
-        // Get thumbnail - use actual Bunny CDN thumbnail if available
+        // Get thumbnail - prioritize actual images, fallback on videos
         const getThumb = (reel) => {
           const thumb = reel && reel.thumbnail;
           const vid = reel && reel.videoUrl;
           const fb = '/logo-suite/primary/logo-khukuri-512x512.png';
           
-          // If no thumbnail field, use fallback
-          if (!thumb) return fb;
+          console.log('🔍 Thumbnail debug:', { thumb, vid, equal: thumb === vid });
           
-          // If thumbnail is a Bunny CDN image (ends with .jpg/.jpeg/.png), use it
-          if (/\.(jpg|jpeg|png|webp)(\?|$)/i.test(thumb)) return thumb;
+          if (!thumb) {
+            console.log('❌ No thumbnail field');
+            return fb;
+          }
           
-          // If thumbnail is a video file or same as video, use fallback
-          if (/\.(mp4|mov|webm|m4v)(\?|$)/i.test(thumb) || thumb === vid) return fb;
+          // If thumbnail IS the video file (extraction failed), use fallback
+          if (thumb === vid) {
+            console.log('❌ Thumbnail = Video URL (extraction failed)');
+            return fb;
+          }
           
-          // Otherwise return thumbnail
+          // If thumbnail is a video file, use fallback
+          if (/\.(mp4|mov|webm|m4v)(\?|$)/i.test(thumb)) {
+            console.log('❌ Thumbnail is video file');
+            return fb;
+          }
+          
+          // If it's a real image file on Bunny, use it
+          if (/\.(jpg|jpeg|png|webp)(\?|$)/i.test(thumb)) {
+            console.log('✅ Using real image thumbnail:', thumb);
+            return thumb;
+          }
+          
+          // For URLs without extension, assume it's a valid thumbnail URL
+          console.log('✅ Using thumbnail URL:', thumb);
           return thumb;
+        };
         };
 
         const thumbUrl = getThumb(reel);
