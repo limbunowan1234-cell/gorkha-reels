@@ -45,26 +45,10 @@
       min-width: 0;
     }
 
-    .header-top {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
     .header-name {
       font-weight: 600;
       font-size: 15px;
-    }
-
-    .online-status {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #10b981;
-    }
-
-    .online-status.offline {
-      background: #6b7280;
+      margin-bottom: 2px;
     }
 
     .header-status {
@@ -238,45 +222,6 @@
       right: 0;
     }
 
-    /* Typing Indicator */
-    .typing-indicator {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      padding: 12px 16px;
-      background: #2d2d2d;
-      border-radius: 18px;
-      width: fit-content;
-      margin-top: 8px;
-    }
-
-    .typing-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: #999;
-      animation: typingBounce 1.4s infinite;
-    }
-
-    .typing-dot:nth-child(2) {
-      animation-delay: 0.2s;
-    }
-
-    .typing-dot:nth-child(3) {
-      animation-delay: 0.4s;
-    }
-
-    @keyframes typingBounce {
-      0%, 60%, 100% {
-        transform: translateY(0);
-        opacity: 0.5;
-      }
-      30% {
-        transform: translateY(-8px);
-        opacity: 1;
-      }
-    }
-
     .input-area {
       background: #0f0f0f;
       border-top: 1px solid #2d2d2d;
@@ -368,19 +313,6 @@
       text-align: center;
     }
 
-    .loading-spinner {
-      width: 40px;
-      height: 40px;
-      border: 4px solid #2d2d2d;
-      border-top-color: #0B5E6B;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
     .toast {
       position: fixed;
       bottom: 80px;
@@ -425,11 +357,8 @@
     <button class="back-btn" onclick="goBack()">←</button>
     <img id="otherUserAvatar" class="header-avatar" src="" alt="">
     <div class="header-info">
-      <div class="header-top">
-        <div class="header-name" id="otherUserName">Loading...</div>
-        <div class="online-status" id="onlineIndicator"></div>
-      </div>
-      <div class="header-status" id="onlineStatus">Online</div>
+      <div class="header-name" id="otherUserName">Loading...</div>
+      <div class="header-status" id="lastSeenStatus">Loading...</div>
     </div>
   </div>
 
@@ -460,15 +389,17 @@
 
   <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
   <script src="js/appwrite-config.js"></script>
+  <script src="last-seen-tracker.js"></script>
 
   <script>
     let currentUserId = null;
     let conversationId = null;
     let otherUserId = null;
+    let otherUserLastSeen = null;
     let messages = [];
     let messageUnsubscribe = null;
+    let lastSeenRefresh = null;
     let isSending = false;
-    let isTyping = false;
 
     async function init() {
       await session.refresh();
@@ -478,6 +409,9 @@
       }
 
       currentUserId = session.getUserId();
+
+      // Start tracking last seen
+      lastSeenTracker.init(currentUserId);
 
       const params = new URLSearchParams(window.location.search);
       conversationId = params.get('conv');
@@ -493,8 +427,24 @@
         const creator = await db.get('creators', otherUserId);
         document.getElementById('otherUserName').textContent = creator.name;
         document.getElementById('otherUserAvatar').src = creator.profilePic || `https://ui-avatars.com/api/?name=${encodeURIComponent(creator.name)}&background=0B5E6B&color=fff`;
+        
+        // Load initial last seen
+        otherUserLastSeen = creator.lastSeen;
+        updateLastSeenDisplay();
+        
+        // Refresh last seen every 30 seconds
+        lastSeenRefresh = setInterval(async () => {
+          try {
+            const updated = await db.get('creators', otherUserId);
+            otherUserLastSeen = updated.lastSeen;
+            updateLastSeenDisplay();
+          } catch (err) {
+            console.error('Error refreshing last seen:', err);
+          }
+        }, 30000); // Every 30 seconds
       } catch {
         document.getElementById('otherUserName').textContent = 'User';
+        document.getElementById('lastSeenStatus').textContent = 'Last seen unknown';
       }
 
       await loadMessages();
@@ -512,6 +462,11 @@
           sendMessage();
         }
       });
+    }
+
+    function updateLastSeenDisplay() {
+      const lastSeen = LastSeenTracker.formatLastSeen(otherUserLastSeen);
+      document.getElementById('lastSeenStatus').textContent = lastSeen;
     }
 
     async function loadMessages() {
@@ -787,12 +742,16 @@
 
     function goBack() {
       if (messageUnsubscribe) messageUnsubscribe();
+      if (lastSeenRefresh) clearInterval(lastSeenRefresh);
+      lastSeenTracker.stopTracking();
       realtime.unsubscribeAll();
       window.location.href = 'messages.html';
     }
 
     window.addEventListener('beforeunload', () => {
       if (messageUnsubscribe) messageUnsubscribe();
+      if (lastSeenRefresh) clearInterval(lastSeenRefresh);
+      lastSeenTracker.stopTracking();
       realtime.unsubscribeAll();
     });
 
