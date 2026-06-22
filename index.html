@@ -18,6 +18,14 @@
     @keyframes buttonScale { 0% { transform: scale(1); } 50% { transform: scale(0.95); } 100% { transform: scale(1); } }
     @keyframes toastBounce { 0% { transform: translateY(-20px); opacity: 0; } 50% { transform: translateY(0); } 100% { opacity: 0; transform: translateY(0); } }
     @keyframes slideInFromRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    @keyframes storyGlow { 
+      0%, 100% { 
+        box-shadow: 0 0 12px rgba(11, 94, 107, 0.6), inset 0 0 12px rgba(11, 94, 107, 0.3);
+      }
+      50% { 
+        box-shadow: 0 0 20px rgba(11, 94, 107, 0.9), inset 0 0 16px rgba(11, 94, 107, 0.4);
+      }
+    }
 
     .banner {
       position: sticky; top: 0; z-index: 100;
@@ -41,6 +49,95 @@
     }
     .banner-btn:active { transform: scale(0.92); background: rgba(255,255,255,0.28); }
 
+    /* ===== STORY CAROUSEL ===== */
+    .story-carousel-section { 
+      background: linear-gradient(135deg, #1a1a1a, #0d2d3a);
+      border-bottom: 1px solid #2d2d2d;
+      padding: 16px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      animation: slideInFromRight 0.4s ease;
+      position: relative;
+      z-index: 99;
+    }
+
+    .story-carousel {
+      display: flex;
+      gap: 12px;
+      min-width: 0;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      padding: 4px 0;
+    }
+
+    .story-carousel::-webkit-scrollbar {
+      display: none;
+    }
+
+    .story-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      min-width: 72px;
+      flex-shrink: 0;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .story-card:active {
+      transform: scale(0.95);
+    }
+
+    .story-avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #0B5E6B, #0d2d3a);
+      object-fit: cover;
+      border: 2.5px solid rgba(255, 255, 255, 0.2);
+      flex-shrink: 0;
+      transition: all 0.3s;
+    }
+
+    /* GLOW for unseen stories - TEAL COLOR */
+    .story-avatar.has-unseen {
+      border: 2.5px solid #0B5E6B;
+      box-shadow: 0 0 12px rgba(11, 94, 107, 0.6), inset 0 0 12px rgba(11, 94, 107, 0.3);
+      animation: storyGlow 2s ease-in-out infinite;
+    }
+
+    .story-avatar-add {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: #0B5E6B;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+      border: 2.5px solid rgba(255, 255, 255, 0.2);
+      transition: all 0.2s;
+    }
+
+    .story-avatar-add:active {
+      transform: scale(0.95);
+      box-shadow: 0 0 16px rgba(11, 94, 107, 0.6);
+    }
+
+    .story-name {
+      font-size: 11px;
+      font-weight: 600;
+      text-align: center;
+      line-height: 1.2;
+      white-space: normal;
+      word-break: break-word;
+      max-width: 70px;
+      color: #fff;
+    }
+
     /* ===== SUGGESTED CREATORS BANNER ===== */
     .suggested-banner { 
       background: linear-gradient(135deg, #1a1a1a, #0d2d3a);
@@ -48,7 +145,7 @@
       padding: 16px;
       animation: slideInFromRight 0.4s ease;
       position: relative;
-      z-index: 99;
+      z-index: 98;
     }
     .suggested-banner.hidden { display: none; }
     .suggested-header { 
@@ -249,6 +346,17 @@
     </div>
   </header>
 
+  <!-- ===== STORY CAROUSEL ===== -->
+  <div class="story-carousel-section" id="storyCarouselSection">
+    <div class="story-carousel" id="storyCarousel">
+      <div class="story-card" onclick="window.location='upload.html'">
+        <div class="story-avatar-add">➕</div>
+        <div class="story-name">Your Story</div>
+      </div>
+      <div id="storyList"></div>
+    </div>
+  </div>
+
   <!-- ===== SUGGESTED CREATORS BANNER ===== -->
   <div class="suggested-banner" id="suggested-banner">
     <div class="suggested-header">
@@ -302,6 +410,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
   <script src="js/appwrite-config.js"></script>
+  <script src="last-seen-tracker.js"></script>
   <script>
     document.addEventListener('gesturestart', e => e.preventDefault());
     document.addEventListener('gesturechange', e => e.preventDefault());
@@ -336,7 +445,9 @@
         await session.refresh();
         if (session.isLoggedIn()) {
           MY_USER_ID = session.getUserId();
+          lastSeenTracker.init(MY_USER_ID);
           await loadFollowing();
+          await loadStoryCarousel();
         }
         setupDrawer();
         await loadSuggestedCreators();
@@ -357,6 +468,56 @@
         ]);
         follows.documents.forEach(f => FOLLOWING_SET.add(f.followingId));
       } catch (e) {}
+    }
+
+    async function loadStoryCarousel() {
+      try {
+        const storyList = document.getElementById('storyList');
+        storyList.innerHTML = '';
+
+        const follows = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [
+          Query.equal('followerId', MY_USER_ID),
+          Query.limit(20)
+        ]);
+
+        for (const follow of follows.documents) {
+          try {
+            const creator = await db.get(APPWRITE_CONFIG.COLLECTIONS.CREATORS, follow.followingId);
+            
+            // Check for unseen stories (not expired)
+            const now = new Date().toISOString();
+            const stories = await db.list('status', [
+              Query.equal('creatorId', follow.followingId),
+              Query.greaterThan('expiresAt', now),
+              Query.limit(1)
+            ]);
+
+            const hasUnseen = stories.total > 0;
+
+            const card = document.createElement('div');
+            card.className = 'story-card';
+            card.onclick = () => window.location = `status.html?creator=${follow.followingId}`;
+            
+            const avatar = document.createElement('img');
+            avatar.className = `story-avatar ${hasUnseen ? 'has-unseen' : ''}`;
+            avatar.src = creator.profilePic || `https://ui-avatars.com/api/?name=${encodeURIComponent(creator.name)}&background=0B5E6B&color=fff`;
+            avatar.alt = creator.name;
+            avatar.onerror = function() { this.src = 'https://ui-avatars.com/api/?name=Creator&background=0B5E6B&color=fff'; };
+
+            const name = document.createElement('div');
+            name.className = 'story-name';
+            name.textContent = creator.name || 'Creator';
+
+            card.appendChild(avatar);
+            card.appendChild(name);
+            storyList.appendChild(card);
+          } catch (err) {
+            console.error('Story card error:', err);
+          }
+        }
+      } catch (err) {
+        console.error('Story carousel error:', err);
+      }
     }
 
     async function loadSuggestedCreators() {
@@ -410,7 +571,7 @@
             Query.equal('followingId', creatorId)
           ]);
           if (existing.total === 0) {
-            await db.create(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, {
+            await db.create(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, ID.unique(), {
               followId: ID.unique(),
               followerId: MY_USER_ID,
               followingId: creatorId,
@@ -421,6 +582,7 @@
           FOLLOWING_SET.add(creatorId);
           btn.classList.add('following');
           btn.textContent = 'Following';
+          await loadStoryCarousel();
         }
       } catch (err) {
         console.error('Follow error:', err);
@@ -533,7 +695,6 @@
         });
       }, { rootMargin: '200px' });
 
-      // Create a sentinel element
       const sentinel = document.createElement('div');
       sentinel.id = 'scroll-sentinel';
       document.getElementById('feed').appendChild(sentinel);
