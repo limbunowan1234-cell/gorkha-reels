@@ -1,7 +1,7 @@
 /**
  * GorkhaReels - Appwrite & Bunny CDN Configuration
  * ✅ Complete production config with all utilities
- * ✅ Storage support for profile pictures (publicly viewable)
+ * ✅ Messaging/DMs with real-time support
  */
 
 // ============== APPWRITE CONFIG ==============
@@ -18,7 +18,8 @@ const APPWRITE_CONFIG = {
     EARNINGS: 'earnings',
     FOLLOWERS: 'followers',
     TRENDING: 'trending',
-    REPORTS: 'reports'
+    REPORTS: 'reports',
+    MESSAGES: 'messages'
   },
 
   BUCKETS: {
@@ -75,7 +76,6 @@ const db = {
 
 // ============== STORAGE HELPER (Profile Pictures) ==============
 const fileStorage = {
-  // Upload with public-read permission so images display for everyone
   async upload(bucketId, file) {
     try {
       const fileId = ID.unique();
@@ -97,7 +97,6 @@ const fileStorage = {
     }
   },
 
-  // Use /view endpoint (serves raw file - reliable, no transformation needed)
   getFileUrl(bucketId, fileId) {
     return `${APPWRITE_CONFIG.ENDPOINT}/storage/buckets/${bucketId}/files/${fileId}/view?project=${APPWRITE_CONFIG.PROJECT_ID}`;
   }
@@ -180,11 +179,228 @@ function escapeHtml(text) {
   return String(text).replace(/[&<>"']/g, m => map[m]);
 }
 
+// ============== REALTIME MESSAGING ==============
+class RealtimeMessaging {
+  constructor() {
+    this.subscriptions = [];
+  }
+
+  subscribeToConversation(conversationId, callback) {
+    const unsubscribe = appwriteClient.subscribe(
+      `databases.${APPWRITE_CONFIG.DATABASE_ID}.collections.${APPWRITE_CONFIG.COLLECTIONS.MESSAGES}.documents`,
+      (response) => {
+        if (response.events.includes('databases.*.collections.*.documents.*.create')) {
+          const msg = response.payload;
+          if (msg.conversationId === conversationId) {
+            callback(msg);
+          }
+        }
+      }
+    );
+    this.subscriptions.push(unsubscribe);
+    return unsubscribe;
+  }
+
+  subscribeToMessageUpdate(messageId, callback) {
+    const unsubscribe = appwriteClient.subscribe(
+      `databases.${APPWRITE_CONFIG.DATABASE_ID}.collections.${APPWRITE_CONFIG.COLLECTIONS.MESSAGES}.documents.${messageId}`,
+      (response) => {
+        if (response.events.includes('databases.*.collections.*.documents.*.update')) {
+          callback(response.payload);
+        }
+      }
+    );
+    this.subscriptions.push(unsubscribe);
+    return unsubscribe;
+  }
+
+  unsubscribeAll() {
+    this.subscriptions.forEach(unsub => unsub());
+    this.subscriptions = [];
+  }
+}
+
+// ============== MEDIA UPLOADER ==============
+class MediaUploader {
+  constructor() {
+    this.maxImageSize = 5 * 1024 * 1024;
+    this.maxVideoSize = 50 * 1024 * 1024;
+    this.maxVideoDuration = 30;
+  }
+
+  async uploadImage(file) {
+    if (!file.type.startsWith('image/')) {
+      throw new Error('File must be an image');
+    }
+    if (file.size > this.maxImageSize) {
+      throw new Error('Image must be less than 5MB');
+    }
+
+    const fileName = `msg_img_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return bunny.uploadVideo(file, fileName);
+  }
+
+  async uploadVideo(file) {
+    if (!file.type.startsWith('video/')) {
+      throw new Error('File must be a video');
+    }
+    if (file.size > this.maxVideoSize) {
+      throw new Error('Video must be less than 50MB');
+    }
+
+    return new Promise((resolve, reject) => {
+      const video = document.createElement('video');
+      video.onloadedmetadata = async () => {
+        if (video.duration > this.maxVideoDuration) {
+          reject(new Error(`Video must be ${this.maxVideoDuration} seconds or less`));
+          return;
+        }
+
+        try {
+          const fileName = `msg_vid_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+          const result = await bunny.uploadVideo(file, fileName);
+          const thumbnail = await this.generateVideoThumbnail(video);
+          resolve({ ...result, thumbnail });
+        } catch (error) {
+          reject(error);
+        }
+      };
+      video.onerror = () => reject(new Error('Invalid video file'));
+      video.src = URL.createObjectURL(file);
+    });
+  }
+
+  generateVideoThumbnail(video) {
+    return new Promise((resolve) => {
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0);
+      resolve(canvas.toDataURL('image/jpeg', 0.7));
+    });
+  }
+}
+
+// ============== CONVERSATION MANAGER ==============
+class ConversationManager {
+  static getConversationId(userId1, userId2) {
+    const sorted = [userId1, userId2].sort();
+    return sorted.join('_');
+  }
+
+  static async getUserConversations(userId) {
+    try {
+      const results = await db.list('messages', [
+        Query.or([
+          Query.equal('senderId', userId),
+          Query.equal('recipientId', userId)
+        ]),
+        Query.orderDesc('createdAt'),
+        Query.limit(100)
+      ]);
+
+      const conversations = {};
+      results.documents.forEach(msg => {
+        const convId = this.getConversationId(msg.senderId, msg.recipientId);
+        if (!conversations[convId] || msg.createdAt > conversations[convId].createdAt) {
+          conversations[convId] = {
+            conversationId: convId,
+            lastMessage: msg,
+            unread: msg.recipientId === userId && !msg.isRead
+          };
+        }
+      });
+
+      return Object.values(conversations);
+    } catch (error) {
+      console.error('Error fetching conversations:', error);
+      return [];
+    }
+  }
+
+  static async getConversationMessages(conversationId, limit = 50) {
+    try {
+      const results = await db.list('messages', [
+        Query.equal('conversationId', conversationId),
+        Query.orderDesc('createdAt'),
+        Query.limit(limit)
+      ]);
+      return results.documents.reverse();
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+      return [];
+    }
+  }
+
+  static async sendMessage(senderId, recipientId, messageText, messageType = 'text', mediaUrl = null, mediaThumbnail = null) {
+    try {
+      const conversationId = this.getConversationId(senderId, recipientId);
+      
+      const messageData = {
+        messageText,
+        messageType,
+        mediaUrl,
+        mediaThumbnail,
+        conversationId,
+        senderId,
+        recipientId,
+        isRead: false,
+        createdAt: new Date().toISOString()
+      };
+
+      // Permissions: both can read, only sender can update/delete
+      const permissions = [
+        Permission.read(Role.user(senderId)),
+        Permission.read(Role.user(recipientId)),
+        Permission.update(Role.user(senderId)),
+        Permission.delete(Role.user(senderId))
+      ];
+
+      const result = await databases.createDocument(
+        APPWRITE_CONFIG.DATABASE_ID,
+        APPWRITE_CONFIG.COLLECTIONS.MESSAGES,
+        ID.unique(),
+        messageData,
+        permissions
+      );
+      
+      return result;
+    } catch (error) {
+      console.error('Error sending message:', error);
+      throw error;
+    }
+  }
+
+  static async markAsRead(messageId) {
+    try {
+      await db.update('messages', messageId, {
+        isRead: true,
+        readAt: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Error marking message as read:', error);
+    }
+  }
+
+  static async deleteMessage(messageId) {
+    try {
+      await db.remove('messages', messageId);
+    } catch (error) {
+      console.error('Error deleting message:', error);
+      throw error;
+    }
+  }
+}
+
 // ============== INITIALIZE ==============
 const bunny = new BunnyCDNClient();
 const session = new SessionManager();
+const realtime = new RealtimeMessaging();
+const mediaUploader = new MediaUploader();
 
 console.log('✅ GorkhaReels Config Loaded');
 console.log('✅ Globals: ID, Query, Permission, Role');
-console.log('✅ Classes: BunnyCDNClient, SessionManager, Toast');
-console.log('✅ Helper: db, fileStorage, escapeHtml');
+console.log('✅ Classes: BunnyCDNClient, SessionManager, Toast, RealtimeMessaging, MediaUploader');
+console.log('✅ Helpers: db, fileStorage, ConversationManager, escapeHtml');
+console.log('✅ Messaging System Ready');
