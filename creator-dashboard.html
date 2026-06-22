@@ -10,6 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #0f0f0f; color: #fff; font-family: system-ui; }
@@ -53,6 +54,30 @@
     .action-btn-secondary { background: #1a1a1a; color: #fff; border: 1px solid #2d2d2d; }
     .action-btn-primary { background: #0B5E6B; color: #fff; }
     .action-btn-secondary:active, .action-btn-primary:active { opacity: 0.7; }
+
+    /* ===== ANALYTICS SECTION ===== */
+    .analytics-section { margin-bottom: 24px; }
+    .section-title { font-size: 16px; font-weight: 700; margin-bottom: 12px; color: #0B5E6B; font-family: 'Space Grotesk', sans-serif; }
+
+    .analytics-card { background: linear-gradient(135deg, #1a1a1a, #0d2d3a); border: 1px solid #2d2d2d; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+
+    /* Views Chart */
+    .chart-container { position: relative; height: 220px; }
+    #viewsChart { max-height: 200px; }
+
+    /* Stats Grid */
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .stat-card { background: linear-gradient(135deg, #1a1a1a, #0d2d3a); border: 1px solid #2d2d2d; border-radius: 8px; padding: 14px; text-align: center; }
+    .stat-card-num { font-size: 24px; font-weight: 700; color: #0B5E6B; margin-bottom: 4px; }
+    .stat-card-label { font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    /* Top Video Card */
+    .top-video-card { background: linear-gradient(135deg, #1a1a1a, #0d2d3a); border: 1px solid #2d2d2d; border-radius: 12px; padding: 12px; cursor: pointer; transition: all 0.2s; }
+    .top-video-card:active { transform: scale(0.98); border-color: #0B5E6B; }
+    .top-video-thumb { width: 100%; aspect-ratio: 16/9; background: #0f0f0f; border-radius: 8px; overflow: hidden; margin-bottom: 10px; }
+    .top-video-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .top-video-title { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+    .top-video-stats { font-size: 12px; color: #888; }
 
     .earnings-strip { display: flex; align-items: center; justify-content: space-between; background: linear-gradient(135deg, #1a1a1a, #20190c); border: 1px solid #2d2d2d; border-radius: 12px; padding: 14px 16px; margin-bottom: 24px; }
     .earnings-left { display: flex; flex-direction: column; gap: 2px; }
@@ -101,21 +126,13 @@
     .edit-actions { display: flex; gap: 10px; margin-top: 20px; margin-bottom: 20px; }
     .save-btn { flex: 1; padding: 11px; background: #0B5E6B; color: #fff; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
 
-    /* ===== CROP MODAL ===== */
     .crop-modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 500; display: none; align-items: center; justify-content: center; padding: 16px; }
     .crop-modal-backdrop.open { display: flex; }
     .crop-modal { background: #1c1c1e; border-radius: 16px; width: 100%; max-width: 400px; overflow: hidden; }
     .crop-modal-header { padding: 16px; border-bottom: 1px solid #2d2d2d; text-align: center; font-size: 17px; font-weight: 700; }
-    .crop-area {
-      position: relative; width: 100%; aspect-ratio: 1; background: #000;
-      overflow: hidden; touch-action: none; cursor: move;
-    }
+    .crop-area { position: relative; width: 100%; aspect-ratio: 1; background: #000; overflow: hidden; touch-action: none; cursor: move; }
     .crop-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-    .crop-circle-overlay {
-      position: absolute; inset: 0; pointer-events: none;
-      box-shadow: 0 0 0 9999px rgba(0,0,0,0.5);
-      border-radius: 50%; margin: 10%;
-    }
+    .crop-circle-overlay { position: absolute; inset: 0; pointer-events: none; box-shadow: 0 0 0 9999px rgba(0,0,0,0.5); border-radius: 50%; margin: 10%; }
     .crop-controls { padding: 16px; }
     .crop-zoom-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
     .crop-zoom-row span { font-size: 18px; }
@@ -165,8 +182,8 @@
       </div>
     </div>
     <div class="banner-right">
-      <button class="banner-btn" onclick="window.location='search.html'" aria-label="Search">&#128269;</button>
-      <button class="banner-btn" id="open-drawer" aria-label="Menu">&#9776;</button>
+      <button class="banner-btn" onclick="window.location='search.html'" aria-label="Search">🔍</button>
+      <button class="banner-btn" id="open-drawer" aria-label="Menu">☰</button>
     </div>
   </header>
 
@@ -191,15 +208,56 @@
       <button class="action-btn-primary" id="upload-btn">+ Upload</button>
     </div>
 
+    <!-- ===== ANALYTICS SECTION ===== -->
+    <div class="analytics-section">
+      <div class="section-title">📊 Performance Analytics</div>
+      
+      <!-- Views Trend Chart - REAL DATA -->
+      <div class="analytics-card">
+        <h3 style="font-size: 14px; font-weight: 600; margin-bottom: 12px;">Views Trend (Last 7 Days)</h3>
+        <div class="chart-container">
+          <canvas id="viewsChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Stats Grid - ALL REAL DATA -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-card-num" id="avg-views">0</div>
+          <div class="stat-card-label">Avg Views/Video</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-num" id="total-engagement">0</div>
+          <div class="stat-card-label">Total Engagement</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-num" id="engagement-rate">0%</div>
+          <div class="stat-card-label">Engagement Rate</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-num" id="estimated-earnings">₹0</div>
+          <div class="stat-card-label">Est. Monthly</div>
+        </div>
+      </div>
+
+      <!-- Top Video Card - REAL DATA -->
+      <div style="margin-top: 12px;">
+        <h3 style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">🔥 Your Best Video</h3>
+        <div class="top-video-card" id="top-video-card">
+          <div class="empty-state" style="padding: 20px;">No videos yet</div>
+        </div>
+      </div>
+    </div>
+
     <div class="earnings-strip">
       <div class="earnings-left">
         <span class="earnings-label">Total Earnings</span>
-        <span class="earnings-amount" id="total-earnings">&#8377; 0.00</span>
+        <span class="earnings-amount" id="total-earnings">₹ 0.00</span>
       </div>
       <button class="withdraw-btn" id="withdraw-btn">Withdraw</button>
     </div>
 
-    <div class="videos-header"><span class="videos-title">&#128249; My Videos</span></div>
+    <div class="videos-header"><span class="videos-title">🎬 My Videos</span></div>
     <div id="my-reels-container"><div class="loading"><div class="spinner"></div></div></div>
   </div>
 
@@ -215,14 +273,14 @@
   <div class="edit-profile-sheet" id="edit-profile-sheet">
     <div class="sheet-header">
       <h2>Edit Profile</h2>
-      <button class="close-btn" id="close-edit-profile">&#10005;</button>
+      <button class="close-btn" id="close-edit-profile">✕</button>
     </div>
     <div class="sheet-content">
       <div class="edit-section">
         <label>Profile Picture</label>
         <div class="pic-preview-container">
           <img id="profile-pic-preview" class="pic-preview" src="" alt="Profile">
-          <button class="upload-btn" id="upload-pic-btn">&#128247; Choose Photo</button>
+          <button class="upload-btn" id="upload-pic-btn">📷 Choose Photo</button>
           <input type="file" id="profile-pic-input" accept="image/*" style="display:none;">
         </div>
       </div>
@@ -250,10 +308,10 @@
       </div>
       <div class="crop-controls">
         <div class="crop-zoom-row">
-          <span>&#128269;</span>
+          <span>🔍</span>
           <input type="range" class="crop-zoom-slider" id="crop-zoom" min="1" max="3" step="0.01" value="1">
         </div>
-        <div class="crop-hint">Drag to move &#8226; Slide to zoom</div>
+        <div class="crop-hint">Drag to move • Slide to zoom</div>
         <div class="crop-btn-row">
           <button class="crop-cancel-btn" id="crop-cancel">Cancel</button>
           <button class="crop-apply-btn" id="crop-apply">Apply</button>
@@ -263,9 +321,9 @@
   </div>
 
   <nav class="bottom-nav">
-    <button class="nav-btn" onclick="window.location='index.html'"><span>&#127968;</span><span class="nav-label">Home</span></button>
-    <button class="nav-btn" onclick="window.location='upload.html'"><span>&#65291;</span><span class="nav-label">Create</span></button>
-    <button class="nav-btn active"><span>&#128100;</span><span class="nav-label">Profile</span></button>
+    <button class="nav-btn" onclick="window.location='index.html'"><span>🏠</span><span class="nav-label">Home</span></button>
+    <button class="nav-btn" onclick="window.location='upload.html'"><span>➕</span><span class="nav-label">Create</span></button>
+    <button class="nav-btn active"><span>👤</span><span class="nav-label">Profile</span></button>
   </nav>
 
   <div class="drawer-backdrop" id="drawer-backdrop"></div>
@@ -275,22 +333,18 @@
       <div><div class="dh-title">GorkhaReels</div><div class="dh-sub">Gorkha Stories, Global Reach</div></div>
     </div>
     <div class="drawer-items">
-      <button class="drawer-item" onclick="window.location='index.html'"><span class="di-icon">&#127968;</span> Home</button>
-      <button class="drawer-item" onclick="window.location='search.html'"><span class="di-icon">&#128269;</span> Search</button>
-      <button class="drawer-item" onclick="window.location='creator-dashboard.html'"><span class="di-icon">&#128100;</span> My Profile</button>
-      <button class="drawer-item" id="edit-profile-drawer"><span class="di-icon">&#9999;&#65039;</span> Edit Profile</button>
+      <button class="drawer-item" onclick="window.location='index.html'"><span class="di-icon">🏠</span> Home</button>
+      <button class="drawer-item" onclick="window.location='search.html'"><span class="di-icon">🔍</span> Search</button>
+      <button class="drawer-item" onclick="window.location='creator-dashboard.html'"><span class="di-icon">👤</span> My Profile</button>
+      <button class="drawer-item" id="edit-profile-drawer"><span class="di-icon">✏️</span> Edit Profile</button>
       <div class="drawer-sep"></div>
-      <button class="drawer-item drawer-item-danger" id="drawer-logout"><span class="di-icon">&#128682;</span> Logout</button>
+      <button class="drawer-item drawer-item-danger" id="drawer-logout"><span class="di-icon">🚪</span> Logout</button>
     </div>
   </aside>
 
   <script>
-    window.eruda = null; window.Eruda = null;
-    const origFetch = window.fetch;
-    window.fetch = function(...args) {
-      if (args[0]?.includes?.('eruda')) return Promise.reject(new Error('Eruda blocked'));
-      return origFetch.apply(this, args);
-    };
+    window.eruda = null;
+    window.Eruda = null;
   </script>
   <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
   <script src="js/appwrite-config.js"></script>
@@ -298,7 +352,8 @@
     let REELS = [];
     let CURRENT_REEL = null;
     let CREATOR = null;
-    let SELECTED_PROFILE_PIC = null; // Will hold the cropped JPEG blob
+    let SELECTED_PROFILE_PIC = null;
+    let viewsChartInstance = null;
 
     function getThumbSrc(reel) {
       const t = reel && reel.thumbnail;
@@ -333,7 +388,7 @@
       document.getElementById('drawer-logout').onclick = async () => { try { await session.logout(); } catch (e) {} window.location = 'login.html'; };
       document.getElementById('edit-profile-btn').onclick = openEditProfileSheet;
       document.getElementById('upload-btn').onclick = () => window.location = 'upload.html';
-      document.getElementById('withdraw-btn').onclick = () => alert('Withdraw coming soon');
+      document.getElementById('withdraw-btn').onclick = () => showToast('Withdrawal coming soon!');
       document.getElementById('edit-profile-drawer').onclick = openEditProfileSheet;
       document.getElementById('video-menu-cancel').onclick = closeVideoMenu;
       document.getElementById('video-menu-backdrop').onclick = closeVideoMenu;
@@ -344,8 +399,6 @@
       document.getElementById('save-profile-btn').onclick = saveProfileChanges;
     }
 
-    // Get the creator profile, or auto-create it if missing (handles
-    // accounts that were created before the profile row was written).
     async function getOrCreateCreator(uid) {
       try {
         return await db.get(APPWRITE_CONFIG.COLLECTIONS.CREATORS, uid);
@@ -353,7 +406,6 @@
         const notFound = err && (err.code === 404 || err.type === 'document_not_found');
         if (!notFound) throw err;
 
-        // Build a fresh profile from the logged-in account
         const acct = session.getUser() || {};
         const safeName = acct.name || (acct.email ? acct.email.split('@')[0] : 'Creator');
         const safeEmail = acct.email || (uid + '@gorkhareels.app');
@@ -377,7 +429,6 @@
           createdAt: new Date().toISOString()
         };
 
-        // Document ID MUST equal the auth uid so future db.get(uid) works
         const created = await db.create(APPWRITE_CONFIG.COLLECTIONS.CREATORS, newProfile, uid);
         showToast('Welcome! Your profile is ready.');
         return created;
@@ -388,7 +439,7 @@
       try {
         const uid = session.getUserId();
         CREATOR = await getOrCreateCreator(uid);
-        document.getElementById('creator-name').innerHTML = escapeHtml(CREATOR.name || 'Creator') + (CREATOR.isVerified ? ' <span class="verified-badge">&#10003;</span>' : '');
+        document.getElementById('creator-name').innerHTML = escapeHtml(CREATOR.name || 'Creator') + (CREATOR.isVerified ? ' <span class="verified-badge">✓</span>' : '');
         document.getElementById('creator-bio').textContent = CREATOR.bio || 'No bio yet';
         document.getElementById('creator-avatar').src = CREATOR.profilePic || '/logo-suite/primary/logo-khukuri-512x512.png';
 
@@ -398,13 +449,15 @@
         const reels = await db.list(APPWRITE_CONFIG.COLLECTIONS.REELS, [
           Query.equal('creatorId', uid),
           Query.orderDesc('uploadedAt'),
-          Query.limit(50)
+          Query.limit(100)
         ]);
         REELS = reels.documents.filter(r => !r.isDeleted);
         document.getElementById('total-reels').textContent = REELS.length;
         const totalViews = REELS.reduce((s, r) => s + (r.views || 0), 0);
         document.getElementById('total-views').textContent = totalViews;
-        document.getElementById('total-earnings').textContent = '\u20B9 ' + (CREATOR.totalEarnings || 0).toFixed(2);
+        document.getElementById('total-earnings').textContent = '₹ ' + (CREATOR.totalEarnings || 0).toFixed(2);
+
+        await loadAnalytics(totalViews);
 
         if (!REELS.length) {
           document.getElementById('my-reels-container').innerHTML = '<div class="empty-state">No videos yet. Start uploading!</div>';
@@ -418,8 +471,8 @@
           thumb.className = 'video-thumb';
           thumb.innerHTML = `
             <img src="${getThumbSrc(reel)}" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'">
-            <button class="video-more" onclick="openVideoMenu(event, '${reel.$id}')">&#8943;</button>
-            <div class="video-views">&#128065;&#65039; ${reel.views || 0}</div>
+            <button class="video-more" onclick="openVideoMenu(event, '${reel.$id}')">⋯</button>
+            <div class="video-views">👁️ ${reel.views || 0}</div>
           `;
           thumb.onclick = (e) => { if (e.target.classList.contains('video-more')) return; window.location = `video-modal.html?reelId=${reel.$id}`; };
           grid.appendChild(thumb);
@@ -429,6 +482,100 @@
       } catch (err) {
         console.error('Dashboard load failed:', err);
         document.getElementById('my-reels-container').innerHTML = '<div class="empty-state">Error loading dashboard</div>';
+      }
+    }
+
+    async function loadAnalytics(totalViews) {
+      try {
+        // ===== REAL 7-DAY VIEW TREND =====
+        const chartData = [];
+        const labels = [];
+        const today = new Date();
+        
+        for (let i = 6; i >= 0; i--) {
+          const dayDate = new Date(today);
+          dayDate.setDate(dayDate.getDate() - i);
+          
+          const dayStart = new Date(dayDate.getFullYear(), dayDate.getMonth(), dayDate.getDate());
+          const dayEnd = new Date(dayDate.getFullYear(), dayDate.getMonth(), dayDate.getDate() + 1);
+          
+          const dayStartISO = dayStart.toISOString();
+          const dayEndISO = dayEnd.toISOString();
+          
+          // Sum REAL views from all videos uploaded on this day
+          const dayViews = REELS
+            .filter(r => r.uploadedAt && r.uploadedAt >= dayStartISO && r.uploadedAt < dayEndISO)
+            .reduce((sum, r) => sum + (r.views || 0), 0);
+          
+          chartData.push(dayViews);
+          labels.push(dayDate.toLocaleDateString('en-US', { weekday: 'short' }));
+        }
+
+        // Draw REAL chart
+        const ctx = document.getElementById('viewsChart').getContext('2d');
+        if (viewsChartInstance) viewsChartInstance.destroy();
+        viewsChartInstance = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'Views',
+              data: chartData,
+              borderColor: '#0B5E6B',
+              backgroundColor: 'rgba(11, 94, 107, 0.1)',
+              fill: true,
+              tension: 0.4,
+              pointRadius: 4,
+              pointBackgroundColor: '#0B5E6B',
+              pointBorderColor: '#fff',
+              pointBorderWidth: 2
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#888' } },
+              x: { grid: { display: false }, ticks: { color: '#888' } }
+            }
+          }
+        });
+
+        // ===== REAL AVG VIEWS =====
+        const avgViews = REELS.length > 0 ? Math.floor(totalViews / REELS.length) : 0;
+        document.getElementById('avg-views').textContent = avgViews;
+
+        // ===== REAL ENGAGEMENT (Likes + Comments) =====
+        const totalLikes = REELS.reduce((s, r) => s + (r.likes || 0), 0);
+        const totalComments = REELS.reduce((s, r) => s + (r.comments || 0), 0);
+        const totalEngagement = totalLikes + totalComments;
+        document.getElementById('total-engagement').textContent = totalEngagement;
+
+        // ===== REAL ENGAGEMENT RATE =====
+        const engagementRate = totalViews > 0 ? ((totalEngagement / totalViews) * 100) : 0;
+        document.getElementById('engagement-rate').textContent = engagementRate.toFixed(1) + '%';
+
+        // ===== REAL ESTIMATED MONTHLY EARNINGS =====
+        // Rate: ₹0.50 per 1000 views
+        const estimatedMonthly = Math.floor((totalViews / 1000) * 0.50);
+        document.getElementById('estimated-earnings').textContent = '₹' + estimatedMonthly;
+
+        // ===== TOP VIDEO (REAL - Most viewed) =====
+        if (REELS.length > 0) {
+          const topReel = REELS.reduce((max, r) => (r.views || 0) > (max.views || 0) ? r : max);
+          const topCard = document.getElementById('top-video-card');
+          topCard.innerHTML = `
+            <div class="top-video-thumb">
+              <img src="${getThumbSrc(topReel)}" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'">
+            </div>
+            <div class="top-video-title">${escapeHtml(topReel.title || 'Untitled')}</div>
+            <div class="top-video-stats">👁️ ${topReel.views || 0} views • ❤️ ${topReel.likes || 0} likes • 💬 ${topReel.comments || 0}</div>
+          `;
+          topCard.onclick = () => window.location = `video-modal.html?reelId=${topReel.$id}`;
+        }
+      } catch (err) {
+        console.error('Analytics load error:', err);
       }
     }
 
@@ -445,8 +592,8 @@
         b.onclick = () => { closeVideoMenu(); handler(); };
         items.appendChild(b);
       };
-      add('\u270F\uFE0F Edit', () => window.location = `video-modal.html?reelId=${CURRENT_REEL.$id}`);
-      add('\uD83D\uDDD1\uFE0F Delete', () => deleteVideo(CURRENT_REEL), true);
+      add('✏️ Edit', () => window.location = `video-modal.html?reelId=${CURRENT_REEL.$id}`);
+      add('🗑️ Delete', () => deleteVideo(CURRENT_REEL), true);
       document.getElementById('video-menu-backdrop').classList.add('open');
       document.getElementById('video-menu').classList.add('open');
     }
@@ -468,7 +615,6 @@
       }
     }
 
-    // ===== EDIT PROFILE =====
     function openEditProfileSheet() {
       if (!CREATOR) return;
       document.getElementById('edit-name').value = CREATOR.name || '';
@@ -506,7 +652,6 @@
 
         if (SELECTED_PROFILE_PIC) {
           try {
-            // Upload to Bunny CDN
             const fileName = `profile_${session.getUserId()}_${Date.now()}.jpg`;
             const bunnyStorageZone = 'gorkhareels';
             const bunnyApiKey = 'cf694f78-8568-4497-9e764c8848c4-728e-4d89';
@@ -536,7 +681,9 @@
         }
 
         await db.update(APPWRITE_CONFIG.COLLECTIONS.CREATORS, session.getUserId(), { name, bio, profilePic: profilePicUrl });
-        CREATOR.name = name; CREATOR.bio = bio; CREATOR.profilePic = profilePicUrl;
+        CREATOR.name = name;
+        CREATOR.bio = bio;
+        CREATOR.profilePic = profilePicUrl;
         showToast('Profile updated!');
         closeEditProfileSheet();
         await loadDashboard();
@@ -549,7 +696,6 @@
       }
     }
 
-    // ===== IMAGE CROPPER (canvas-based, outputs JPEG) =====
     const cropState = { img: null, scale: 1, minScale: 1, offsetX: 0, offsetY: 0, dragging: false, startX: 0, startY: 0, canvasSize: 0 };
 
     function setupCropper() {
@@ -577,7 +723,8 @@
         const p = getPoint(e);
         cropState.offsetX += (p.x - cropState.startX);
         cropState.offsetY += (p.y - cropState.startY);
-        cropState.startX = p.x; cropState.startY = p.y;
+        cropState.startX = p.x;
+        cropState.startY = p.y;
         clampOffsets();
         drawCrop();
       };
