@@ -58,9 +58,7 @@
       scrollbar-width: none;
     }
 
-    .story-carousel-scroll::-webkit-scrollbar {
-      display: none;
-    }
+    .story-carousel-scroll::-webkit-scrollbar { display: none; }
 
     .story-item {
       flex: 0 0 auto;
@@ -156,9 +154,7 @@
       scrollbar-width: none;
     }
 
-    .suggested-scroll::-webkit-scrollbar {
-      display: none;
-    }
+    .suggested-scroll::-webkit-scrollbar { display: none; }
 
     .creator-card {
       flex: 0 0 auto;
@@ -184,6 +180,7 @@
       object-fit: cover;
       margin: 0 auto 10px;
       border: 2px solid #0B5E6B;
+      background: #2d2d2d;
     }
 
     .creator-name {
@@ -215,14 +212,8 @@
       transition: all 0.2s;
     }
 
-    .follow-btn:active {
-      background: rgba(11, 94, 107, 0.8);
-    }
-
-    .follow-btn.following {
-      background: transparent;
-      color: #0B5E6B;
-    }
+    .follow-btn:active { background: rgba(11, 94, 107, 0.8); }
+    .follow-btn.following { background: transparent; color: #0B5E6B; }
 
     /* FEED */
     .feed { padding-bottom: 100px; }
@@ -262,6 +253,7 @@
       border: 2px solid #0B5E6B;
       cursor: pointer;
       flex-shrink: 0;
+      background: #2d2d2d;
     }
 
     .feed-creator-meta {
@@ -340,6 +332,15 @@
       text-align: center;
       padding: 20px;
       color: #666;
+    }
+
+    .error-message {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #ef4444;
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin: 16px;
     }
 
     /* BOTTOM NAV */
@@ -423,14 +424,12 @@
   <!-- STORY CAROUSEL -->
   <div class="story-carousel-section" id="story-carousel-section">
     <div class="story-carousel-scroll" id="story-carousel-scroll">
-      <!-- Your Story Button -->
       <a href="upload.html" class="story-item">
         <div class="story-avatar" style="background: linear-gradient(135deg, #0B5E6B, #0D7377); display: flex; align-items: center; justify-content: center; border: 2.5px solid #0B5E6B;">
           <span style="font-size: 28px;">➕</span>
         </div>
         <div class="story-name story-your-story">Your Story</div>
       </a>
-      <!-- Story items will be loaded here -->
     </div>
   </div>
 
@@ -441,7 +440,7 @@
       <button class="suggested-close" onclick="document.getElementById('suggested-banner').classList.add('hidden')">✕</button>
     </div>
     <div class="suggested-scroll" id="suggested-scroll">
-      <!-- Creator cards will be loaded here -->
+      <div class="loading">Loading creators...</div>
     </div>
   </div>
 
@@ -527,112 +526,31 @@
       };
     }
 
-    // Load following list for stories
-    async function loadFollowing() {
-      try {
-        if (!MY_USER_ID) return;
-        const follows = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [
-          Query.equal('followerId', MY_USER_ID),
-          Query.limit(100)
-        ]);
-        return follows.documents.map(f => f.followingId);
-      } catch (err) {
-        console.error('Load following error:', err);
-        return [];
-      }
-    }
-
-    // Load story carousel
-    async function loadStoryCarousel() {
-      try {
-        if (!MY_USER_ID) return;
-        
-        const followingIds = await loadFollowing();
-        if (followingIds.length === 0) {
-          document.getElementById('story-carousel-section').style.display = 'none';
-          return;
-        }
-
-        const now = new Date().toISOString();
-        const stories = await db.list('status', [
-          Query.limit(100)
-        ]);
-
-        // Filter by following and active stories
-        const validStories = stories.documents.filter(s => 
-          followingIds.includes(s.creatorId) && 
-          new Date(s.expiresAt) > new Date(now)
-        );
-
-        if (validStories.length === 0) {
-          document.getElementById('story-carousel-section').style.display = 'none';
-          return;
-        }
-
-        const creatorIds = [...new Set(validStories.map(s => s.creatorId))];
-        const creators = await Promise.all(
-          creatorIds.map(id => db.get(APPWRITE_CONFIG.COLLECTIONS.CREATORS, id))
-        );
-
-        const scroll = document.getElementById('story-carousel-scroll');
-        const html = creators.map(c => {
-          const hasUnseenStory = validStories.some(s => s.creatorId === c.$id);
-          return `
-            <a href="status.html?creator=${c.$id}" class="story-item">
-              <img class="story-avatar ${hasUnseenStory ? 'has-unseen' : ''}" 
-                   src="${c.profilePic || '/logo-suite/primary/logo-khukuri-512x512.png'}" 
-                   alt="${c.name}"
-                   onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'">
-              <div class="story-name">${escapeHtml((c.name || 'User').substring(0, 12))}</div>
-            </a>
-          `;
-        }).join('');
-
-        // Keep "Your Story" button and append rest
-        const existingYourStory = scroll.querySelector('a[href="upload.html"]');
-        if (existingYourStory) {
-          scroll.innerHTML = existingYourStory.outerHTML + html;
-        }
-      } catch (err) {
-        console.error('Story carousel error:', err);
-      }
-    }
-
-    // Load suggested creators - FIXED WITH PROPER ERROR HANDLING
+    // Load suggested creators - ROBUST VERSION
     async function loadSuggestedCreators() {
       try {
-        console.log('loadSuggestedCreators() called');
+        console.log('[Suggested] Starting load...');
 
-        // Get all creators sorted by followers
         const response = await db.list(APPWRITE_CONFIG.COLLECTIONS.CREATORS, [
           Query.orderDesc('followers'),
           Query.limit(20)
         ]);
 
-        console.log('Creators fetched:', response.documents.length);
+        console.log('[Suggested] Got', response.documents.length, 'creators');
 
-        if (!response.documents || response.documents.length === 0) {
-          console.log('No creators found - hiding banner');
-          document.getElementById('suggested-banner').classList.add('hidden');
-          return;
-        }
-
-        // Filter out current user if logged in
-        let creators = response.documents;
+        let creators = response.documents || [];
+        
         if (MY_USER_ID) {
           creators = creators.filter(c => c.$id !== MY_USER_ID);
         }
 
-        // Take first 6
         creators = creators.slice(0, 6);
 
         if (creators.length === 0) {
-          console.log('No other creators after filtering - hiding banner');
+          console.log('[Suggested] No creators to show');
           document.getElementById('suggested-banner').classList.add('hidden');
           return;
         }
-
-        console.log('Rendering', creators.length, 'suggested creators');
 
         const scroll = document.getElementById('suggested-scroll');
         const html = creators.map(creator => `
@@ -648,14 +566,12 @@
         `).join('');
 
         scroll.innerHTML = html;
-        console.log('Suggested creators rendered successfully');
-
-        // Make banner visible
+        console.log('[Suggested] Rendered successfully');
         document.getElementById('suggested-banner').classList.remove('hidden');
       } catch (err) {
-        console.error('Suggested creators error:', err);
-        // Don't hide on error - show empty state instead
-        document.getElementById('suggested-scroll').innerHTML = '<div style="text-align:center; color:#666; padding:20px;">Unable to load suggestions</div>';
+        console.error('[Suggested] Error:', err);
+        const scroll = document.getElementById('suggested-scroll');
+        scroll.innerHTML = '<div class="loading" style="padding: 20px;">Unable to load</div>';
       }
     }
 
@@ -689,15 +605,19 @@
       }
     }
 
-    // Load videos feed
+    // Load videos feed - FIXED WITH ERROR HANDLING
     async function loadVideos() {
       try {
+        console.log('[Videos] Loading from offset', lastOffset);
+
         const response = await db.list(APPWRITE_CONFIG.COLLECTIONS.REELS, [
           Query.equal('isDeleted', false),
           Query.orderDesc('uploadedAt'),
           Query.offset(lastOffset),
           Query.limit(10)
         ]);
+
+        console.log('[Videos] Got', response.documents.length, 'reels');
 
         if (response.documents.length === 0 && lastOffset === 0) {
           document.getElementById('feed').innerHTML = '<div class="loading">No videos yet. Follow creators to see their content!</div>';
@@ -709,8 +629,19 @@
           feed.innerHTML = '';
         }
 
+        // Load creator data for each reel in parallel
         for (const reel of response.documents) {
-          const creator = await db.get(APPWRITE_CONFIG.COLLECTIONS.CREATORS, reel.creatorId);
+          let creator = null;
+
+          // Try to get creator, but don't fail if it doesn't exist
+          try {
+            creator = await db.get(APPWRITE_CONFIG.COLLECTIONS.CREATORS, reel.creatorId);
+          } catch (err) {
+            console.warn('[Videos] Creator not found:', reel.creatorId);
+            // Skip this reel if creator doesn't exist
+            continue;
+          }
+
           const liked = MY_USER_ID ? await isVideoLiked(reel.$id) : false;
 
           const item = document.createElement('div');
@@ -729,7 +660,7 @@
               <button class="feed-menu" onclick="showMoreOptions('${reel.$id}')">⋮</button>
             </div>
             <div class="feed-video" onclick="window.location.href='./video-modal.html?reelId=${reel.$id}'">
-              <video src="${reel.videoUrl}" muted playsinline></video>
+              ${reel.thumbnail ? `<img src="${reel.thumbnail}" alt="${escapeHtml(reel.title || '')}">` : `<video src="${reel.videoUrl}" muted playsinline></video>`}
             </div>
             <div class="feed-actions">
               <button class="action-btn ${liked ? 'liked' : ''}" id="like-${reel.$id}" onclick="toggleLike('${reel.$id}', this)">
@@ -748,8 +679,10 @@
 
         lastOffset += response.documents.length;
         isLoadingMore = false;
+        console.log('[Videos] Loaded successfully');
       } catch (err) {
-        console.error('Load videos error:', err);
+        console.error('[Videos] Error:', err);
+        isLoadingMore = false;
       }
     }
 
@@ -840,36 +773,35 @@
     // Initialize
     async function init() {
       try {
+        console.log('[Init] Starting...');
         await session.refresh();
         
         if (session.isLoggedIn()) {
           MY_USER_ID = session.getUserId();
+          console.log('[Init] User:', MY_USER_ID);
           lastSeenTracker.init(MY_USER_ID);
-          
-          // Wait for session to be fully ready
           await new Promise(resolve => setTimeout(resolve, 100));
-          
-          console.log('User logged in as:', MY_USER_ID);
         }
 
         setupDrawer();
-        
-        // Load all content in parallel
-        await Promise.all([
-          loadStoryCarousel(),
-          loadSuggestedCreators(),  // This now has proper error handling
+        console.log('[Init] Drawer ready');
+
+        // Load all in parallel - but they must complete independently
+        await Promise.allSettled([
+          loadSuggestedCreators(),
           loadVideos()
         ]);
 
+        console.log('[Init] Complete');
         setupInfiniteScroll();
       } catch (err) {
-        console.error('Init error:', err);
+        console.error('[Init] Fatal error:', err);
         setupDrawer();
-        loadVideos();
+        await loadVideos();
       }
     }
 
-    // Start initialization when DOM is ready
+    // Start
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', init);
     } else {
