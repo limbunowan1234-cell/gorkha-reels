@@ -243,12 +243,18 @@
         }
 
         const VERIFIED = new Set();
+        const CREATORS_MAP = {};
         const uniqueCreatorIds = [...new Set(reels.documents.map(r => r.creatorId))];
         try {
           const creatorDocs = await Promise.all(
             uniqueCreatorIds.map(id => db.get(APPWRITE_CONFIG.COLLECTIONS.CREATORS, id).catch(() => null))
           );
-          creatorDocs.forEach(c => { if (c && c.isVerified) VERIFIED.add(c.$id); });
+          creatorDocs.forEach(c => { 
+            if (c) {
+              CREATORS_MAP[c.$id] = c;
+              if (c.isVerified) VERIFIED.add(c.$id); 
+            }
+          });
         } catch (e) {}
 
         const feed = document.getElementById('feed');
@@ -256,14 +262,17 @@
         reels.documents.forEach(reel => {
           const isOwner = MY_USER_ID && MY_USER_ID === reel.creatorId;
           const isVerified = VERIFIED.has(reel.creatorId);
+          const creator = CREATORS_MAP[reel.creatorId] || {};
+          const creatorName = creator.name || reel.creatorName || 'Creator';
+          const creatorProfilePic = creator.profilePic || reel.creatorProfilePic || '/logo-suite/primary/logo-khukuri-512x512.png';
           const post = document.createElement('div');
           post.className = 'post';
           post.innerHTML = `
             <div class="post-header">
               <div class="creator-avatar">
-                <img src="${(reel.creatorProfilePic || '/logo-suite/primary/logo-khukuri-512x512.png') + '?t=' + Date.now()}" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'">
+                <img src="${creatorProfilePic + '?t=' + Date.now()}" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'">
               </div>
-              <div class="creator-name">${escapeHtml(reel.creatorName || 'Creator')}${isVerified ? ' <span class="verified-badge">✓</span>' : ''}</div>
+              <div class="creator-name">${escapeHtml(creatorName)}${isVerified ? ' <span class="verified-badge">✓</span>' : ''}</div>
               <button class="post-more">⋯</button>
             </div>
             <div class="post-thumbnail">
