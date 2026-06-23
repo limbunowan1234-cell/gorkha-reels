@@ -303,7 +303,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
   <script src="js/appwrite-config.js"></script>
-  <script src="last-seen-tracker.js"></script>
+  <script src="js/last-seen-tracker.js"></script>
 
   <script>
     let currentStories = [];
@@ -322,7 +322,15 @@
       }
 
       currentUserId = session.getUserId();
-      lastSeenTracker.init(currentUserId);
+
+      // Guard: lastSeenTracker may not be available
+      try {
+        if (typeof lastSeenTracker !== 'undefined' && lastSeenTracker.init) {
+          lastSeenTracker.init(currentUserId);
+        }
+      } catch (e) {
+        console.warn('[Init] lastSeenTracker unavailable:', e.message);
+      }
 
       const params = new URLSearchParams(window.location.search);
       const creatorId = params.get('creator');
@@ -381,13 +389,13 @@
 
     async function loadFollowedCreatorStories() {
       try {
-        // Get creators user follows
+        // Get creators user follows (where you are the follower)
         const followers = await db.list('followers', [
-          Query.equal('followingId', currentUserId),
+          Query.equal('followerId', currentUserId),
           Query.limit(100)
         ]);
 
-        const creatorIds = followers.documents.map(f => f.followerId);
+        const creatorIds = followers.documents.map(f => f.followingId);
 
         if (creatorIds.length === 0) {
           currentStories = [];
@@ -701,7 +709,14 @@
     }
 
     function goBack() {
-      lastSeenTracker.stopTracking();
+      // Guard for cleanup
+      try {
+        if (typeof lastSeenTracker !== 'undefined' && lastSeenTracker.stopTracking) {
+          lastSeenTracker.stopTracking();
+        }
+      } catch (e) {
+        console.warn('[Cleanup] lastSeenTracker unavailable:', e.message);
+      }
       window.location.href = 'index.html';
     }
 
