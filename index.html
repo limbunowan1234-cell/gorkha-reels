@@ -133,7 +133,7 @@
 
   <div class="category-tabs-section" id="category-tabs-section">
     <div class="category-tabs-scroll">
-      <button class="category-tab active" onclick="filterByCategory('all', event)">All</button>
+      <button class="category-tab active" onclick="filterByCategory('all', event)">All + Common</button>
       <button class="category-tab" onclick="filterByCategory('musician', event)">🎵 Musicians</button>
       <button class="category-tab" onclick="filterByCategory('artist', event)">🎨 Artists</button>
       <button class="category-tab" onclick="filterByCategory('guide', event)">🧗 Guides</button>
@@ -227,30 +227,66 @@
       try {
         const [reelsResponse, postsResponse] = await Promise.all([ db.list(APPWRITE_CONFIG.COLLECTIONS.REELS, [ Query.equal('isDeleted', false), Query.orderDesc('uploadedAt'), Query.limit(20) ]), db.list('posts', [ Query.equal('isDeleted', false), Query.orderDesc('createdAt'), Query.limit(20) ]) ]);
         let allContent = [];
+        
+        // Load reels with creator info
         for (const reel of reelsResponse.documents) {
           let creator = null;
-          try { creator = await db.get(APPWRITE_CONFIG.COLLECTIONS.CREATORS, reel.creatorId); } catch (err) { continue; }
-          if (currentFilter !== 'all' && creator.category !== currentFilter) continue;
+          try { 
+            creator = await db.get(APPWRITE_CONFIG.COLLECTIONS.CREATORS, reel.creatorId); 
+          } catch (err) { 
+            continue; // Skip if creator not found
+          }
+          
+          // Filter by creator category (all content inherits creator's category)
+          // If creator has no category, only show in 'all' filter
+          if (currentFilter !== 'all') {
+            if (!creator.category || creator.category !== currentFilter) {
+              continue; // Skip this reel
+            }
+          }
+          
           allContent.push({ type: 'reel', data: reel, creator: creator, timestamp: new Date(reel.uploadedAt) });
         }
+        
+        // Load posts with creator info
         for (const post of postsResponse.documents) {
           let creator = null;
-          try { creator = await db.get(APPWRITE_CONFIG.COLLECTIONS.CREATORS, post.creatorId); } catch (err) { continue; }
-          if (currentFilter !== 'all' && creator.category !== currentFilter) continue;
+          try { 
+            creator = await db.get(APPWRITE_CONFIG.COLLECTIONS.CREATORS, post.creatorId); 
+          } catch (err) { 
+            continue; // Skip if creator not found
+          }
+          
+          // Filter by creator category (all content inherits creator's category)
+          // If creator has no category, only show in 'all' filter
+          if (currentFilter !== 'all') {
+            if (!creator.category || creator.category !== currentFilter) {
+              continue; // Skip this post
+            }
+          }
+          
           allContent.push({ type: 'post', data: post, creator: creator, timestamp: new Date(post.createdAt) });
         }
+        
+        // Sort all content by timestamp (newest first)
         allContent.sort((a, b) => b.timestamp - a.timestamp);
+        
         const paginatedContent = allContent.slice(lastOffset, lastOffset + 10);
-        if (paginatedContent.length === 0 && lastOffset === 0) { document.getElementById('feed').innerHTML = '<div class="loading">No content yet. Follow creators to see their reels and posts!</div>'; return; }
+        if (paginatedContent.length === 0 && lastOffset === 0) { 
+          document.getElementById('feed').innerHTML = '<div class="loading">No content yet. Follow creators to see their reels and posts!</div>'; 
+          return; 
+        }
+        
         const feed = document.getElementById('feed');
         if (lastOffset === 0) feed.innerHTML = '';
+        
         for (const item of paginatedContent) {
           if (item.type === 'reel') {
             const reel = item.data, creator = item.creator;
             const liked = MY_USER_ID ? await isVideoLiked(reel.$id) : false;
             const reelItem = document.createElement('div');
             reelItem.className = 'feed-item';
-            reelItem.innerHTML = `<div class="feed-header"><div class="feed-creator-info"><img class="feed-avatar" src="${creator.profilePic || '/logo-suite/primary/logo-khukuri-512x512.png'}" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'" onclick="window.location='creator-profile.html?creatorId=${creator.$id}'"><div class="feed-creator-meta"><div class="feed-creator-name" onclick="window.location='creator-profile.html?creatorId=${creator.$id}'">${escapeHtml(creator.name || 'User')}${creator.verified ? ' ✓' : ''}</div><div class="feed-time">${creator.category ? '📌 ' + creator.category : ''} • ${getTimeAgo(new Date(reel.uploadedAt))}</div></div></div><button class="feed-menu" onclick="showMoreOptions('${reel.$id}')">⋮</button></div><div class="feed-video" onclick="window.location.href='./video-modal.html?reelId=${reel.$id}'"><video src="${reel.videoUrl}" muted playsinline></video></div><div class="feed-actions"><button class="action-btn ${liked ? 'liked' : ''}" id="like-${reel.$id}" onclick="toggleLike('${reel.$id}', this, 'reel')">${liked ? '❤️' : '🤍'}</button><button class="action-btn" onclick="window.location.href='./video-modal.html?reelId=${reel.$id}#comments'">💬</button><button class="action-btn" onclick="shareContent('${reel.$id}', 'reel')">📤</button></div><div class="feed-stats"><span id="likes-${reel.$id}">${reel.likes || 0} likes</span> • <span id="views-${reel.$id}">${reel.views || 0} views</span></div>`;
+            reelItem.innerHTML = `<div class="feed-header"><div class="feed-creator-info"><img class="feed-avatar" src="${creator.profilePic || '/logo-suite/primary/logo-khukuri-512x512.png'}" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'" onclick="window.location='creator-profile.html?creatorId=${creator.$id}'"><div class="feed-creator-meta"><div class="feed-creator-name" onclick="window.location='creator-profile.html?creatorId=${creator.$id}'">${escapeHtml(creator.name || 'User')}${creator.isVerified ? ' ✓' : ''}</div><div class="feed-time">${creator.category ? '📌 ' + creator.category : 'Common Zone'} • ${getTimeAgo(new Date(reel.uploadedAt))}</div></div></div><button class="feed-menu" onclick="showMoreOptions('${reel.$id}')">⋮</button></div><div class="feed-video" onclick="window.location.href='./video-modal.html?reelId=${reel.$id}'"><video src="${reel.videoUrl}" muted playsinline></video></div><div class="feed-actions"><button class="action-btn ${liked ? 'liked' : ''}" id="like-${reel.$id}" onclick="toggleLike('${reel.$id}', this, 'reel')">${liked ? '❤️' : '🤍'}</button><button class="action-btn" onclick="window.location.href='./video-modal.html?reelId=${reel.$id}#comments'">💬</button><button class="action-btn" onclick="shareContent('${reel.$id}', 'reel')">📤</button></div><div class="feed-stats"><span id="likes-${reel.$id}">${reel.likes || 0} likes</span> • <span id="views-${reel.$id}">${reel.views || 0} views</span></div>`;
             feed.appendChild(reelItem);
           } else if (item.type === 'post') {
             const post = item.data, creator = item.creator;
@@ -259,13 +295,17 @@
             try { hashtags = JSON.parse(post.hashtags || '[]'); } catch (e) {}
             const postItem = document.createElement('div');
             postItem.className = 'feed-item';
-            postItem.innerHTML = `<div class="feed-header"><div class="feed-creator-info"><img class="feed-avatar" src="${creator.profilePic || '/logo-suite/primary/logo-khukuri-512x512.png'}" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'" onclick="window.location='creator-profile.html?creatorId=${creator.$id}'"><div class="feed-creator-meta"><div class="feed-creator-name" onclick="window.location='creator-profile.html?creatorId=${creator.$id}'">${escapeHtml(creator.name || 'User')}${creator.verified ? ' ✓' : ''}</div><div class="feed-time">${creator.category ? '📌 ' + creator.category : ''} • ${getTimeAgo(new Date(post.createdAt))}</div></div></div><button class="feed-menu" onclick="showMoreOptions('${post.$id}')">⋮</button></div><div class="feed-text-content"><p>${escapeHtml(post.content)}</p>${hashtags.length > 0 ? `<div class="feed-hashtags">${hashtags.map(tag => `<a href="#" onclick="event.preventDefault(); alert('Hashtag search coming soon')">${tag}</a>`).join(' ')}</div>` : ''}</div><div class="feed-actions"><button class="action-btn ${liked ? 'liked' : ''}" id="like-${post.$id}" onclick="toggleLike('${post.$id}', this, 'post')">${liked ? '❤️' : '🤍'}</button><button class="action-btn" onclick="alert('Comments coming soon')">💬</button><button class="action-btn" onclick="shareContent('${post.$id}', 'post')">📤</button></div><div class="feed-stats"><span id="likes-${post.$id}">${post.likes || 0} likes</span> • <span id="shares-${post.$id}">${post.shares || 0} shares</span></div>`;
+            postItem.innerHTML = `<div class="feed-header"><div class="feed-creator-info"><img class="feed-avatar" src="${creator.profilePic || '/logo-suite/primary/logo-khukuri-512x512.png'}" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'" onclick="window.location='creator-profile.html?creatorId=${creator.$id}'"><div class="feed-creator-meta"><div class="feed-creator-name" onclick="window.location='creator-profile.html?creatorId=${creator.$id}'">${escapeHtml(creator.name || 'User')}${creator.isVerified ? ' ✓' : ''}</div><div class="feed-time">${creator.category ? '📌 ' + creator.category : 'Common Zone'} • ${getTimeAgo(new Date(post.createdAt))}</div></div></div><button class="feed-menu" onclick="showMoreOptions('${post.$id}')">⋮</button></div><div class="feed-text-content"><p>${escapeHtml(post.content)}</p>${hashtags.length > 0 ? `<div class="feed-hashtags">${hashtags.map(tag => `<a href="#" onclick="event.preventDefault(); alert('Hashtag search coming soon')">${tag}</a>`).join(' ')}</div>` : ''}</div><div class="feed-actions"><button class="action-btn ${liked ? 'liked' : ''}" id="like-${post.$id}" onclick="toggleLike('${post.$id}', this, 'post')">${liked ? '❤️' : '🤍'}</button><button class="action-btn" onclick="alert('Comments coming soon')">💬</button><button class="action-btn" onclick="shareContent('${post.$id}', 'post')">📤</button></div><div class="feed-stats"><span id="likes-${post.$id}">${post.likes || 0} likes</span> • <span id="shares-${post.$id}">${post.shares || 0} shares</span></div>`;
             feed.appendChild(postItem);
           }
         }
+        
         lastOffset += paginatedContent.length;
         isLoadingMore = false;
-      } catch (err) { isLoadingMore = false; }
+      } catch (err) { 
+        console.error('Load videos error:', err);
+        isLoadingMore = false; 
+      }
     }
 
     function getTimeAgo(date) { const seconds = Math.floor((new Date() - date) / 1000), minutes = Math.floor(seconds / 60), hours = Math.floor(minutes / 60), days = Math.floor(hours / 24); if (seconds < 60) return 'just now'; if (minutes < 60) return `${minutes}m ago`; if (hours < 24) return `${hours}h ago`; if (days < 7) return `${days}d ago`; return date.toLocaleDateString(); }
