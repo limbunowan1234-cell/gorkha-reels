@@ -48,36 +48,13 @@
     .profile-name-lg { font-size: 16px; font-weight: 700; margin-bottom: 2px; }
     .verified-badge { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; background: #0284c7; border-radius: 50%; color: #fff; font-size: 10px; margin-left: 4px; vertical-align: middle; }
     .profile-bio { font-size: 14px; color: #888; line-height: 1.4; }
+    .profile-category { font-size: 13px; color: #0B5E6B; margin-top: 6px; font-weight: 600; }
 
     .profile-actions { display: flex; gap: 8px; margin-bottom: 24px; }
     .action-btn-secondary, .action-btn-primary { flex: 1; padding: 9px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: opacity 0.15s; }
     .action-btn-secondary { background: #1a1a1a; color: #fff; border: 1px solid #2d2d2d; }
     .action-btn-primary { background: #0B5E6B; color: #fff; }
     .action-btn-secondary:active, .action-btn-primary:active { opacity: 0.7; }
-
-    /* ===== ANALYTICS SECTION ===== */
-    .analytics-section { margin-bottom: 24px; }
-    .section-title { font-size: 16px; font-weight: 700; margin-bottom: 12px; color: #0B5E6B; font-family: 'Space Grotesk', sans-serif; }
-
-    .analytics-card { background: linear-gradient(135deg, #1a1a1a, #0d2d3a); border: 1px solid #2d2d2d; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
-
-    /* Views Chart */
-    .chart-container { position: relative; height: 220px; }
-    #viewsChart { max-height: 200px; }
-
-    /* Stats Grid */
-    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .stat-card { background: linear-gradient(135deg, #1a1a1a, #0d2d3a); border: 1px solid #2d2d2d; border-radius: 8px; padding: 14px; text-align: center; }
-    .stat-card-num { font-size: 24px; font-weight: 700; color: #0B5E6B; margin-bottom: 4px; }
-    .stat-card-label { font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
-
-    /* Top Video Card */
-    .top-video-card { background: linear-gradient(135deg, #1a1a1a, #0d2d3a); border: 1px solid #2d2d2d; border-radius: 12px; padding: 12px; cursor: pointer; transition: all 0.2s; }
-    .top-video-card:active { transform: scale(0.98); border-color: #0B5E6B; }
-    .top-video-thumb { width: 100%; aspect-ratio: 16/9; background: #0f0f0f; border-radius: 8px; overflow: hidden; margin-bottom: 10px; }
-    .top-video-thumb img { width: 100%; height: 100%; object-fit: cover; }
-    .top-video-title { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
-    .top-video-stats { font-size: 12px; color: #888; }
 
     .earnings-strip { display: flex; align-items: center; justify-content: space-between; background: linear-gradient(135deg, #1a1a1a, #20190c); border: 1px solid #2d2d2d; border-radius: 12px; padding: 14px 16px; margin-bottom: 24px; }
     .earnings-left { display: flex; flex-direction: column; gap: 2px; }
@@ -118,8 +95,9 @@
     .sheet-content { padding: 20px 16px; }
     .edit-section { margin-bottom: 20px; }
     .edit-section label { display: block; font-size: 13px; font-weight: 600; color: #888; margin-bottom: 8px; text-transform: uppercase; }
-    .edit-section input, .edit-section textarea { width: 100%; padding: 10px; background: #2d2d2d; color: #fff; border: 1px solid #3d3d3d; border-radius: 8px; font-size: 15px; font-family: inherit; }
+    .edit-section input, .edit-section textarea, .edit-section select { width: 100%; padding: 10px; background: #2d2d2d; color: #fff; border: 1px solid #3d3d3d; border-radius: 8px; font-size: 15px; font-family: inherit; }
     .edit-section textarea { resize: vertical; }
+    .edit-section select option { background: #1c1c1e; }
     .pic-preview-container { display: flex; flex-direction: column; align-items: center; gap: 12px; }
     .pic-preview { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid #0B5E6B; }
     .upload-btn { padding: 9px 16px; background: #0B5E6B; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
@@ -190,7 +168,6 @@
   <div class="dashboard-container">
     <div class="profile-top">
       <img id="creator-avatar" src="/logo-suite/primary/logo-khukuri-512x512.png" alt="Profile" class="profile-avatar-lg" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'">
-
       <div class="profile-stats-row">
         <div class="stat-cell"><span class="stat-num" id="total-reels">0</span><span class="stat-lbl">Videos</span></div>
         <div class="stat-cell"><span class="stat-num" id="followers-count">0</span><span class="stat-lbl">Followers</span></div>
@@ -200,6 +177,7 @@
 
     <div class="profile-identity">
       <div class="profile-name-lg" id="creator-name">Loading...</div>
+      <div class="profile-category" id="creator-category"></div>
       <div class="profile-bio" id="creator-bio">No bio yet</div>
     </div>
 
@@ -207,11 +185,6 @@
       <button class="action-btn-secondary" id="edit-profile-btn">Edit Profile</button>
       <button class="action-btn-primary" id="upload-btn">+ Upload</button>
     </div>
-
-    <!-- Analytics Button -->
-    <button class="action-btn-primary" id="analytics-btn" style="width: 100%; margin-bottom: 24px; padding: 12px;">📊 View Detailed Analytics</button>
-
-    <!-- Analytics button above, detailed view on analytics.html -->
 
     <div class="earnings-strip">
       <div class="earnings-left">
@@ -225,14 +198,12 @@
     <div id="my-reels-container"><div class="loading"><div class="spinner"></div></div></div>
   </div>
 
-  <!-- Video menu -->
   <div class="video-menu-backdrop" id="video-menu-backdrop"></div>
   <div class="video-menu" id="video-menu">
     <div class="video-menu-items" id="video-menu-items"></div>
     <button class="video-menu-cancel" id="video-menu-cancel">Cancel</button>
   </div>
 
-  <!-- Edit Profile Sheet -->
   <div class="edit-profile-backdrop" id="edit-profile-backdrop"></div>
   <div class="edit-profile-sheet" id="edit-profile-sheet">
     <div class="sheet-header">
@@ -253,6 +224,18 @@
         <input type="text" id="edit-name" placeholder="Your name" maxlength="50">
       </div>
       <div class="edit-section">
+        <label for="edit-category">Category</label>
+        <select id="edit-category">
+          <option value="">-- Select Category (Optional) --</option>
+          <option value="musician">🎵 Musician</option>
+          <option value="artist">🎨 Artist</option>
+          <option value="guide">🧗 Tour Guide</option>
+          <option value="business">🏪 Business Owner</option>
+          <option value="student">📚 Student</option>
+        </select>
+        <small style="color: #888; margin-top: 4px; display: block;">Leave blank to appear in Common zone</small>
+      </div>
+      <div class="edit-section">
         <label for="edit-bio">Bio</label>
         <textarea id="edit-bio" placeholder="Tell your story..." maxlength="150" rows="3"></textarea>
       </div>
@@ -262,7 +245,6 @@
     </div>
   </div>
 
-  <!-- CROP MODAL -->
   <div class="crop-modal-backdrop" id="crop-modal-backdrop">
     <div class="crop-modal">
       <div class="crop-modal-header">Adjust Photo</div>
@@ -335,6 +317,11 @@
       setTimeout(() => toast.remove(), 3000);
     }
 
+    function getCategoryEmoji(cat) {
+      const map = { 'musician': '🎵', 'artist': '🎨', 'guide': '🧗', 'business': '🏪', 'student': '📚' };
+      return (map[cat] || '') + ' ' + (cat ? cat.charAt(0).toUpperCase() + cat.slice(1) : '');
+    }
+
     async function init() {
       await session.refresh();
       if (!session.isLoggedIn()) { window.location = 'login.html'; return; }
@@ -352,7 +339,6 @@
       document.getElementById('drawer-logout').onclick = async () => { try { await session.logout(); } catch (e) {} window.location = 'login.html'; };
       document.getElementById('edit-profile-btn').onclick = openEditProfileSheet;
       document.getElementById('upload-btn').onclick = () => window.location = 'upload.html';
-      document.getElementById('analytics-btn').onclick = () => window.location = 'creator-analytics.html';
       document.getElementById('withdraw-btn').onclick = () => showToast('Withdrawal coming soon!');
       document.getElementById('edit-profile-drawer').onclick = openEditProfileSheet;
       document.getElementById('video-menu-cancel').onclick = closeVideoMenu;
@@ -383,6 +369,7 @@
           name: safeName,
           username: baseUsername,
           bio: '',
+          category: '',
           profilePic: '',
           followers: 0,
           totalViews: 0,
@@ -406,6 +393,7 @@
         CREATOR = await getOrCreateCreator(uid);
         document.getElementById('creator-name').innerHTML = escapeHtml(CREATOR.name || 'Creator') + (CREATOR.isVerified ? ' <span class="verified-badge">✓</span>' : '');
         document.getElementById('creator-bio').textContent = CREATOR.bio || 'No bio yet';
+        document.getElementById('creator-category').textContent = CREATOR.category ? getCategoryEmoji(CREATOR.category) : 'Common Zone';
         document.getElementById('creator-avatar').src = CREATOR.profilePic || '/logo-suite/primary/logo-khukuri-512x512.png';
 
         const followers = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [Query.equal('followingId', uid)]);
@@ -421,8 +409,6 @@
         const totalViews = REELS.reduce((s, r) => s + (r.views || 0), 0);
         document.getElementById('total-views').textContent = totalViews;
         document.getElementById('total-earnings').textContent = '₹ ' + (CREATOR.totalEarnings || 0).toFixed(2);
-
-        await loadAnalytics(totalViews);
 
         if (!REELS.length) {
           document.getElementById('my-reels-container').innerHTML = '<div class="empty-state">No videos yet. Start uploading!</div>';
@@ -447,100 +433,6 @@
       } catch (err) {
         console.error('Dashboard load failed:', err);
         document.getElementById('my-reels-container').innerHTML = '<div class="empty-state">Error loading dashboard</div>';
-      }
-    }
-
-    async function loadAnalytics(totalViews) {
-      try {
-        // ===== REAL 7-DAY VIEW TREND =====
-        const chartData = [];
-        const labels = [];
-        const today = new Date();
-        
-        for (let i = 6; i >= 0; i--) {
-          const dayDate = new Date(today);
-          dayDate.setDate(dayDate.getDate() - i);
-          
-          const dayStart = new Date(dayDate.getFullYear(), dayDate.getMonth(), dayDate.getDate());
-          const dayEnd = new Date(dayDate.getFullYear(), dayDate.getMonth(), dayDate.getDate() + 1);
-          
-          const dayStartISO = dayStart.toISOString();
-          const dayEndISO = dayEnd.toISOString();
-          
-          // Sum REAL views from all videos uploaded on this day
-          const dayViews = REELS
-            .filter(r => r.uploadedAt && r.uploadedAt >= dayStartISO && r.uploadedAt < dayEndISO)
-            .reduce((sum, r) => sum + (r.views || 0), 0);
-          
-          chartData.push(dayViews);
-          labels.push(dayDate.toLocaleDateString('en-US', { weekday: 'short' }));
-        }
-
-        // Draw REAL chart
-        const ctx = document.getElementById('viewsChart').getContext('2d');
-        if (viewsChartInstance) viewsChartInstance.destroy();
-        viewsChartInstance = new Chart(ctx, {
-          type: 'line',
-          data: {
-            labels: labels,
-            datasets: [{
-              label: 'Views',
-              data: chartData,
-              borderColor: '#0B5E6B',
-              backgroundColor: 'rgba(11, 94, 107, 0.1)',
-              fill: true,
-              tension: 0.4,
-              pointRadius: 4,
-              pointBackgroundColor: '#0B5E6B',
-              pointBorderColor: '#fff',
-              pointBorderWidth: 2
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-              y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#888' } },
-              x: { grid: { display: false }, ticks: { color: '#888' } }
-            }
-          }
-        });
-
-        // ===== REAL AVG VIEWS =====
-        const avgViews = REELS.length > 0 ? Math.floor(totalViews / REELS.length) : 0;
-        document.getElementById('avg-views').textContent = avgViews;
-
-        // ===== REAL ENGAGEMENT (Likes + Comments) =====
-        const totalLikes = REELS.reduce((s, r) => s + (r.likes || 0), 0);
-        const totalComments = REELS.reduce((s, r) => s + (r.comments || 0), 0);
-        const totalEngagement = totalLikes + totalComments;
-        document.getElementById('total-engagement').textContent = totalEngagement;
-
-        // ===== REAL ENGAGEMENT RATE =====
-        const engagementRate = totalViews > 0 ? ((totalEngagement / totalViews) * 100) : 0;
-        document.getElementById('engagement-rate').textContent = engagementRate.toFixed(1) + '%';
-
-        // ===== REAL ESTIMATED MONTHLY EARNINGS =====
-        // Rate: ₹0.50 per 1000 views
-        const estimatedMonthly = Math.floor((totalViews / 1000) * 0.50);
-        document.getElementById('estimated-earnings').textContent = '₹' + estimatedMonthly;
-
-        // ===== TOP VIDEO (REAL - Most viewed) =====
-        if (REELS.length > 0) {
-          const topReel = REELS.reduce((max, r) => (r.views || 0) > (max.views || 0) ? r : max);
-          const topCard = document.getElementById('top-video-card');
-          topCard.innerHTML = `
-            <div class="top-video-thumb">
-              <img src="${getThumbSrc(topReel)}" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'">
-            </div>
-            <div class="top-video-title">${escapeHtml(topReel.title || 'Untitled')}</div>
-            <div class="top-video-stats">👁️ ${topReel.views || 0} views • ❤️ ${topReel.likes || 0} likes • 💬 ${topReel.comments || 0}</div>
-          `;
-          topCard.onclick = () => window.location = `video-modal.html?reelId=${topReel.$id}`;
-        }
-      } catch (err) {
-        console.error('Analytics load error:', err);
       }
     }
 
@@ -584,6 +476,7 @@
       if (!CREATOR) return;
       document.getElementById('edit-name').value = CREATOR.name || '';
       document.getElementById('edit-bio').value = CREATOR.bio || '';
+      document.getElementById('edit-category').value = CREATOR.category || '';
       document.getElementById('profile-pic-preview').src = CREATOR.profilePic || '/logo-suite/primary/logo-khukuri-512x512.png';
       SELECTED_PROFILE_PIC = null;
       document.getElementById('edit-profile-sheet').classList.add('open');
@@ -606,6 +499,7 @@
     async function saveProfileChanges() {
       const name = document.getElementById('edit-name').value.trim();
       const bio = document.getElementById('edit-bio').value.trim();
+      const category = document.getElementById('edit-category').value.trim();
       if (!name) { alert('Name is required'); return; }
 
       const saveBtn = document.getElementById('save-profile-btn');
@@ -645,9 +539,10 @@
           }
         }
 
-        await db.update(APPWRITE_CONFIG.COLLECTIONS.CREATORS, session.getUserId(), { name, bio, profilePic: profilePicUrl });
+        await db.update(APPWRITE_CONFIG.COLLECTIONS.CREATORS, session.getUserId(), { name, bio, category, profilePic: profilePicUrl });
         CREATOR.name = name;
         CREATOR.bio = bio;
+        CREATOR.category = category;
         CREATOR.profilePic = profilePicUrl;
         showToast('Profile updated!');
         closeEditProfileSheet();
