@@ -52,7 +52,6 @@
 
     .header-spacer { width: 36px; }
 
-    /* Tab Toggle */
     .tab-container {
       display: flex;
       gap: 0;
@@ -77,9 +76,7 @@
       transition: color 0.2s;
     }
 
-    .tab.active {
-      color: #0B5E6B;
-    }
+    .tab.active { color: #0B5E6B; }
 
     .tab.active::after {
       content: '';
@@ -92,7 +89,6 @@
       border-radius: 1.5px;
     }
 
-    /* Reel Upload Section */
     #step-pick {
       display: flex;
       flex-direction: column;
@@ -180,14 +176,8 @@
       cursor: pointer;
     }
 
-    .details-form {
-      padding: 20px 16px;
-      flex: 1;
-    }
-
-    .form-field {
-      margin-bottom: 18px;
-    }
+    .details-form { padding: 20px 16px; flex: 1; }
+    .form-field { margin-bottom: 18px; }
 
     .form-label {
       display: block;
@@ -218,11 +208,7 @@
     .form-textarea { resize: none; }
     .form-select option { background: #1a1a1a; }
 
-    .form-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
     .hashtag-section {
       background: #1a1a1a;
@@ -242,12 +228,7 @@
       align-items: center;
     }
 
-    .suggested-hashtags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-bottom: 10px;
-    }
+    .suggested-hashtags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
 
     .hashtag-btn {
       background: #2d2d2d;
@@ -260,16 +241,8 @@
       transition: all 0.2s;
     }
 
-    .hashtag-btn:hover {
-      border-color: #0B5E6B;
-      color: #0B5E6B;
-    }
-
-    .hashtag-btn.active {
-      background: #0B5E6B;
-      border-color: #0B5E6B;
-      color: #fff;
-    }
+    .hashtag-btn:hover { border-color: #0B5E6B; color: #0B5E6B; }
+    .hashtag-btn.active { background: #0B5E6B; border-color: #0B5E6B; color: #fff; }
 
     .selected-hashtags {
       display: flex;
@@ -300,11 +273,7 @@
       padding: 0;
     }
 
-    /* Story Upload */
-    .story-section {
-      padding: 20px 16px;
-      flex: 1;
-    }
+    .story-section { padding: 20px 16px; flex: 1; }
 
     .story-media-preview {
       position: relative;
@@ -321,15 +290,8 @@
       transition: all 0.2s;
     }
 
-    .story-media-preview:hover {
-      border-color: #0B5E6B;
-      background: #1f1f1f;
-    }
-
-    .story-media-preview.has-media {
-      border: none;
-      cursor: default;
-    }
+    .story-media-preview:hover { border-color: #0B5E6B; background: #1f1f1f; }
+    .story-media-preview.has-media { border: none; cursor: default; }
 
     .story-media-preview img,
     .story-media-preview video {
@@ -338,25 +300,10 @@
       object-fit: cover;
     }
 
-    .story-upload-placeholder {
-      text-align: center;
-      color: #666;
-    }
-
-    .story-upload-icon {
-      font-size: 48px;
-      margin-bottom: 12px;
-    }
-
-    .story-upload-text {
-      font-size: 14px;
-      margin-bottom: 4px;
-    }
-
-    .story-upload-subtext {
-      font-size: 12px;
-      color: #555;
-    }
+    .story-upload-placeholder { text-align: center; color: #666; }
+    .story-upload-icon { font-size: 48px; margin-bottom: 12px; }
+    .story-upload-text { font-size: 14px; margin-bottom: 4px; }
+    .story-upload-subtext { font-size: 12px; color: #555; }
 
     .story-remove-btn {
       position: absolute;
@@ -379,9 +326,7 @@
       z-index: 10;
     }
 
-    .story-media-preview:hover .story-remove-btn {
-      opacity: 1;
-    }
+    .story-media-preview:hover .story-remove-btn { opacity: 1; }
 
     .edit-media-btn {
       position: absolute;
@@ -404,16 +349,9 @@
       z-index: 10;
     }
 
-    .story-media-preview:hover .edit-media-btn {
-      opacity: 1;
-    }
+    .story-media-preview:hover .edit-media-btn { opacity: 1; }
 
-    .char-count {
-      font-size: 11px;
-      color: #737373;
-      text-align: right;
-      margin-top: 4px;
-    }
+    .char-count { font-size: 11px; color: #737373; text-align: right; margin-top: 4px; }
 
     .info-box {
       background: rgba(11, 94, 107, 0.1);
@@ -451,7 +389,6 @@
     #post-btn:active, #story-post-btn:active { transform: scale(0.98); }
     #post-btn:disabled, #story-post-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    /* IMAGE EDITOR MODAL */
     .image-editor-modal {
       position: fixed;
       inset: 0;
@@ -462,9 +399,7 @@
       animation: slideUp 0.3s ease;
     }
 
-    .image-editor-modal.open {
-      display: flex;
-    }
+    .image-editor-modal.open { display: flex; }
 
     @keyframes slideUp {
       from { transform: translateY(100%); }
@@ -480,11 +415,7 @@
       border-bottom: 1px solid #2d2d2d;
     }
 
-    .editor-title {
-      font-size: 16px;
-      font-weight: 700;
-      color: #fff;
-    }
+    .editor-title { font-size: 16px; font-weight: 700; color: #fff; }
 
     .editor-close {
       background: none;
@@ -510,11 +441,7 @@
       position: relative;
     }
 
-    #editor-canvas {
-      max-width: 100%;
-      max-height: 100%;
-      touch-action: none;
-    }
+    #editor-canvas { max-width: 100%; max-height: 100%; touch-action: none; }
 
     .editor-controls {
       background: #1a1a1a;
@@ -525,17 +452,8 @@
       gap: 12px;
     }
 
-    .control-group {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .control-label {
-      font-size: 12px;
-      color: #888;
-      font-weight: 600;
-    }
+    .control-group { display: flex; flex-direction: column; gap: 6px; }
+    .control-label { font-size: 12px; color: #888; font-weight: 600; }
 
     .control-slider {
       width: 100%;
@@ -566,11 +484,7 @@
       border: none;
     }
 
-    .control-buttons {
-      display: flex;
-      gap: 8px;
-      justify-content: center;
-    }
+    .control-buttons { display: flex; gap: 8px; justify-content: center; }
 
     .control-btn {
       width: 44px;
@@ -587,9 +501,7 @@
       transition: all 0.2s;
     }
 
-    .control-btn:active {
-      background: #0B5E6B;
-    }
+    .control-btn:active { background: #0B5E6B; }
 
     .editor-actions {
       display: grid;
@@ -611,15 +523,8 @@
       transition: all 0.2s;
     }
 
-    .editor-btn.apply {
-      background: #0B5E6B;
-      border-color: #0B5E6B;
-      grid-column: 2;
-    }
-
-    .editor-btn:active {
-      transform: scale(0.96);
-    }
+    .editor-btn.apply { background: #0B5E6B; border-color: #0B5E6B; grid-column: 2; }
+    .editor-btn:active { transform: scale(0.96); }
   </style>
 </head>
 <body>
@@ -630,13 +535,11 @@
     <div class="header-spacer"></div>
   </div>
 
-  <!-- Tab Toggle -->
   <div class="tab-container">
     <button class="tab active" id="reel-tab" onclick="switchTab('reel')">🎬 Reel</button>
     <button class="tab" id="story-tab" onclick="switchTab('story')">📱 Story</button>
   </div>
 
-  <!-- REEL UPLOAD SECTION -->
   <div id="step-pick">
     <div id="dropzone">
       <div class="dropzone-icon">🎬</div>
@@ -709,7 +612,6 @@
     </div>
   </div>
 
-  <!-- STORY UPLOAD SECTION -->
   <div id="step-story">
     <div class="story-section">
       <div class="story-media-preview" id="storyMediaPreview" onclick="document.getElementById('storyMediaInput').click()">
@@ -746,7 +648,6 @@
     </div>
   </div>
 
-  <!-- IMAGE EDITOR MODAL -->
   <div class="image-editor-modal" id="imageEditorModal">
     <div class="editor-header">
       <span class="editor-title">Edit Image</span>
@@ -809,7 +710,6 @@
     let selectedStoryMediaType = null;
     let storyPrivacy = 'followers';
 
-    // Image Editor State
     let editorState = {
       originalImage: null,
       canvas: null,
@@ -866,7 +766,7 @@
       const reader = new FileReader();
       reader.onload = (e) => {
         const preview = document.getElementById('storyMediaPreview');
-        
+
         if (selectedStoryMediaType === 'image') {
           preview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
           document.getElementById('storyEditBtn').style.display = 'flex';
@@ -874,7 +774,7 @@
           preview.innerHTML = `<video src="${e.target.result}"></video>`;
           document.getElementById('storyEditBtn').style.display = 'none';
         }
-        
+
         preview.classList.add('has-media');
         document.getElementById('storyRemoveBtn').style.display = 'flex';
       };
@@ -885,7 +785,7 @@
       event?.stopPropagation?.();
       selectedStoryMedia = null;
       selectedStoryMediaType = null;
-      
+
       const preview = document.getElementById('storyMediaPreview');
       preview.innerHTML = `
         <div class="story-upload-placeholder">
@@ -900,10 +800,9 @@
       document.getElementById('storyEditBtn').style.display = 'none';
     }
 
-    // IMAGE EDITOR FUNCTIONS
     function openImageEditor(event) {
       event?.stopPropagation?.();
-      
+
       if (!selectedStoryMedia || selectedStoryMediaType !== 'image') {
         alert('Please select an image first');
         return;
@@ -921,7 +820,7 @@
           document.getElementById('brightness-slider').value = 100;
           document.getElementById('contrast-slider').value = 100;
           document.getElementById('saturation-slider').value = 100;
-          
+
           initializeCanvas();
           document.getElementById('imageEditorModal').classList.add('open');
         };
@@ -939,15 +838,12 @@
       canvas.width = container.clientWidth;
       canvas.height = container.clientHeight;
 
-      // Touch events for dragging
       canvas.addEventListener('touchstart', handleCanvasStart);
       canvas.addEventListener('touchmove', handleCanvasMove);
       canvas.addEventListener('touchend', handleCanvasEnd);
       canvas.addEventListener('mousedown', handleCanvasStart);
       canvas.addEventListener('mousemove', handleCanvasMove);
       canvas.addEventListener('mouseup', handleCanvasEnd);
-
-      // Pinch zoom
       canvas.addEventListener('touchmove', handlePinchZoom, { passive: false });
 
       redrawCanvas();
@@ -963,7 +859,6 @@
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.save();
 
-      // Center and apply transformations
       const centerX = canvas.width / 2;
       const centerY = canvas.height / 2;
 
@@ -972,7 +867,6 @@
       ctx.scale(editorState.zoomLevel, editorState.zoomLevel);
       ctx.translate(editorState.offsetX, editorState.offsetY);
 
-      // Calculate image dimensions
       const maxWidth = canvas.width / editorState.zoomLevel;
       const maxHeight = canvas.height / editorState.zoomLevel;
       let imgWidth = img.width;
@@ -984,15 +878,12 @@
 
       ctx.drawImage(img, -imgWidth / 2, -imgHeight / 2, imgWidth, imgHeight);
 
-      // Apply filters
       applyCanvasFilters(ctx, canvas);
 
       ctx.restore();
     }
 
-    function applyFilters() {
-      redrawCanvas();
-    }
+    function applyFilters() { redrawCanvas(); }
 
     function applyCanvasFilters(ctx, canvas) {
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -1007,17 +898,14 @@
         let g = data[i + 1];
         let b = data[i + 2];
 
-        // Brightness
         r = Math.min(255, r * brightness);
         g = Math.min(255, g * brightness);
         b = Math.min(255, b * brightness);
 
-        // Contrast
         r = Math.max(0, (r - 128) * contrast + 128);
         g = Math.max(0, (g - 128) * contrast + 128);
         b = Math.max(0, (b - 128) * contrast + 128);
 
-        // Saturation
         const gray = r * 0.299 + g * 0.587 + b * 0.114;
         r = Math.round(gray + (r - gray) * saturation);
         g = Math.round(gray + (g - gray) * saturation);
@@ -1055,9 +943,7 @@
       redrawCanvas();
     }
 
-    function handleCanvasEnd() {
-      editorState.isDragging = false;
-    }
+    function handleCanvasEnd() { editorState.isDragging = false; }
 
     function handlePinchZoom(e) {
       if (e.touches.length !== 2) return;
@@ -1107,7 +993,6 @@
         selectedStoryMedia = blob;
         selectedStoryMedia.name = 'edited-image.png';
 
-        // Update preview
         const dataUrl = canvas.toDataURL('image/png');
         const preview = document.getElementById('storyMediaPreview');
         preview.innerHTML = `<img src="${dataUrl}" alt="Edited">`;
@@ -1131,7 +1016,7 @@
       document.getElementById('privacy-followers').style.background = privacy === 'followers' ? '#0B5E6B' : 'transparent';
       document.getElementById('privacy-followers').style.borderColor = privacy === 'followers' ? '#0B5E6B' : '#2d2d2d';
       document.getElementById('privacy-followers').style.color = privacy === 'followers' ? '#fff' : '#aaa';
-      
+
       document.getElementById('privacy-everyone').style.background = privacy === 'everyone' ? '#0B5E6B' : 'transparent';
       document.getElementById('privacy-everyone').style.borderColor = privacy === 'everyone' ? '#0B5E6B' : '#2d2d2d';
       document.getElementById('privacy-everyone').style.color = privacy === 'everyone' ? '#fff' : '#aaa';
@@ -1160,7 +1045,6 @@
 
         const currentUserId = session.getUserId();
 
-        // Upload media to Bunny
         let mediaUrl = '';
         if (selectedStoryMediaType === 'image') {
           const result = await mediaUploader.uploadImage(selectedStoryMedia);
@@ -1170,17 +1054,15 @@
           mediaUrl = result.url;
         }
 
-        // Create status document with VALID Appwrite documentId
         const now = new Date();
         const expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000);
 
-        // ID.unique() ALWAYS returns a valid Appwrite document ID (20 chars)
         const statusId = ID.unique();
 
         const statusData = {
           statusId,
-          creatorId: session.getUserId(),
-           videoUrl: mediaUrl,
+          creatorId: currentUserId,
+          videoUrl: mediaUrl,
           caption: document.getElementById('storyCaption').value || '',
           mediaType: selectedStoryMediaType,
           privacy: storyPrivacy,
@@ -1202,7 +1084,6 @@
       }
     }
 
-    // Hashtag extraction helpers
     const COMMON_WORDS = new Set(['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'can', 'your', 'my', 'his', 'her', 'this', 'that', 'it', 'as', 'from', 'by', 'with', 'about', 'into', 'through', 'during', 'before', 'after', 'above', 'below', 'up', 'down', 'out', 'off', 'over', 'under', 'again', 'further', 'then', 'once', 'here', 'there', 'when', 'where', 'why', 'how']);
 
     function extractHashtagsFromText(text) {
@@ -1265,11 +1146,16 @@
 
     document.getElementById('post-category').addEventListener('change', updateHashtagSuggestions);
 
-    // Initialize
     async function init() {
       await session.refresh();
       if (session.isLoggedIn()) {
-        lastSeenTracker.init(session.getUserId());
+        try {
+          if (typeof lastSeenTracker !== 'undefined' && lastSeenTracker.init) {
+            lastSeenTracker.init(session.getUserId());
+          }
+        } catch (e) {
+          console.warn('[Init] lastSeenTracker unavailable:', e.message);
+        }
       }
     }
 
