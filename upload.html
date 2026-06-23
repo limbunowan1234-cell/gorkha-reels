@@ -10,7 +10,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&family=Poppins:wght@700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
-
   <script>
     (function() {
       window.eruda = null;
@@ -19,512 +18,65 @@
       Object.defineProperty(window, 'Eruda', { value: null, writable: false, configurable: false });
     })();
   </script>
-
   <style>
     body { background: #0f0f0f; overflow-x: hidden; }
-
-    .upload-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 14px 16px;
-      background: rgba(10,10,10,0.98);
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      border-bottom: 1px solid #1a1a1a;
-    }
-
-    .upload-back {
-      width: 36px; height: 36px;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.08);
-      border: none; color: #fff;
-      font-size: 22px; cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-    }
-
-    #upload-header-title {
-      font-size: 17px;
-      font-weight: 700;
-      color: #fff;
-    }
-
+    .upload-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; background: rgba(10,10,10,0.98); position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #1a1a1a; }
+    .upload-back { width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.08); border: none; color: #fff; font-size: 22px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    #upload-header-title { font-size: 17px; font-weight: 700; color: #fff; }
     .header-spacer { width: 36px; }
-
-    .tab-container {
-      display: flex;
-      gap: 0;
-      background: #0f0f0f;
-      border-bottom: 1px solid #2d2d2d;
-      padding: 0 16px;
-      position: sticky;
-      top: 60px;
-      z-index: 50;
-    }
-
-    .tab {
-      flex: 1;
-      padding: 14px;
-      background: none;
-      border: none;
-      color: #888;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      position: relative;
-      transition: color 0.2s;
-    }
-
+    .tab-container { display: flex; gap: 0; background: #0f0f0f; border-bottom: 1px solid #2d2d2d; padding: 0 16px; position: sticky; top: 60px; z-index: 50; }
+    .tab { flex: 1; padding: 14px; background: none; border: none; color: #888; font-size: 16px; font-weight: 600; cursor: pointer; position: relative; transition: color 0.2s; }
     .tab.active { color: #0B5E6B; }
-
-    .tab.active::after {
-      content: '';
-      position: absolute;
-      bottom: -1px;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background: #0B5E6B;
-      border-radius: 1.5px;
-    }
-
-    #step-pick {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 60vh;
-      padding: 24px 20px;
-    }
-
-    #dropzone {
-      width: 100%;
-      max-width: 340px;
-      aspect-ratio: 9/16;
-      border: 2px dashed #3f3f3f;
-      border-radius: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 16px;
-      cursor: pointer;
-      background: #1a1a1a;
-      transition: border-color 0.2s;
-    }
-
-    #dropzone.drag-over {
-      border-color: #0B5E6B;
-      background: rgba(11,94,107,0.08);
-    }
-
+    .tab.active::after { content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 3px; background: #0B5E6B; border-radius: 1.5px; }
+    #step-pick { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; padding: 24px 20px; }
+    #dropzone { width: 100%; max-width: 340px; aspect-ratio: 9/16; border: 2px dashed #3f3f3f; border-radius: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; cursor: pointer; background: #1a1a1a; transition: border-color 0.2s; }
+    #dropzone.drag-over { border-color: #0B5E6B; background: rgba(11,94,107,0.08); }
     .dropzone-icon { font-size: 56px; }
     .dropzone-text { font-size: 18px; font-weight: 700; color: #fff; }
     .dropzone-sub { font-size: 13px; color: #737373; text-align: center; }
-
-    .select-btn {
-      margin-top: 8px;
-      padding: 12px 32px;
-      background: #0B5E6B;
-      border: none;
-      border-radius: 10px;
-      color: #fff;
-      font-size: 15px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    #step-details {
-      display: none;
-      flex-direction: column;
-      min-height: calc(100vh - 60px);
-      padding-bottom: 100px;
-    }
-
-    #step-story {
-      display: none;
-      flex-direction: column;
-      min-height: calc(100vh - 60px);
-      padding-bottom: 100px;
-    }
-
-    .details-preview {
-      position: relative;
-      width: 100%;
-      background: #000;
-      display: flex;
-      justify-content: center;
-    }
-
-    #video-preview {
-      width: 100%;
-      max-height: 45vh;
-      object-fit: contain;
-    }
-
-    .change-video-btn {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background: rgba(0,0,0,0.7);
-      border: 1px solid rgba(255,255,255,0.2);
-      border-radius: 8px;
-      color: #fff;
-      padding: 6px 12px;
-      font-size: 12px;
-      cursor: pointer;
-    }
-
-    .details-form { padding: 20px 16px; flex: 1; }
+    .select-btn { margin-top: 8px; padding: 12px 32px; background: #0B5E6B; border: none; border-radius: 10px; color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; }
+    #step-details { display: none; flex-direction: column; min-height: calc(100vh - 60px); padding-bottom: 100px; }
+    #step-story { display: none; flex-direction: column; min-height: calc(100vh - 60px); padding-bottom: 100px; }
+    #step-post { display: none; flex-direction: column; min-height: calc(100vh - 60px); padding-bottom: 100px; }
+    .details-preview { position: relative; width: 100%; background: #000; display: flex; justify-content: center; }
+    #video-preview { width: 100%; max-height: 45vh; object-fit: contain; }
+    .change-video-btn { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.7); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: #fff; padding: 6px 12px; font-size: 12px; cursor: pointer; }
+    .details-form, .post-form { padding: 20px 16px; flex: 1; }
     .form-field { margin-bottom: 18px; }
-
-    .form-label {
-      display: block;
-      font-size: 13px;
-      font-weight: 600;
-      color: #a3a3a3;
-      margin-bottom: 8px;
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
-    }
-
-    .form-input, .form-textarea, .form-select {
-      width: 100%;
-      background: #1a1a1a;
-      border: 1px solid #2d2d2d;
-      border-radius: 10px;
-      padding: 13px 14px;
-      color: #fff;
-      font-size: 15px;
-      box-sizing: border-box;
-    }
-
-    .form-input:focus, .form-textarea:focus, .form-select:focus {
-      outline: none;
-      border-color: #0B5E6B;
-    }
-
-    .form-textarea { resize: none; }
+    .form-label { display: block; font-size: 13px; font-weight: 600; color: #a3a3a3; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.6px; }
+    .form-input, .form-textarea, .form-select { width: 100%; background: #1a1a1a; border: 1px solid #2d2d2d; border-radius: 10px; padding: 13px 14px; color: #fff; font-size: 15px; box-sizing: border-box; }
+    .form-input:focus, .form-textarea:focus, .form-select:focus { outline: none; border-color: #0B5E6B; }
+    .form-textarea { resize: none; font-family: system-ui; }
     .form-select option { background: #1a1a1a; }
-
     .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-
-    .hashtag-section {
-      background: #1a1a1a;
-      border: 1px solid #2d2d2d;
-      border-radius: 10px;
-      padding: 12px;
-      margin-bottom: 18px;
-    }
-
-    .hashtag-label {
-      font-size: 12px;
-      font-weight: 600;
-      color: #a3a3a3;
-      margin-bottom: 10px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
+    .char-count { font-size: 11px; color: #737373; text-align: right; margin-top: 4px; }
+    .hashtag-section { background: #1a1a1a; border: 1px solid #2d2d2d; border-radius: 10px; padding: 12px; margin-bottom: 18px; }
+    .hashtag-label { font-size: 12px; font-weight: 600; color: #a3a3a3; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
     .suggested-hashtags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
-
-    .hashtag-btn {
-      background: #2d2d2d;
-      border: 1px solid #3d3d3d;
-      color: #fff;
-      padding: 6px 10px;
-      border-radius: 16px;
-      font-size: 12px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
+    .hashtag-btn { background: #2d2d2d; border: 1px solid #3d3d3d; color: #fff; padding: 6px 10px; border-radius: 16px; font-size: 12px; cursor: pointer; transition: all 0.2s; }
     .hashtag-btn:hover { border-color: #0B5E6B; color: #0B5E6B; }
     .hashtag-btn.active { background: #0B5E6B; border-color: #0B5E6B; color: #fff; }
-
-    .selected-hashtags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 10px;
-      padding-top: 10px;
-      border-top: 1px solid #2d2d2d;
-    }
-
-    .hashtag-badge {
-      background: #0B5E6B;
-      color: #fff;
-      padding: 6px 10px;
-      border-radius: 16px;
-      font-size: 12px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .hashtag-badge button {
-      background: none;
-      border: none;
-      color: #fff;
-      cursor: pointer;
-      font-size: 14px;
-      padding: 0;
-    }
-
+    .selected-hashtags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #2d2d2d; }
+    .hashtag-badge { background: #0B5E6B; color: #fff; padding: 6px 10px; border-radius: 16px; font-size: 12px; display: flex; align-items: center; gap: 6px; }
+    .hashtag-badge button { background: none; border: none; color: #fff; cursor: pointer; font-size: 14px; padding: 0; }
     .story-section { padding: 20px 16px; flex: 1; }
-
-    .story-media-preview {
-      position: relative;
-      background: #1a1a1a;
-      border-radius: 16px;
-      overflow: hidden;
-      margin-bottom: 24px;
-      aspect-ratio: 9 / 16;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      border: 2px dashed #2d2d2d;
-      transition: all 0.2s;
-    }
-
+    .story-media-preview { position: relative; background: #1a1a1a; border-radius: 16px; overflow: hidden; margin-bottom: 24px; aspect-ratio: 9 / 16; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px dashed #2d2d2d; transition: all 0.2s; }
     .story-media-preview:hover { border-color: #0B5E6B; background: #1f1f1f; }
     .story-media-preview.has-media { border: none; cursor: default; }
-
-    .story-media-preview img,
-    .story-media-preview video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
+    .story-media-preview img, .story-media-preview video { width: 100%; height: 100%; object-fit: cover; }
     .story-upload-placeholder { text-align: center; color: #666; }
     .story-upload-icon { font-size: 48px; margin-bottom: 12px; }
     .story-upload-text { font-size: 14px; margin-bottom: 4px; }
     .story-upload-subtext { font-size: 12px; color: #555; }
-
-    .story-remove-btn {
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      background: rgba(0, 0, 0, 0.6);
-      border: none;
-      color: #fff;
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      font-size: 24px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      backdrop-filter: blur(10px);
-      opacity: 0;
-      transition: all 0.2s;
-      z-index: 10;
-    }
-
+    .story-remove-btn { position: absolute; top: 12px; right: 12px; background: rgba(0, 0, 0, 0.6); border: none; color: #fff; width: 44px; height: 44px; border-radius: 50%; font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px); opacity: 0; transition: all 0.2s; z-index: 10; }
     .story-media-preview:hover .story-remove-btn { opacity: 1; }
-
-    .edit-media-btn {
-      position: absolute;
-      top: 12px;
-      left: 12px;
-      background: rgba(11, 94, 107, 0.9);
-      border: none;
-      color: #fff;
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      font-size: 18px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      backdrop-filter: blur(10px);
-      opacity: 0;
-      transition: all 0.2s;
-      z-index: 10;
-    }
-
+    .edit-media-btn { position: absolute; top: 12px; left: 12px; background: rgba(11, 94, 107, 0.9); border: none; color: #fff; width: 44px; height: 44px; border-radius: 50%; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px); opacity: 0; transition: all 0.2s; z-index: 10; }
     .story-media-preview:hover .edit-media-btn { opacity: 1; }
-
-    .char-count { font-size: 11px; color: #737373; text-align: right; margin-top: 4px; }
-
-    .info-box {
-      background: rgba(11, 94, 107, 0.1);
-      border: 1px solid rgba(11, 94, 107, 0.3);
-      border-radius: 12px;
-      padding: 12px 16px;
-      font-size: 12px;
-      color: #aaa;
-      margin-bottom: 20px;
-    }
-
-    .post-btn-container {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      padding: 16px;
-      background: linear-gradient(transparent, rgba(0,0,0,0.95) 30%);
-      z-index: 50;
-    }
-
-    #post-btn, #story-post-btn {
-      width: 100%;
-      padding: 16px;
-      background: linear-gradient(135deg, #0B5E6B, #0D7377);
-      border: none;
-      border-radius: 12px;
-      color: #fff;
-      font-size: 17px;
-      font-weight: 900;
-      cursor: pointer;
-      box-shadow: 0 4px 20px rgba(11,94,107,0.3);
-    }
-
-    #post-btn:active, #story-post-btn:active { transform: scale(0.98); }
-    #post-btn:disabled, #story-post-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-    .image-editor-modal {
-      position: fixed;
-      inset: 0;
-      background: #000;
-      z-index: 200;
-      display: none;
-      flex-direction: column;
-      animation: slideUp 0.3s ease;
-    }
-
-    .image-editor-modal.open { display: flex; }
-
-    @keyframes slideUp {
-      from { transform: translateY(100%); }
-      to { transform: translateY(0); }
-    }
-
-    .editor-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 12px 16px;
-      background: #1a1a1a;
-      border-bottom: 1px solid #2d2d2d;
-    }
-
-    .editor-title { font-size: 16px; font-weight: 700; color: #fff; }
-
-    .editor-close {
-      background: none;
-      border: none;
-      color: #fff;
-      font-size: 28px;
-      cursor: pointer;
-      padding: 0;
-      width: 40px;
-      height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .editor-canvas-container {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-      background: #000;
-      position: relative;
-    }
-
-    #editor-canvas { max-width: 100%; max-height: 100%; touch-action: none; }
-
-    .editor-controls {
-      background: #1a1a1a;
-      border-top: 1px solid #2d2d2d;
-      padding: 12px 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .control-group { display: flex; flex-direction: column; gap: 6px; }
-    .control-label { font-size: 12px; color: #888; font-weight: 600; }
-
-    .control-slider {
-      width: 100%;
-      height: 6px;
-      border-radius: 3px;
-      background: #2d2d2d;
-      outline: none;
-      -webkit-appearance: none;
-      appearance: none;
-    }
-
-    .control-slider::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      background: #0B5E6B;
-      cursor: pointer;
-    }
-
-    .control-slider::-moz-range-thumb {
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      background: #0B5E6B;
-      cursor: pointer;
-      border: none;
-    }
-
-    .control-buttons { display: flex; gap: 8px; justify-content: center; }
-
-    .control-btn {
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      background: #2d2d2d;
-      border: none;
-      color: #fff;
-      font-size: 18px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s;
-    }
-
-    .control-btn:active { background: #0B5E6B; }
-
-    .editor-actions {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      padding: 12px;
-      background: #1a1a1a;
-      border-top: 1px solid #2d2d2d;
-    }
-
-    .editor-btn {
-      padding: 12px;
-      border: 1px solid #2d2d2d;
-      border-radius: 8px;
-      background: transparent;
-      color: #fff;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .editor-btn.apply { background: #0B5E6B; border-color: #0B5E6B; grid-column: 2; }
-    .editor-btn:active { transform: scale(0.96); }
+    .info-box { background: rgba(11, 94, 107, 0.1); border: 1px solid rgba(11, 94, 107, 0.3); border-radius: 12px; padding: 12px 16px; font-size: 12px; color: #aaa; margin-bottom: 20px; }
+    .post-btn-container { position: fixed; bottom: 0; left: 0; right: 0; padding: 16px; background: linear-gradient(transparent, rgba(0,0,0,0.95) 30%); z-index: 50; }
+    #post-btn, #story-post-btn, #text-post-btn { width: 100%; padding: 16px; background: linear-gradient(135deg, #0B5E6B, #0D7377); border: none; border-radius: 12px; color: #fff; font-size: 17px; font-weight: 900; cursor: pointer; box-shadow: 0 4px 20px rgba(11,94,107,0.3); }
+    #post-btn:active, #story-post-btn:active, #text-post-btn:active { transform: scale(0.98); }
+    #post-btn:disabled, #story-post-btn:disabled, #text-post-btn:disabled { opacity: 0.5; cursor: not-allowed; }
   </style>
 </head>
 <body>
@@ -537,6 +89,7 @@
 
   <div class="tab-container">
     <button class="tab active" id="reel-tab" onclick="switchTab('reel')">🎬 Reel</button>
+    <button class="tab" id="post-tab" onclick="switchTab('post')">📝 Post</button>
     <button class="tab" id="story-tab" onclick="switchTab('story')">📱 Story</button>
   </div>
 
@@ -545,70 +98,29 @@
       <div class="dropzone-icon">🎬</div>
       <div class="dropzone-text">Select a video</div>
       <div class="dropzone-sub">MP4, WebM, MOV<br>Max 500MB • Max 2 minutes</div>
-      <button class="select-btn" type="button" id="choose-btn">
-        📱 Choose from Phone
-      </button>
+      <button class="select-btn" type="button" id="choose-btn">📱 Choose from Phone</button>
     </div>
     <input type="file" id="video-file-input" accept="video/*" style="display:none;">
   </div>
 
-  <div id="step-details">
-    <div class="details-preview">
-      <video id="video-preview" playsinline muted loop autoplay></video>
-      <button class="change-video-btn" id="change-video-btn" type="button">✏️ Change</button>
-    </div>
-
-    <div class="details-form">
+  <div id="step-post">
+    <div class="post-form">
       <div class="form-field">
-        <label class="form-label">Title *</label>
-        <input id="post-title" type="text" class="form-input" placeholder="Give your reel a catchy title..." maxlength="100" oninput="updateHashtagSuggestions()">
-        <div class="char-count" id="title-count">0/100</div>
+        <label class="form-label">What's on your mind?</label>
+        <textarea id="post-content" class="form-textarea" rows="6" placeholder="Share your thoughts, announcements, or ideas with the community..." maxlength="2000"></textarea>
+        <div class="char-count"><span id="post-char-count">0</span>/2000</div>
       </div>
-
-      <div class="form-field">
-        <label class="form-label">Description</label>
-        <textarea id="post-description" class="form-textarea" rows="3" placeholder="What's this reel about?" maxlength="300" oninput="updateHashtagSuggestions()"></textarea>
-        <div class="char-count" id="desc-count">0/300</div>
-      </div>
-
       <div class="form-field">
         <div class="hashtag-section">
-          <div class="hashtag-label">
-            <span>🏷️ Hashtags (Auto-suggested)</span>
-            <span id="hashtag-count">0</span>
-          </div>
-          <div class="suggested-hashtags" id="suggested-hashtags"></div>
-          <div class="selected-hashtags" id="selected-hashtags"></div>
+          <div class="hashtag-label"><span>🏷️ Hashtags (Auto-suggested)</span><span id="post-hashtag-count">0</span></div>
+          <div class="suggested-hashtags" id="post-suggested-hashtags"></div>
+          <div class="selected-hashtags" id="post-selected-hashtags"></div>
         </div>
       </div>
-
-      <div class="form-row">
-        <div class="form-field">
-          <label class="form-label">Category</label>
-          <select id="post-category" class="form-select">
-            <option value="sports">⚽ Sports</option>
-            <option value="entertainment" selected>🎭 Entertainment</option>
-            <option value="music">🎵 Music</option>
-            <option value="dance">💃 Dance</option>
-            <option value="comedy">😂 Comedy</option>
-            <option value="education">📚 Education</option>
-            <option value="vlog">📹 Vlog</option>
-            <option value="other">✨ Other</option>
-          </select>
-        </div>
-        <div class="form-field">
-          <label class="form-label">Language</label>
-          <select id="post-language" class="form-select">
-            <option value="Nepali" selected>🇳🇵 Nepali</option>
-            <option value="Hindi">🇮🇳 Hindi</option>
-            <option value="English">🇬🇧 English</option>
-          </select>
-        </div>
-      </div>
+      <div class="info-box"><span>💡</span> Use #hashtags and @mentions to reach more people. Max 2000 characters.</div>
     </div>
-
     <div class="post-btn-container">
-      <button id="post-btn" type="button" onclick="window.uploader && window.uploader.post()">🚀 Post Reel</button>
+      <button id="text-post-btn" type="button" onclick="postTextContent()">✨ Share Post</button>
     </div>
   </div>
 
@@ -623,17 +135,12 @@
         <button class="story-remove-btn" id="storyRemoveBtn" onclick="removeStoryMedia(event)" style="display: none;">✕</button>
         <button class="edit-media-btn" id="storyEditBtn" onclick="openImageEditor(event)" style="display: none;">✏️</button>
       </div>
-
       <div class="form-field">
         <label class="form-label">Caption (Optional)</label>
         <textarea id="storyCaption" class="form-textarea" rows="3" placeholder="Add a caption..." maxlength="200"></textarea>
         <div class="char-count"><span id="storyCharCount">0</span>/200</div>
       </div>
-
-      <div class="info-box">
-        <span>ℹ️</span> Your story will automatically disappear after 24 hours.
-      </div>
-
+      <div class="info-box"><span>ℹ️</span> Your story will automatically disappear after 24 hours.</div>
       <div class="form-field">
         <label class="form-label">Who can see</label>
         <div class="form-row">
@@ -642,59 +149,8 @@
         </div>
       </div>
     </div>
-
     <div class="post-btn-container">
       <button id="story-post-btn" type="button" onclick="postStory()">📤 Share Story</button>
-    </div>
-  </div>
-
-  <div class="image-editor-modal" id="imageEditorModal">
-    <div class="editor-header">
-      <span class="editor-title">Edit Image</span>
-      <button class="editor-close" onclick="closeImageEditor()">✕</button>
-    </div>
-
-    <div class="editor-canvas-container">
-      <canvas id="editor-canvas"></canvas>
-    </div>
-
-    <div class="editor-controls">
-      <div class="control-group">
-        <label class="control-label">Crop</label>
-        <div class="control-buttons">
-          <button class="control-btn" onclick="resetZoom()" title="Reset">🔄</button>
-          <button class="control-btn" onclick="zoomImage(0.1)" title="Zoom In">🔍+</button>
-          <button class="control-btn" onclick="zoomImage(-0.1)" title="Zoom Out">🔍−</button>
-        </div>
-      </div>
-
-      <div class="control-group">
-        <label class="control-label">Rotate</label>
-        <div class="control-buttons">
-          <button class="control-btn" onclick="rotateImage(-90)">↺ 90°</button>
-          <button class="control-btn" onclick="rotateImage(90)">↻ 90°</button>
-        </div>
-      </div>
-
-      <div class="control-group">
-        <label class="control-label">Brightness</label>
-        <input type="range" id="brightness-slider" class="control-slider" min="50" max="150" value="100" oninput="applyFilters()">
-      </div>
-
-      <div class="control-group">
-        <label class="control-label">Contrast</label>
-        <input type="range" id="contrast-slider" class="control-slider" min="50" max="150" value="100" oninput="applyFilters()">
-      </div>
-
-      <div class="control-group">
-        <label class="control-label">Saturation</label>
-        <input type="range" id="saturation-slider" class="control-slider" min="0" max="200" value="100" oninput="applyFilters()">
-      </div>
-    </div>
-
-    <div class="editor-actions">
-      <button class="editor-btn" onclick="closeImageEditor()">Cancel</button>
-      <button class="editor-btn apply" onclick="saveEditedImage()">✓ Apply</button>
     </div>
   </div>
 
@@ -706,67 +162,124 @@
   <script src="js/upload.js"></script>
 
   <script>
-    let selectedStoryMedia = null;
-    let selectedStoryMediaType = null;
-    let storyPrivacy = 'followers';
-
-    let editorState = {
-      originalImage: null,
-      canvas: null,
-      ctx: null,
-      rotation: 0,
-      zoomLevel: 1,
-      offsetX: 0,
-      offsetY: 0,
-      brightness: 100,
-      contrast: 100,
-      saturation: 100,
-      isDragging: false,
-      dragStartX: 0,
-      dragStartY: 0
-    };
+    let selectedStoryMedia = null, selectedStoryMediaType = null, storyPrivacy = 'followers', selectedPostHashtags = new Set();
 
     function switchTab(tab) {
       document.getElementById('reel-tab').classList.toggle('active', tab === 'reel');
+      document.getElementById('post-tab').classList.toggle('active', tab === 'post');
       document.getElementById('story-tab').classList.toggle('active', tab === 'story');
       document.getElementById('step-pick').style.display = tab === 'reel' ? 'flex' : 'none';
-      document.getElementById('step-details').style.display = tab === 'reel' ? 'none' : 'none';
+      document.getElementById('step-post').style.display = tab === 'post' ? 'flex' : 'none';
       document.getElementById('step-story').style.display = tab === 'story' ? 'flex' : 'none';
-      document.getElementById('upload-header-title').textContent = tab === 'reel' ? 'New Reel' : 'New Story';
+      document.getElementById('upload-header-title').textContent = tab === 'reel' ? 'New Reel' : tab === 'post' ? 'New Post' : 'New Story';
+    }
+
+    document.getElementById('post-content').addEventListener('input', (e) => {
+      document.getElementById('post-char-count').textContent = e.target.value.length;
+      updatePostHashtagSuggestions();
+    });
+
+    function extractHashtagsAndMentions(text) {
+      if (!text) return { hashtags: [], mentions: [] };
+      const hashtags = [...new Set((text.match(/#\w+/g) || []).slice(0, 10))];
+      const mentions = [...new Set((text.match(/@\w+/g) || []).slice(0, 10))];
+      return { hashtags, mentions };
+    }
+
+    const COMMON_WORDS = new Set(['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'can', 'your', 'my', 'his', 'her', 'this', 'that', 'it', 'as', 'from', 'by', 'with', 'about', 'into', 'through', 'during', 'before', 'after', 'above', 'below', 'up', 'down', 'out', 'off', 'over', 'under', 'again', 'further', 'then', 'once', 'here', 'there', 'when', 'where', 'why', 'how']);
+
+    function extractKeywords(text) {
+      if (!text) return [];
+      const words = text.toLowerCase().split(/[\s\-_.,:;!?()]+/).filter(w => w.length >= 3 && !COMMON_WORDS.has(w)).slice(0, 8);
+      return [...new Set(words)];
+    }
+
+    function updatePostHashtagSuggestions() {
+      const content = document.getElementById('post-content').value;
+      const { hashtags, mentions } = extractHashtagsAndMentions(content);
+      const keywords = extractKeywords(content);
+      const suggestions = [...hashtags, ...keywords.map(k => '#' + k)].slice(0, 10);
+      renderPostHashtagSuggestions(suggestions);
+    }
+
+    function renderPostHashtagSuggestions(suggestions) {
+      const container = document.getElementById('post-suggested-hashtags');
+      let html = suggestions.map(tag => {
+        const isActive = selectedPostHashtags.has(tag);
+        return `<button type="button" class="hashtag-btn ${isActive ? 'active' : ''}" onclick="togglePostHashtag('${tag}')">${tag}</button>`;
+      }).join('');
+      container.innerHTML = html;
+      updateSelectedPostHashtagsDisplay();
+    }
+
+    function togglePostHashtag(tag) {
+      if (selectedPostHashtags.has(tag)) { selectedPostHashtags.delete(tag); } else { selectedPostHashtags.add(tag); }
+      updatePostHashtagSuggestions();
+    }
+
+    function updateSelectedPostHashtagsDisplay() {
+      const container = document.getElementById('post-selected-hashtags');
+      if (selectedPostHashtags.size === 0) { container.innerHTML = ''; document.getElementById('post-hashtag-count').textContent = '0'; return; }
+      let html = Array.from(selectedPostHashtags).map(tag => `<div class="hashtag-badge">${tag}<button type="button" onclick="togglePostHashtag('${tag}')">✕</button></div>`).join('');
+      container.innerHTML = html;
+      document.getElementById('post-hashtag-count').textContent = selectedPostHashtags.size;
+    }
+
+    async function postTextContent() {
+      const content = document.getElementById('post-content').value.trim();
+      if (!content) { alert('Please write something to share'); return; }
+      const btn = document.getElementById('text-post-btn');
+      btn.disabled = true;
+      btn.textContent = '⏳ Posting...';
+      try {
+        await session.refresh();
+        if (!session.isLoggedIn()) { window.location.href = 'login.html'; return; }
+        const currentUserId = session.getUserId();
+        const now = new Date();
+        const postId = ID.unique();
+        const { hashtags: contentHashtags, mentions } = extractHashtagsAndMentions(content);
+        const allHashtags = Array.from(selectedPostHashtags).concat(contentHashtags);
+        const uniqueHashtags = [...new Set(allHashtags)];
+        const postData = {
+          postId,
+          creatorId: currentUserId,
+          content: content,
+          hashtags: JSON.stringify(uniqueHashtags),
+          mentions: JSON.stringify(mentions),
+          likes: 0,
+          comments: 0,
+          shares: 0,
+          createdAt: now.toISOString(),
+          isDeleted: false
+        };
+        await db.create('posts', postData, postId);
+        alert('Post shared! ✨');
+        setTimeout(() => { window.location.href = 'index.html'; }, 1000);
+      } catch (error) {
+        console.error('Error posting:', error);
+        alert('Failed to share post: ' + error.message);
+        btn.disabled = false;
+        btn.textContent = '✨ Share Post';
+      }
     }
 
     function handleStoryMediaUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
-
-      if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
-        alert('Please select an image or video');
-        return;
-      }
-
+      if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) { alert('Please select an image or video'); return; }
       if (file.type.startsWith('video/')) {
         const video = document.createElement('video');
-        video.onloadedmetadata = () => {
-          if (video.duration > 30) {
-            alert('Video must be 30 seconds or less');
-            return;
-          }
-          processStoryMedia(file);
-        };
+        video.onloadedmetadata = () => { if (video.duration > 30) { alert('Video must be 30 seconds or less'); return; } processStoryMedia(file); };
         video.src = URL.createObjectURL(file);
-      } else {
-        processStoryMedia(file);
-      }
+      } else { processStoryMedia(file); }
     }
 
     function processStoryMedia(file) {
       selectedStoryMedia = file;
       selectedStoryMediaType = file.type.startsWith('image/') ? 'image' : 'video';
-
       const reader = new FileReader();
       reader.onload = (e) => {
         const preview = document.getElementById('storyMediaPreview');
-
         if (selectedStoryMediaType === 'image') {
           preview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
           document.getElementById('storyEditBtn').style.display = 'flex';
@@ -774,7 +287,6 @@
           preview.innerHTML = `<video src="${e.target.result}"></video>`;
           document.getElementById('storyEditBtn').style.display = 'none';
         }
-
         preview.classList.add('has-media');
         document.getElementById('storyRemoveBtn').style.display = 'flex';
       };
@@ -785,15 +297,8 @@
       event?.stopPropagation?.();
       selectedStoryMedia = null;
       selectedStoryMediaType = null;
-
       const preview = document.getElementById('storyMediaPreview');
-      preview.innerHTML = `
-        <div class="story-upload-placeholder">
-          <div class="story-upload-icon">📸</div>
-          <div class="story-upload-text">Tap to add photo or video</div>
-          <div class="story-upload-subtext">Max 30 seconds for video</div>
-        </div>
-      `;
+      preview.innerHTML = `<div class="story-upload-placeholder"><div class="story-upload-icon">📸</div><div class="story-upload-text">Tap to add photo or video</div><div class="story-upload-subtext">Max 30 seconds for video</div></div>`;
       preview.classList.remove('has-media');
       document.getElementById('storyMediaInput').value = '';
       document.getElementById('storyRemoveBtn').style.display = 'none';
@@ -802,213 +307,8 @@
 
     function openImageEditor(event) {
       event?.stopPropagation?.();
-
-      if (!selectedStoryMedia || selectedStoryMediaType !== 'image') {
-        alert('Please select an image first');
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const img = new Image();
-        img.onload = () => {
-          editorState.originalImage = img;
-          editorState.rotation = 0;
-          editorState.zoomLevel = 1;
-          editorState.offsetX = 0;
-          editorState.offsetY = 0;
-          document.getElementById('brightness-slider').value = 100;
-          document.getElementById('contrast-slider').value = 100;
-          document.getElementById('saturation-slider').value = 100;
-
-          initializeCanvas();
-          document.getElementById('imageEditorModal').classList.add('open');
-        };
-        img.src = e.target.result;
-      };
-      reader.readAsDataURL(selectedStoryMedia);
-    }
-
-    function initializeCanvas() {
-      const canvas = document.getElementById('editor-canvas');
-      editorState.canvas = canvas;
-      editorState.ctx = canvas.getContext('2d');
-
-      const container = document.querySelector('.editor-canvas-container');
-      canvas.width = container.clientWidth;
-      canvas.height = container.clientHeight;
-
-      canvas.addEventListener('touchstart', handleCanvasStart);
-      canvas.addEventListener('touchmove', handleCanvasMove);
-      canvas.addEventListener('touchend', handleCanvasEnd);
-      canvas.addEventListener('mousedown', handleCanvasStart);
-      canvas.addEventListener('mousemove', handleCanvasMove);
-      canvas.addEventListener('mouseup', handleCanvasEnd);
-      canvas.addEventListener('touchmove', handlePinchZoom, { passive: false });
-
-      redrawCanvas();
-    }
-
-    function redrawCanvas() {
-      const ctx = editorState.ctx;
-      const canvas = editorState.canvas;
-      const img = editorState.originalImage;
-
-      if (!img) return;
-
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.save();
-
-      const centerX = canvas.width / 2;
-      const centerY = canvas.height / 2;
-
-      ctx.translate(centerX, centerY);
-      ctx.rotate((editorState.rotation * Math.PI) / 180);
-      ctx.scale(editorState.zoomLevel, editorState.zoomLevel);
-      ctx.translate(editorState.offsetX, editorState.offsetY);
-
-      const maxWidth = canvas.width / editorState.zoomLevel;
-      const maxHeight = canvas.height / editorState.zoomLevel;
-      let imgWidth = img.width;
-      let imgHeight = img.height;
-
-      const ratio = Math.min(maxWidth / imgWidth, maxHeight / imgHeight);
-      imgWidth *= ratio;
-      imgHeight *= ratio;
-
-      ctx.drawImage(img, -imgWidth / 2, -imgHeight / 2, imgWidth, imgHeight);
-
-      applyCanvasFilters(ctx, canvas);
-
-      ctx.restore();
-    }
-
-    function applyFilters() { redrawCanvas(); }
-
-    function applyCanvasFilters(ctx, canvas) {
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const data = imageData.data;
-
-      const brightness = parseFloat(document.getElementById('brightness-slider').value) / 100;
-      const contrast = parseFloat(document.getElementById('contrast-slider').value) / 100;
-      const saturation = parseFloat(document.getElementById('saturation-slider').value) / 100;
-
-      for (let i = 0; i < data.length; i += 4) {
-        let r = data[i];
-        let g = data[i + 1];
-        let b = data[i + 2];
-
-        r = Math.min(255, r * brightness);
-        g = Math.min(255, g * brightness);
-        b = Math.min(255, b * brightness);
-
-        r = Math.max(0, (r - 128) * contrast + 128);
-        g = Math.max(0, (g - 128) * contrast + 128);
-        b = Math.max(0, (b - 128) * contrast + 128);
-
-        const gray = r * 0.299 + g * 0.587 + b * 0.114;
-        r = Math.round(gray + (r - gray) * saturation);
-        g = Math.round(gray + (g - gray) * saturation);
-        b = Math.round(gray + (b - gray) * saturation);
-
-        data[i] = Math.max(0, Math.min(255, r));
-        data[i + 1] = Math.max(0, Math.min(255, g));
-        data[i + 2] = Math.max(0, Math.min(255, b));
-      }
-
-      ctx.putImageData(imageData, 0, 0);
-    }
-
-    function handleCanvasStart(e) {
-      editorState.isDragging = true;
-      editorState.dragStartX = e.clientX || e.touches[0].clientX;
-      editorState.dragStartY = e.clientY || e.touches[0].clientY;
-    }
-
-    function handleCanvasMove(e) {
-      if (!editorState.isDragging) return;
-
-      const currentX = e.clientX || e.touches[0].clientX;
-      const currentY = e.clientY || e.touches[0].clientY;
-
-      const deltaX = (currentX - editorState.dragStartX) / editorState.zoomLevel;
-      const deltaY = (currentY - editorState.dragStartY) / editorState.zoomLevel;
-
-      editorState.offsetX += deltaX;
-      editorState.offsetY += deltaY;
-
-      editorState.dragStartX = currentX;
-      editorState.dragStartY = currentY;
-
-      redrawCanvas();
-    }
-
-    function handleCanvasEnd() { editorState.isDragging = false; }
-
-    function handlePinchZoom(e) {
-      if (e.touches.length !== 2) return;
-      e.preventDefault();
-
-      const touch1 = e.touches[0];
-      const touch2 = e.touches[1];
-      const distance = Math.hypot(
-        touch2.clientX - touch1.clientX,
-        touch2.clientY - touch1.clientY
-      );
-
-      if (editorState.lastDistance) {
-        const scale = distance / editorState.lastDistance;
-        editorState.zoomLevel *= scale;
-        editorState.zoomLevel = Math.max(0.5, Math.min(3, editorState.zoomLevel));
-        redrawCanvas();
-      }
-
-      editorState.lastDistance = distance;
-    }
-
-    function zoomImage(delta) {
-      editorState.zoomLevel += delta;
-      editorState.zoomLevel = Math.max(0.5, Math.min(3, editorState.zoomLevel));
-      redrawCanvas();
-    }
-
-    function resetZoom() {
-      editorState.zoomLevel = 1;
-      editorState.offsetX = 0;
-      editorState.offsetY = 0;
-      document.getElementById('brightness-slider').value = 100;
-      document.getElementById('contrast-slider').value = 100;
-      document.getElementById('saturation-slider').value = 100;
-      redrawCanvas();
-    }
-
-    function rotateImage(degrees) {
-      editorState.rotation = (editorState.rotation + degrees) % 360;
-      redrawCanvas();
-    }
-
-    function saveEditedImage() {
-      const canvas = editorState.canvas;
-      canvas.toBlob((blob) => {
-        selectedStoryMedia = blob;
-        selectedStoryMedia.name = 'edited-image.png';
-
-        const dataUrl = canvas.toDataURL('image/png');
-        const preview = document.getElementById('storyMediaPreview');
-        preview.innerHTML = `<img src="${dataUrl}" alt="Edited">`;
-        preview.classList.add('has-media');
-        document.getElementById('storyRemoveBtn').style.display = 'flex';
-
-        closeImageEditor();
-      }, 'image/png');
-    }
-
-    function closeImageEditor() {
-      document.getElementById('imageEditorModal').classList.remove('open');
-      editorState.canvas?.removeEventListener('touchstart', handleCanvasStart);
-      editorState.canvas?.removeEventListener('touchmove', handleCanvasMove);
-      editorState.canvas?.removeEventListener('touchend', handleCanvasEnd);
-      editorState.canvas = null;
+      if (!selectedStoryMedia || selectedStoryMediaType !== 'image') { alert('Please select an image first'); return; }
+      alert('Image editor coming soon! For now, you can use the uploaded image as-is.');
     }
 
     function setStoryPrivacy(privacy) {
@@ -1016,7 +316,6 @@
       document.getElementById('privacy-followers').style.background = privacy === 'followers' ? '#0B5E6B' : 'transparent';
       document.getElementById('privacy-followers').style.borderColor = privacy === 'followers' ? '#0B5E6B' : '#2d2d2d';
       document.getElementById('privacy-followers').style.color = privacy === 'followers' ? '#fff' : '#aaa';
-
       document.getElementById('privacy-everyone').style.background = privacy === 'everyone' ? '#0B5E6B' : 'transparent';
       document.getElementById('privacy-everyone').style.borderColor = privacy === 'everyone' ? '#0B5E6B' : '#2d2d2d';
       document.getElementById('privacy-everyone').style.color = privacy === 'everyone' ? '#fff' : '#aaa';
@@ -1027,24 +326,14 @@
     });
 
     async function postStory() {
-      if (!selectedStoryMedia) {
-        alert('Please select a photo or video');
-        return;
-      }
-
+      if (!selectedStoryMedia) { alert('Please select a photo or video'); return; }
       const btn = document.getElementById('story-post-btn');
       btn.disabled = true;
       btn.textContent = '⏳ Posting...';
-
       try {
         await session.refresh();
-        if (!session.isLoggedIn()) {
-          window.location.href = 'login.html';
-          return;
-        }
-
+        if (!session.isLoggedIn()) { window.location.href = 'login.html'; return; }
         const currentUserId = session.getUserId();
-
         let mediaUrl = '';
         if (selectedStoryMediaType === 'image') {
           const result = await mediaUploader.uploadImage(selectedStoryMedia);
@@ -1053,12 +342,9 @@
           const result = await mediaUploader.uploadVideo(selectedStoryMedia);
           mediaUrl = result.url;
         }
-
         const now = new Date();
         const expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-
         const statusId = ID.unique();
-
         const statusData = {
           statusId,
           creatorId: currentUserId,
@@ -1069,13 +355,9 @@
           createdAt: now.toISOString(),
           expiresAt: expiresAt.toISOString()
         };
-
         await db.create('status', statusData, statusId);
-
         alert('Story posted! ✅');
-        setTimeout(() => {
-          window.location.href = 'index.html';
-        }, 1000);
+        setTimeout(() => { window.location.href = 'index.html'; }, 1000);
       } catch (error) {
         console.error('Error posting story:', error);
         alert('Failed to post story: ' + error.message);
@@ -1083,68 +365,6 @@
         btn.textContent = '📤 Share Story';
       }
     }
-
-    const COMMON_WORDS = new Set(['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'can', 'your', 'my', 'his', 'her', 'this', 'that', 'it', 'as', 'from', 'by', 'with', 'about', 'into', 'through', 'during', 'before', 'after', 'above', 'below', 'up', 'down', 'out', 'off', 'over', 'under', 'again', 'further', 'then', 'once', 'here', 'there', 'when', 'where', 'why', 'how']);
-
-    function extractHashtagsFromText(text) {
-      if (!text) return [];
-      const words = text.toLowerCase().replace(/#\S+/g, '').split(/[\s\-_.,:;!?()]+/).filter(w => w.length >= 3 && !COMMON_WORDS.has(w)).slice(0, 8);
-      return [...new Set(words)];
-    }
-
-    function updateHashtagSuggestions() {
-      const title = document.getElementById('post-title').value;
-      const desc = document.getElementById('post-description').value;
-      const combined = (title + ' ' + desc).trim();
-      const suggestions = extractHashtagsFromText(combined);
-      const categoryVal = document.getElementById('post-category').value.toLowerCase();
-      if (!suggestions.includes(categoryVal)) suggestions.unshift(categoryVal);
-      renderHashtagSuggestions(suggestions);
-      document.getElementById('title-count').textContent = title.length + '/100';
-      document.getElementById('desc-count').textContent = desc.length + '/300';
-    }
-
-    function renderHashtagSuggestions(suggestions) {
-      const container = document.getElementById('suggested-hashtags');
-      const selected = window.uploader?.selectedHashtags || new Set();
-      let html = suggestions.map(word => {
-        const tag = '#' + word;
-        const isActive = selected.has(tag);
-        return `<button type="button" class="hashtag-btn ${isActive ? 'active' : ''}" onclick="toggleHashtag('${tag}')">${tag}</button>`;
-      }).join('');
-      container.innerHTML = html;
-      updateSelectedHashtagsDisplay();
-    }
-
-    function toggleHashtag(tag) {
-      if (!window.uploader) return;
-      if (window.uploader.selectedHashtags.has(tag)) {
-        window.uploader.selectedHashtags.delete(tag);
-      } else {
-        window.uploader.selectedHashtags.add(tag);
-      }
-      updateHashtagSuggestions();
-    }
-
-    function updateSelectedHashtagsDisplay() {
-      const container = document.getElementById('selected-hashtags');
-      const selected = window.uploader?.selectedHashtags || new Set();
-      if (selected.size === 0) {
-        container.innerHTML = '';
-        document.getElementById('hashtag-count').textContent = '0';
-        return;
-      }
-      let html = Array.from(selected).map(tag => `
-        <div class="hashtag-badge">
-          ${tag}
-          <button type="button" onclick="toggleHashtag('${tag}')">✕</button>
-        </div>
-      `).join('');
-      container.innerHTML = html;
-      document.getElementById('hashtag-count').textContent = selected.size;
-    }
-
-    document.getElementById('post-category').addEventListener('change', updateHashtagSuggestions);
 
     async function init() {
       await session.refresh();
