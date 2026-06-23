@@ -201,6 +201,29 @@
       document.getElementById('drawer-logout').onclick = async () => { try { await session.logout(); } catch (e) {} window.location = 'login.html'; };
     }
 
+    async function checkFollowStatus(creatorId, btn) {
+      if (!MY_USER_ID) return;
+      try {
+        const existing = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [ 
+          Query.equal('followerId', MY_USER_ID), 
+          Query.equal('followingId', creatorId), 
+          Query.limit(1) 
+        ]);
+        
+        if (existing.total > 0) {
+          btn.textContent = 'Following';
+          btn.classList.add('following');
+          btn.disabled = true;
+        } else {
+          btn.textContent = 'Follow';
+          btn.classList.remove('following');
+          btn.disabled = false;
+        }
+      } catch (err) {
+        console.error('Check follow status error:', err);
+      }
+    }
+
     async function loadSuggestedCreators() {
       try {
         const response = await db.list(APPWRITE_CONFIG.COLLECTIONS.CREATORS, [ Query.orderDesc('followers'), Query.limit(20) ]);
@@ -209,8 +232,15 @@
         creators = creators.slice(0, 6);
         if (creators.length === 0) { document.getElementById('suggested-banner').classList.add('hidden'); return; }
         const scroll = document.getElementById('suggested-scroll');
-        const html = creators.map(creator => `<div class="creator-card" onclick="window.location.href='creator-profile.html?creatorId=${creator.$id}'"><img class="creator-pic" src="${creator.profilePic || '/logo-suite/primary/logo-khukuri-512x512.png'}" alt="${creator.name}" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'"><div class="creator-name">${escapeHtml(creator.name || 'User')}</div><div class="creator-followers">${creator.followers || 0} followers</div><button class="follow-btn" onclick="event.stopPropagation(); followCreator('${creator.$id}', this)">Follow</button></div>`).join('');
+        const html = creators.map(creator => `<div class="creator-card" onclick="window.location.href='creator-profile.html?creatorId=${creator.$id}'"><img class="creator-pic" src="${creator.profilePic || '/logo-suite/primary/logo-khukuri-512x512.png'}" alt="${creator.name}" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'"><div class="creator-name">${escapeHtml(creator.name || 'User')}</div><div class="creator-followers">${creator.followers || 0} followers</div><button class="follow-btn" id="follow-btn-${creator.$id}" onclick="event.stopPropagation(); followCreator('${creator.$id}', this)">Follow</button></div>`).join('');
         scroll.innerHTML = html;
+        
+        // Check follow status for each creator
+        for (const creator of creators) {
+          const btn = scroll.querySelector(`#follow-btn-${creator.$id}`);
+          if (btn) await checkFollowStatus(creator.$id, btn);
+        }
+        
         document.getElementById('suggested-banner').classList.remove('hidden');
       } catch (err) { document.getElementById('suggested-scroll').innerHTML = '<div class="loading" style="padding: 20px;">Unable to load</div>'; }
     }
@@ -218,9 +248,28 @@
     async function followCreator(creatorId, btn) {
       if (!session.isLoggedIn()) { window.location = 'login.html'; return; }
       try {
-        const existing = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [ Query.equal('followerId', MY_USER_ID), Query.equal('followingId', creatorId), Query.limit(1) ]);
-        if (existing.total === 0) { await db.create(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, ID.unique(), { followId: ID.unique(), followerId: MY_USER_ID, followingId: creatorId, CreatorId: creatorId, createdAt: new Date().toISOString() }); btn.textContent = 'Following'; btn.classList.add('following'); }
-      } catch (err) { console.error('Follow error:', err); }
+        const existing = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [ 
+          Query.equal('followerId', MY_USER_ID), 
+          Query.equal('followingId', creatorId), 
+          Query.limit(1) 
+        ]);
+        
+        if (existing.total === 0) { 
+          await db.create(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, ID.unique(), { 
+            followId: ID.unique(), 
+            followerId: MY_USER_ID, 
+            followingId: creatorId, 
+            CreatorId: creatorId, 
+            createdAt: new Date().toISOString() 
+          }); 
+        }
+        
+        btn.textContent = 'Following'; 
+        btn.classList.add('following');
+        btn.disabled = true;
+      } catch (err) { 
+        console.error('Follow error:', err); 
+      }
     }
 
     async function loadVideos() {
