@@ -1188,7 +1188,7 @@
           expiresAt: expiresAt.toISOString()
         };
 
-        await db.create('status', statusId, statusData);
+        await db.create('status', statusData, statusId);
 
         alert('Story posted! ✅');
         setTimeout(() => {
