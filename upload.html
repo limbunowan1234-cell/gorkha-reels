@@ -1179,7 +1179,7 @@
 
         const statusData = {
           statusId,
-          creatorId: currentUserId,
+          creatorId: session.getUserId,
           videoUrl: mediaUrl,
           caption: document.getElementById('storyCaption').value || '',
           mediaType: selectedStoryMediaType,
