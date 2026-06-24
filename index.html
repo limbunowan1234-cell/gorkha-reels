@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>GorkhaReels - Home</title>
+  <title>GorkhaReels - Live Darjeeling</title>
   <link rel="icon" type="image/png" href="/logo-suite/favicon/logo-khukuri-32x32.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -28,7 +28,111 @@
     .banner-btn { width: 38px; height: 38px; border: none; border-radius: 50%; background: rgba(255,255,255,0.18); color: #fff; font-size: 19px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
     .banner-btn:active { background: rgba(255,255,255,0.3); transform: scale(0.92); }
 
-    .story-carousel-section { padding: 16px; border-bottom: 1px solid #1a1a1a; background: #0f0f0f; z-index: 99; }
+    /* ====== GEO CONTEXT TABS (NEW) ====== */
+    .geo-context-tabs {
+      position: sticky;
+      top: 56px;
+      z-index: 99;
+      background: linear-gradient(180deg, rgba(15,15,15,0.98) 0%, rgba(15,15,15,0.95) 100%);
+      padding: 12px 16px;
+      border-bottom: 1px solid #1a1a1a;
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scroll-behavior: smooth;
+    }
+    .geo-context-tabs::-webkit-scrollbar { height: 3px; }
+    .geo-context-tabs::-webkit-scrollbar-thumb { background: #0B5E6B; border-radius: 2px; }
+    .geo-tab {
+      flex: 0 0 auto;
+      padding: 8px 14px;
+      border: 1px solid rgba(11, 94, 107, 0.3);
+      border-radius: 20px;
+      background: transparent;
+      color: #888;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.25s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+    .geo-tab:hover {
+      border-color: #0B5E6B;
+      background: rgba(11, 94, 107, 0.1);
+    }
+    .geo-tab.active {
+      background: linear-gradient(135deg, #0B5E6B, #0D7377);
+      border-color: #0D7377;
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(11, 94, 107, 0.3);
+    }
+
+    /* ====== LIVE DARJEELING STRIP (NEW) ====== */
+    .live-darjeeling-strip {
+      background: #0f0f0f;
+      padding: 12px 16px;
+      border-bottom: 1px solid #1a1a1a;
+      position: relative;
+      z-index: 98;
+    }
+    .live-strip-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .live-strip-container {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scroll-behavior: smooth;
+      padding-bottom: 4px;
+    }
+    .live-strip-container::-webkit-scrollbar { height: 4px; }
+    .live-strip-container::-webkit-scrollbar-thumb { background: #0B5E6B; border-radius: 2px; }
+    .live-strip-item {
+      flex: 0 0 100px;
+      aspect-ratio: 9/16;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #1a1a1a;
+      border: 1px solid #2d2d2d;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.2s ease;
+    }
+    .live-strip-item:hover {
+      border-color: #0B5E6B;
+      transform: translateY(-4px);
+    }
+    .live-strip-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .live-strip-item-label {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+      padding: 6px 8px;
+      font-size: 10px;
+      font-weight: 600;
+      color: #fff;
+      text-align: center;
+    }
+
+    .story-carousel-section { padding: 16px; border-bottom: 1px solid #1a1a1a; background: #0f0f0f; z-index: 97; }
     .story-carousel-scroll { display: flex; gap: 12px; overflow-x: auto; scroll-behavior: smooth; padding: 8px 0; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
     .story-carousel-scroll::-webkit-scrollbar { display: none; }
     .story-item { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; text-decoration: none; }
@@ -37,14 +141,14 @@
     .story-name { font-size: 12px; max-width: 70px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #aaa; }
     .story-your-story { text-align: center; font-weight: 600; color: #0B5E6B; }
 
-    .category-tabs-section { padding: 12px 16px; background: #0f0f0f; border-bottom: 1px solid #1a1a1a; z-index: 97; }
+    .category-tabs-section { padding: 12px 16px; background: #0f0f0f; border-bottom: 1px solid #1a1a1a; z-index: 96; }
     .category-tabs-scroll { display: flex; gap: 8px; overflow-x: auto; scroll-behavior: smooth; padding: 4px 0; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
     .category-tabs-scroll::-webkit-scrollbar { display: none; }
     .category-tab { flex: 0 0 auto; padding: 8px 16px; background: #1a1a1a; border: 1px solid #2d2d2d; color: #888; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
     .category-tab.active { background: #0B5E6B; border-color: #0B5E6B; color: #fff; }
     .category-tab:active { transform: scale(0.95); }
 
-    .suggested-banner { padding: 16px; border-bottom: 1px solid #1a1a1a; background: #0f0f0f; display: block; z-index: 98; }
+    .suggested-banner { padding: 16px; border-bottom: 1px solid #1a1a1a; background: #0f0f0f; display: block; z-index: 95; }
     .suggested-banner.hidden { display: none !important; }
     .suggested-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
     .suggested-title { font-size: 16px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px; }
@@ -102,6 +206,36 @@
     .drawer-item .di-icon { font-size: 20px; width: 26px; text-align: center; }
     .drawer-sep { height: 1px; background: #262626; margin: 6px 18px; }
     .drawer-item-danger { color: #ef4444; }
+
+    /* Location badge for reels */
+    .location-badge {
+      position: absolute;
+      bottom: 60px;
+      right: 12px;
+      background: rgba(11, 94, 107, 0.8);
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .darjeeling-badge {
+      position: absolute;
+      bottom: 75px;
+      right: 12px;
+      background: #d4af37;
+      color: #0f0f0f;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
   </style>
 </head>
 <body>
@@ -111,7 +245,7 @@
       <img class="banner-logo" src="/logo-suite/primary/logo-khukuri-256x256.png" alt="GorkhaReels">
       <div class="banner-text">
         <div class="banner-title">GorkhaReels</div>
-        <div class="banner-tagline">Gorkha Stories, Global Reach</div>
+        <div class="banner-tagline">🏔️ Live Darjeeling</div>
       </div>
     </div>
     <div class="banner-right">
@@ -119,6 +253,22 @@
       <button class="banner-btn" id="open-drawer" aria-label="Menu">☰</button>
     </div>
   </header>
+
+  <!-- NEW: GEO CONTEXT TABS -->
+  <div class="geo-context-tabs" id="geo-context-tabs">
+    <button class="geo-tab active" data-context="FOR_YOU" onclick="switchGeoContext('FOR_YOU', event)">For You</button>
+    <button class="geo-tab" data-context="NEAR_YOU" onclick="switchGeoContext('NEAR_YOU', event)">📍 Near You</button>
+    <button class="geo-tab" data-context="SCENIC" onclick="switchGeoContext('SCENIC', event)">🏔️ Scenic</button>
+    <button class="geo-tab" data-context="TRENDING" onclick="switchGeoContext('TRENDING', event)">🔥 Trending</button>
+  </div>
+
+  <!-- NEW: LIVE DARJEELING STRIP -->
+  <div class="live-darjeeling-strip" id="live-darjeeling-strip">
+    <div class="live-strip-title">📍 Live in Darjeeling</div>
+    <div class="live-strip-container" id="live-strip-container">
+      <div class="loading" style="padding: 12px;">Loading...</div>
+    </div>
+  </div>
 
   <div class="story-carousel-section" id="story-carousel-section">
     <div class="story-carousel-scroll" id="story-carousel-scroll">
@@ -170,7 +320,7 @@
       <img src="/logo-suite/primary/logo-khukuri-256x256.png" alt="">
       <div>
         <div class="dh-title">GorkhaReels</div>
-        <div class="dh-sub">Gorkha Stories, Global Reach</div>
+        <div class="dh-sub">Live Darjeeling</div>
       </div>
     </div>
     <div class="drawer-items">
@@ -188,9 +338,13 @@
   <script src="js/appwrite-config.js"></script>
   <script src="js/last-seen-tracker.js"></script>
   <script src="js/trending.js"></script>
+  <script src="js/geo-feed-engine.js"></script>
+  <script src="js/geo-context.js"></script>
+  <script src="js/interstitial-manager.js"></script>
 
   <script>
-    let MY_USER_ID = null, lastOffset = 0, isLoadingMore = false, currentFilter = 'all';
+    let MY_USER_ID = null, lastOffset = 0, isLoadingMore = false, currentFilter = 'all', currentGeoContext = 'FOR_YOU';
+    let geoFeedEngine = null, geoContextManager = null, interstitialManager = null;
 
     function setupDrawer() {
       const openBtn = document.getElementById('open-drawer');
@@ -202,6 +356,57 @@
       backdrop.onclick = () => { drawer.classList.remove('open'); backdrop.classList.remove('open'); };
       items.forEach(item => { item.addEventListener('click', () => { drawer.classList.remove('open'); backdrop.classList.remove('open'); }); });
       document.getElementById('drawer-logout').onclick = async () => { try { await session.logout(); } catch (e) {} window.location = 'login.html'; };
+    }
+
+    /**
+     * NEW: Switch geo context (For You, Near You, Scenic, Trending)
+     */
+    async function switchGeoContext(context, evt) {
+      currentGeoContext = context;
+      
+      // Update UI
+      document.querySelectorAll('.geo-tab').forEach(tab => tab.classList.remove('active'));
+      if (evt && evt.target) evt.target.classList.add('active');
+      
+      // Reset feed and reload
+      lastOffset = 0;
+      isLoadingMore = false;
+      
+      // Switch engine context
+      if (geoFeedEngine) geoFeedEngine.setContext(context);
+      
+      // Reload with new context
+      await loadVideos();
+    }
+
+    /**
+     * NEW: Load live strip with recent Darjeeling content
+     */
+    async function loadLiveStrip() {
+      try {
+        const container = document.getElementById('live-strip-container');
+        const response = await db.list(APPWRITE_CONFIG.COLLECTIONS.REELS, [
+          Query.equal('isDeleted', false),
+          Query.orderDesc('uploadedAt'),
+          Query.limit(10)
+        ]);
+        
+        const items = response.documents || [];
+        if (items.length === 0) {
+          container.innerHTML = '<div class="loading">No live content yet</div>';
+          return;
+        }
+        
+        container.innerHTML = items.slice(0, 6).map((reel, idx) => `
+          <div class="live-strip-item" onclick="window.location.href='./video-modal.html?reelId=${reel.$id}'">
+            <video src="${reel.videoUrl}" muted playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>
+            <div class="live-strip-item-label">${['Tiger Hill', 'Mall Road', 'Tea Garden', 'Toy Train', 'Local', 'Scenic'][idx % 6]}</div>
+          </div>
+        `).join('');
+      } catch (err) {
+        console.error('Live strip error:', err);
+        document.getElementById('live-strip-container').innerHTML = '<div class="loading">Error</div>';
+      }
     }
 
     async function checkFollowStatus(creatorId, btn) {
@@ -355,11 +560,13 @@
       try {
         const [reelsResponse, postsResponse] = await Promise.all([ db.list(APPWRITE_CONFIG.COLLECTIONS.REELS, [ Query.equal('isDeleted', false), Query.orderDesc('uploadedAt'), Query.limit(20) ]), db.list('posts', [ Query.equal('isDeleted', false), Query.orderDesc('createdAt'), Query.limit(20) ]) ]);
         let allContent = [];
+        const creatorMap = {};
         
         for (const reel of reelsResponse.documents) {
           let creator = null;
           try { 
-            creator = await db.get(APPWRITE_CONFIG.COLLECTIONS.CREATORS, reel.creatorId); 
+            creator = await db.get(APPWRITE_CONFIG.COLLECTIONS.CREATORS, reel.creatorId);
+            creatorMap[creator.$id] = creator;
           } catch (err) { 
             continue;
           }
@@ -376,7 +583,8 @@
         for (const post of postsResponse.documents) {
           let creator = null;
           try { 
-            creator = await db.get(APPWRITE_CONFIG.COLLECTIONS.CREATORS, post.creatorId); 
+            creator = await db.get(APPWRITE_CONFIG.COLLECTIONS.CREATORS, post.creatorId);
+            creatorMap[creator.$id] = creator;
           } catch (err) { 
             continue;
           }
@@ -390,7 +598,12 @@
           allContent.push({ type: 'post', data: post, creator: creator, timestamp: new Date(post.createdAt) });
         }
         
-        allContent.sort((a, b) => b.timestamp - a.timestamp);
+        // NEW: Apply geo ranking if not "all" filter
+        if (geoFeedEngine && currentGeoContext !== 'FOR_YOU') {
+          allContent = geoFeedEngine.rankContent(allContent, creatorMap);
+        } else {
+          allContent.sort((a, b) => b.timestamp - a.timestamp);
+        }
         
         const paginatedContent = allContent.slice(lastOffset, lastOffset + 10);
         if (paginatedContent.length === 0 && lastOffset === 0) { 
@@ -473,10 +686,17 @@
 
     async function init() {
       try {
+        // Initialize geo systems
+        geoFeedEngine = new GeoFeedEngine();
+        geoContextManager = new GeoContextManager();
+        interstitialManager = new InterstitialManager();
+        
+        await geoContextManager.initialize();
+        
         await session.refresh();
         if (session.isLoggedIn()) { MY_USER_ID = session.getUserId(); try { if (typeof lastSeenTracker !== 'undefined' && lastSeenTracker.init) { lastSeenTracker.init(MY_USER_ID); } } catch (e) {} await new Promise(resolve => setTimeout(resolve, 100)); }
         setupDrawer();
-        await Promise.allSettled([ loadSuggestedCreators(), loadVideos() ]);
+        await Promise.allSettled([ loadSuggestedCreators(), loadVideos(), loadLiveStrip() ]);
         setupInfiniteScroll();
       } catch (err) { setupDrawer(); await loadVideos(); }
     }
