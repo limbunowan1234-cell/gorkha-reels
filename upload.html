@@ -103,6 +103,71 @@
     <input type="file" id="video-file-input" accept="video/*" style="display:none;">
   </div>
 
+  <!-- REEL DETAILS STEP (shown after a video is picked) -->
+  <div id="step-details">
+    <div class="details-preview">
+      <video id="video-preview" muted playsinline></video>
+      <button class="change-video-btn" id="change-video-btn" type="button">Change</button>
+    </div>
+    <div class="details-form">
+      <div class="form-field">
+        <label class="form-label">Title</label>
+        <input type="text" id="post-title" class="form-input" placeholder="Give your reel a title" maxlength="100">
+      </div>
+
+      <div class="form-field">
+        <label class="form-label">Description</label>
+        <textarea id="post-description" class="form-textarea" rows="3" placeholder="Add a description (optional)" maxlength="500"></textarea>
+        <div class="char-count"><span id="desc-char-count">0</span>/500</div>
+      </div>
+
+      <div class="form-field">
+        <label class="form-label">📍 Zone</label>
+        <select id="post-zone" class="form-select">
+          <option value="Darjeeling">Darjeeling</option>
+          <option value="Kurseong">Kurseong</option>
+          <option value="Kalimpong">Kalimpong</option>
+          <option value="Siliguri">Siliguri</option>
+          <option value="Mirik">Mirik</option>
+          <option value="Sukhiapokhri">Sukhiapokhri</option>
+          <option value="Takdah">Takdah</option>
+          <option value="Sonada">Sonada</option>
+          <option value="Bijanbari">Bijanbari</option>
+          <option value="Pedong">Pedong</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <div class="form-field">
+          <label class="form-label">Category</label>
+          <select id="post-category" class="form-select">
+            <option value="other">Common</option>
+            <option value="musician">Musician</option>
+            <option value="artist">Artist</option>
+            <option value="guide">Guide</option>
+            <option value="business">Business</option>
+            <option value="student">Student</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Language</label>
+          <select id="post-language" class="form-select">
+            <option value="Nepali">Nepali</option>
+            <option value="Hindi">Hindi</option>
+            <option value="English">English</option>
+            <option value="Bengali">Bengali</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="info-box"><span>📍</span> Tagging a zone helps your reel reach people watching Darjeeling content. Leave it on Darjeeling if unsure.</div>
+    </div>
+    <div class="post-btn-container">
+      <button id="post-btn" type="button" onclick="window.uploader.post()">🚀 Post Reel</button>
+    </div>
+  </div>
+
   <div id="step-post">
     <div class="post-form">
       <div class="form-field">
@@ -169,10 +234,17 @@
       document.getElementById('post-tab').classList.toggle('active', tab === 'post');
       document.getElementById('story-tab').classList.toggle('active', tab === 'story');
       document.getElementById('step-pick').style.display = tab === 'reel' ? 'flex' : 'none';
+      // Leaving the Reel tab always hides the details form; it reappears once a video is picked.
+      if (tab !== 'reel') document.getElementById('step-details').style.display = 'none';
       document.getElementById('step-post').style.display = tab === 'post' ? 'flex' : 'none';
       document.getElementById('step-story').style.display = tab === 'story' ? 'flex' : 'none';
       document.getElementById('upload-header-title').textContent = tab === 'reel' ? 'New Reel' : tab === 'post' ? 'New Post' : 'New Story';
     }
+
+    // Reel description character counter
+    document.getElementById('post-description').addEventListener('input', (e) => {
+      document.getElementById('desc-char-count').textContent = e.target.value.length;
+    });
 
     document.getElementById('post-content').addEventListener('input', (e) => {
       document.getElementById('post-char-count').textContent = e.target.value.length;
