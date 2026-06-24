@@ -2,467 +2,350 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Creator Dashboard - GorkhaReels</title>
-  <meta name="description" content="Manage your GorkhaReels profile, track earnings, and grow your audience">
-  <meta name="theme-color" content="#0f0f0f">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Creator Profile - GorkhaReels</title>
+  <meta name="theme-color" content="#0B5E6B">
   <link rel="icon" type="image/png" href="/logo-suite/favicon/logo-khukuri-32x32.png">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+  
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #0f0f0f; color: #fff; font-family: system-ui; }
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body { 
+      background: #0f0f0f; 
+      color: #fff; 
+      font-family: system-ui;
+      position: fixed;
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+    }
 
-    .banner {
-      position: sticky; top: 0; z-index: 100;
+    .container {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 80px;
+    }
+
+    /* Header */
+    .header {
       background: linear-gradient(135deg, #0B5E6B 0%, #0D7377 100%);
-      padding: 12px 16px;
-      display: flex; align-items: center; justify-content: space-between;
-      box-shadow: 0 2px 14px rgba(0,0,0,0.4);
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
     }
-    .banner-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
-    .banner-logo { width: 42px; height: 42px; border-radius: 11px; flex-shrink: 0; background: rgba(255,255,255,0.15); object-fit: cover; }
-    .banner-text { min-width: 0; }
-    .banner-title { font-size: 22px; font-weight: 900; letter-spacing: 0.6px; line-height: 1.1; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,0.3); font-family: 'Space Grotesk', sans-serif; }
-    .banner-tagline { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.95); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0.2px; }
-    .banner-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
-    .banner-btn {
-      width: 38px; height: 38px; border: none; border-radius: 50%;
-      background: rgba(255,255,255,0.18); color: #fff; font-size: 19px;
-      cursor: pointer; display: flex; align-items: center; justify-content: center;
+    .header-title { 
+      font-size: 20px; 
+      font-weight: 900; 
+      font-family: 'Space Grotesk', sans-serif;
     }
-    .banner-btn:active { background: rgba(255,255,255,0.3); }
+    .header-btn {
+      background: rgba(255,255,255,0.18);
+      border: none;
+      color: #fff;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 18px;
+    }
+    .header-btn:active { background: rgba(255,255,255,0.28); }
 
-    .dashboard-container { max-width: 600px; margin: 0 auto; padding: 16px; margin-bottom: 90px; }
+    /* Content */
+    .content { padding: 20px; }
 
-    .profile-top { display: flex; align-items: center; gap: 24px; margin: 8px 0 16px; }
-    .profile-avatar-lg { width: 86px; height: 86px; border-radius: 50%; object-fit: cover; border: 2px solid #2d2d2d; flex-shrink: 0; }
-    .profile-stats-row { display: flex; flex: 1; justify-content: space-around; }
-    .stat-cell { display: flex; flex-direction: column; align-items: center; gap: 2px; }
-    .stat-num { font-size: 20px; font-weight: 700; }
-    .stat-lbl { font-size: 13px; color: #888; }
+    /* Profile Card */
+    .profile-header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .profile-pic {
+      width: 120px;
+      height: 120px;
+      border-radius: 60px;
+      background: #0B5E6B;
+      object-fit: cover;
+      margin: 0 auto 16px;
+      border: 4px solid #0D7377;
+    }
+    .profile-name {
+      font-size: 24px;
+      font-weight: 900;
+      font-family: 'Space Grotesk', sans-serif;
+      margin-bottom: 4px;
+    }
+    .profile-category {
+      display: inline-block;
+      background: #0B5E6B;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+    .profile-bio {
+      color: #ccc;
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
 
-    .profile-identity { margin-bottom: 16px; }
-    .profile-name-lg { font-size: 16px; font-weight: 700; margin-bottom: 2px; }
-    .verified-badge { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; background: #0284c7; border-radius: 50%; color: #fff; font-size: 10px; margin-left: 4px; vertical-align: middle; }
-    .profile-bio { font-size: 14px; color: #888; line-height: 1.4; }
-    .profile-category { font-size: 13px; color: #0B5E6B; margin-top: 6px; font-weight: 600; }
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+    .stat-item {
+      background: linear-gradient(135deg, #1a1a1a, #0d2d3a);
+      border: 1px solid #2d2d2d;
+      border-radius: 12px;
+      padding: 16px 8px;
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 20px;
+      font-weight: 700;
+      color: #0B5E6B;
+      margin-bottom: 4px;
+    }
+    .stat-label {
+      font-size: 11px;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
 
-    .profile-actions { display: flex; gap: 8px; margin-bottom: 16px; }
-    .action-btn-secondary, .action-btn-primary { flex: 1; padding: 9px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: opacity 0.15s; }
-    .action-btn-secondary { background: #1a1a1a; color: #fff; border: 1px solid #2d2d2d; }
-    .action-btn-primary { background: #0B5E6B; color: #fff; }
-    .action-btn-secondary:active, .action-btn-primary:active { opacity: 0.7; }
-
-    /* Earnings Cards */
-    .earnings-cards {
+    /* Action Buttons Grid */
+    .action-buttons {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 12px;
-      margin-bottom: 16px;
+      margin-bottom: 24px;
     }
-    .earning-card {
-      background: linear-gradient(135deg, #1a1a1a, #20190c);
-      border: 1px solid #2d2d2d;
-      border-radius: 12px;
-      padding: 14px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .earning-card:active { transform: scale(0.96); background: linear-gradient(135deg, #262626, #2d2410); }
-    .earning-label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
-    .earning-value { font-size: 20px; font-weight: 700; color: #D4A574; }
-    .earning-sub { font-size: 11px; color: #666; margin-top: 4px; }
-
-    .quick-actions {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 20px;
-    }
-    .quick-btn {
-      flex: 1;
-      padding: 11px;
-      background: #1a1a1a;
-      border: 1px solid #2d2d2d;
-      border-radius: 8px;
+    .btn {
+      background: linear-gradient(135deg, #0B5E6B 0%, #0D7377 100%);
+      border: none;
       color: #fff;
+      padding: 14px 16px;
+      border-radius: 10px;
       font-size: 13px;
-      font-weight: 600;
+      font-weight: 700;
       cursor: pointer;
       transition: all 0.2s;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 4px;
-    }
-    .quick-btn:active { background: #262626; }
-    .quick-btn-icon { font-size: 18px; }
-
-    .videos-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
-    .videos-title { font-size: 16px; font-weight: 700; }
-
-    .videos-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
-    .video-thumb { position: relative; aspect-ratio: 9/16; background: #1a1a1a; cursor: pointer; overflow: hidden; }
-    .video-thumb img { width: 100%; height: 100%; object-fit: cover; }
-    .video-more { position: absolute; top: 6px; right: 6px; width: 32px; height: 32px; background: rgba(0,0,0,0.6); border: none; color: #fff; border-radius: 50%; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-    .video-more:active { background: rgba(0,0,0,0.8); }
-    .video-views { position: absolute; bottom: 6px; left: 6px; font-size: 12px; color: white; background: rgba(0,0,0,0.6); padding: 2px 6px; border-radius: 4px; }
-
-    .empty-state { text-align: center; padding: 40px 20px; color: #888; }
-
-    .video-menu-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 300; display: none; }
-    .video-menu-backdrop.open { display: block; }
-    .video-menu { position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 310; max-width: 476px; margin: 0 auto; transform: translateY(140%); transition: transform 0.25s ease; }
-    .video-menu.open { transform: translateY(0); }
-    .video-menu-items { background: #1c1c1e; border-radius: 14px; overflow: hidden; margin-bottom: 8px; }
-    .video-menu-item { width: 100%; padding: 16px; background: none; border: none; color: #fff; font-size: 15px; cursor: pointer; text-align: left; border-bottom: 1px solid #2c2c2e; }
-    .video-menu-item:last-child { border-bottom: none; }
-    .video-menu-item.danger { color: #ff453a; }
-    .video-menu-cancel { width: 100%; padding: 16px; background: #1c1c1e; border: none; border-radius: 14px; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; }
-
-    /* Sheets */
-    .sheet-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 300; display: none; }
-    .sheet-backdrop.open { display: block; }
-    .sheet { position: fixed; bottom: 0; left: 0; right: 0; background: #1c1c1e; z-index: 310; border-radius: 16px 16px 0 0; transform: translateY(100%); transition: transform 0.3s ease; max-height: 85vh; overflow-y: auto; }
-    .sheet.open { transform: translateY(0); }
-    .sheet-header { display: flex; justify-content: space-between; align-items: center; padding: 16px; border-bottom: 1px solid #2d2d2d; position: sticky; top: 0; background: #1c1c1e; }
-    .sheet-header h2 { font-size: 18px; font-weight: 700; }
-    .close-btn { background: none; border: none; color: #fff; font-size: 24px; cursor: pointer; }
-    .sheet-content { padding: 20px 16px; }
-
-    .form-group { margin-bottom: 14px; }
-    .form-label { display: block; font-size: 13px; font-weight: 600; color: #888; margin-bottom: 8px; text-transform: uppercase; }
-    .form-input { width: 100%; padding: 11px 12px; background: #2d2d2d; border: 1px solid #3d3d3d; border-radius: 8px; color: #fff; font-size: 15px; font-family: inherit; }
-    .form-input:focus { outline: none; border-color: #0B5E6B; }
-    .form-input::placeholder { color: #666; }
-
-    .referral-code-box {
-      background: #2d2d2d;
-      border: 1px solid #3d3d3d;
-      padding: 12px;
-      border-radius: 8px;
-      font-family: monospace;
-      font-size: 12px;
-      word-break: break-all;
-      margin-bottom: 12px;
-      color: #D4A574;
-    }
-
-    .btn { 
-      width: 100%;
-      padding: 11px;
-      background: #0B5E6B;
-      border: none;
-      color: #fff;
-      border-radius: 8px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: opacity 0.2s;
-      margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       gap: 6px;
+      min-height: 80px;
+      justify-content: center;
     }
-    .btn:active { opacity: 0.8; }
-    .btn.secondary { background: #2d2d2d; border: 1px solid #3d3d3d; }
+    .btn:active { transform: scale(0.94); }
+    .btn.secondary {
+      background: #1a1a1a;
+      border: 1px solid #2d2d2d;
+    }
+    .btn-icon { font-size: 24px; }
+    .btn-text { font-size: 12px; font-weight: 600; }
 
-    .payout-history {
+    /* Section Title */
+    .section-title {
+      font-size: 16px;
+      font-weight: 700;
+      font-family: 'Space Grotesk', sans-serif;
+      margin: 24px 0 12px 0;
+      color: #fff;
+    }
+
+    /* Earnings Cards */
+    .earnings-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .earning-card {
       background: linear-gradient(135deg, #1a1a1a, #0d2d3a);
       border: 1px solid #2d2d2d;
       border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+    }
+    .earning-label {
+      font-size: 11px;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+    .earning-value {
+      font-size: 22px;
+      font-weight: 700;
+      color: #4ade80;
+      margin-bottom: 4px;
+    }
+    .earning-desc {
+      font-size: 11px;
+      color: #666;
+    }
+
+    /* Video Grid */
+    .video-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+    .video-card {
+      background: #1a1a1a;
+      border: 1px solid #2d2d2d;
+      border-radius: 10px;
       overflow: hidden;
+      position: relative;
     }
-    .payout-item {
-      padding: 12px 16px;
-      border-bottom: 1px solid #2d2d2d;
+    .video-thumb {
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
+      background: #2d2d2d;
+    }
+    .video-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.3);
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 24px;
     }
-    .payout-item:last-child { border-bottom: none; }
-    .payout-left { display: flex; flex-direction: column; gap: 4px; }
-    .payout-amount { font-weight: 700; }
-    .payout-date { font-size: 12px; color: #888; }
-    .payout-status { font-size: 11px; padding: 2px 8px; border-radius: 4px; }
-    .payout-status.pending { background: #b45309; color: #fff; }
-    .payout-status.completed { background: #16a34a; color: #fff; }
+    .video-info {
+      padding: 8px;
+      font-size: 11px;
+      color: #888;
+    }
 
-    .edit-profile-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 300; display: none; }
-    .edit-profile-backdrop.open { display: block; }
-    .edit-profile-sheet { position: fixed; bottom: 0; left: 0; right: 0; background: #1c1c1e; z-index: 310; border-radius: 16px 16px 0 0; transform: translateY(100%); transition: transform 0.3s ease; max-height: 85vh; overflow-y: auto; }
-    .edit-profile-sheet.open { transform: translateY(0); }
+    /* Loading */
+    .loading { text-align: center; padding: 40px 20px; color: #888; }
+    .spinner { width: 40px; height: 40px; border: 3px solid #2d2d2d; border-top-color: #0B5E6B; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 12px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-    .pic-preview-container { display: flex; flex-direction: column; align-items: center; gap: 12px; }
-    .pic-preview { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid #0B5E6B; }
-    .upload-btn { padding: 9px 16px; background: #0B5E6B; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
-    .edit-actions { display: flex; gap: 10px; margin-top: 20px; margin-bottom: 20px; }
-    .save-btn { flex: 1; padding: 11px; background: #0B5E6B; color: #fff; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
-
-    .crop-modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 500; display: none; align-items: center; justify-content: center; padding: 16px; }
-    .crop-modal-backdrop.open { display: flex; }
-    .crop-modal { background: #1c1c1e; border-radius: 16px; width: 100%; max-width: 400px; overflow: hidden; }
-    .crop-modal-header { padding: 16px; border-bottom: 1px solid #2d2d2d; text-align: center; font-size: 17px; font-weight: 700; }
-    .crop-area { position: relative; width: 100%; aspect-ratio: 1; background: #000; overflow: hidden; touch-action: none; cursor: move; }
-    .crop-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-    .crop-circle-overlay { position: absolute; inset: 0; pointer-events: none; box-shadow: 0 0 0 9999px rgba(0,0,0,0.5); border-radius: 50%; margin: 10%; }
-    .crop-controls { padding: 16px; }
-    .crop-zoom-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
-    .crop-zoom-row span { font-size: 18px; }
-    .crop-zoom-slider { flex: 1; -webkit-appearance: none; appearance: none; height: 5px; border-radius: 5px; background: #3d3d3d; outline: none; }
-    .crop-zoom-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 22px; height: 22px; border-radius: 50%; background: #0B5E6B; cursor: pointer; }
-    .crop-zoom-slider::-moz-range-thumb { width: 22px; height: 22px; border-radius: 50%; background: #0B5E6B; cursor: pointer; border: none; }
-    .crop-hint { text-align: center; font-size: 12px; color: #888; margin-bottom: 14px; }
-    .crop-btn-row { display: flex; gap: 10px; }
-    .crop-cancel-btn { flex: 1; padding: 12px; background: #2d2d2d; color: #fff; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; }
-    .crop-apply-btn { flex: 1; padding: 12px; background: #0B5E6B; color: #fff; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; }
-
-    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #1a1a1a; border-top: 1px solid #2d2d2d; display: flex; justify-content: space-around; align-items: center; padding: 8px 0; z-index: 100; }
-    .nav-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; background: none; border: none; color: #666; cursor: pointer; flex: 1; padding: 10px; font-size: 18px; }
+    /* Bottom Nav */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #1a1a1a;
+      border-top: 1px solid #2d2d2d;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 8px 0;
+      z-index: 100;
+    }
+    .nav-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      background: none;
+      border: none;
+      color: #666;
+      cursor: pointer;
+      flex: 1;
+      padding: 10px;
+      font-size: 18px;
+    }
     .nav-btn.active { color: #0B5E6B; }
     .nav-label { font-size: 10px; font-weight: 500; }
 
-    .drawer-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 150; display: none; }
-    .drawer-backdrop.open { display: block; }
-    .drawer { position: fixed; top: 0; right: 0; bottom: 0; width: 80%; max-width: 320px; background: #161616; z-index: 160; transform: translateX(100%); transition: transform 0.25s ease; display: flex; flex-direction: column; box-shadow: -4px 0 20px rgba(0,0,0,0.5); }
-    .drawer.open { transform: translateX(0); }
-    .drawer-head { background: linear-gradient(135deg, #0B5E6B, #0D7377); padding: 20px 16px; display: flex; align-items: center; gap: 12px; }
-    .drawer-head img { width: 40px; height: 40px; border-radius: 10px; background: rgba(255,255,255,0.15); }
-    .drawer-head .dh-title { font-size: 16px; font-weight: 800; }
-    .drawer-head .dh-sub { font-size: 11px; color: rgba(255,255,255,0.9); }
-    .drawer-items { flex: 1; overflow-y: auto; padding: 8px 0; }
-    .drawer-item { width: 100%; display: flex; align-items: center; gap: 14px; padding: 15px 18px; background: none; border: none; color: #fff; font-size: 15px; cursor: pointer; text-align: left; }
-    .drawer-item:active { background: #222; }
-    .drawer-item .di-icon { font-size: 20px; width: 26px; text-align: center; }
-    .drawer-sep { height: 1px; background: #262626; margin: 6px 18px; }
-    .drawer-item-danger { color: #ef4444; }
-
-    .loading { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 200px; gap: 12px; }
-    .spinner { width: 40px; height: 40px; border: 3px solid #2d2d2d; border-top-color: #0B5E6B; border-radius: 50%; animation: spin 1s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    .toast { position: fixed; top: 20px; right: 20px; padding: 12px 20px; background: #0B5E6B; color: #fff; border-radius: 8px; z-index: 2000; }
-    .toast.error { background: #dc2626; }
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #888;
+    }
+    .empty-icon { font-size: 48px; margin-bottom: 12px; }
   </style>
 </head>
 <body>
-  <header class="banner">
-    <div class="banner-left">
-      <img class="banner-logo" src="/logo-suite/primary/logo-khukuri-256x256.png" alt="GorkhaReels">
-      <div class="banner-text">
-        <div class="banner-title">GorkhaReels</div>
-        <div class="banner-tagline">Gorkha Stories, Global Reach</div>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-title">Profile</div>
+      <button class="header-btn" onclick="window.location='index.html'">✕</button>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+      <!-- Profile Header -->
+      <div class="profile-header" id="profile-header">
+        <img class="profile-pic" id="profile-pic" src="" alt="Profile" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'">
+        <div class="profile-name" id="profile-name">Loading...</div>
+        <div class="profile-category" id="profile-category"></div>
+        <div class="profile-bio" id="profile-bio"></div>
       </div>
-    </div>
-    <div class="banner-right">
-      <button class="banner-btn" onclick="window.location='search.html'" aria-label="Search">🔍</button>
-      <button class="banner-btn" id="open-drawer" aria-label="Menu">☰</button>
-    </div>
-  </header>
 
-  <div class="dashboard-container">
-    <div class="profile-top">
-      <img id="creator-avatar" src="/logo-suite/primary/logo-khukuri-512x512.png" alt="Profile" class="profile-avatar-lg" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'">
-      <div class="profile-stats-row">
-        <div class="stat-cell"><span class="stat-num" id="total-reels">0</span><span class="stat-lbl">Videos</span></div>
-        <div class="stat-cell"><span class="stat-num" id="followers-count">0</span><span class="stat-lbl">Followers</span></div>
-        <div class="stat-cell"><span class="stat-num" id="total-views">0</span><span class="stat-lbl">Views</span></div>
-      </div>
-    </div>
-
-    <div class="profile-identity">
-      <div class="profile-name-lg" id="creator-name">Loading...</div>
-      <div class="profile-category" id="creator-category"></div>
-      <div class="profile-bio" id="creator-bio">No bio yet</div>
-    </div>
-
-    <div class="profile-actions">
-      <button class="action-btn-secondary" id="edit-profile-btn">Edit Profile</button>
-      <button class="action-btn-primary" id="upload-btn">+ Upload</button>
-    </div>
-
-    <!-- NEW: Earnings Cards -->
-    <div class="earnings-cards">
-      <div class="earning-card" onclick="openEarningsSheet()">
-        <div class="earning-label">💰 Total Tips</div>
-        <div class="earning-value" id="total-tips">₹0</div>
-        <div class="earning-sub">From creators</div>
-      </div>
-      <div class="earning-card" onclick="openReferralSheet()">
-        <div class="earning-label">🔗 Referrals</div>
-        <div class="earning-value" id="referral-earnings">₹0</div>
-        <div class="earning-sub">From network</div>
-      </div>
-    </div>
-
-    <!-- NEW: Quick Actions -->
-    <div class="quick-actions">
-      <button class="quick-btn" onclick="openPayoutSheet()"><span class="quick-btn-icon">💳</span> Withdraw</button>
-      <button class="quick-btn" onclick="window.location='creator-analytics.html'"><span class="quick-btn-icon">📊</span> Analytics</button>
-    </div>
-
-    <div class="videos-header"><span class="videos-title">🎬 My Videos</span></div>
-    <div id="my-reels-container"><div class="loading"><div class="spinner"></div></div></div>
-  </div>
-
-  <!-- Video Menu -->
-  <div class="video-menu-backdrop" id="video-menu-backdrop"></div>
-  <div class="video-menu" id="video-menu">
-    <div class="video-menu-items" id="video-menu-items"></div>
-    <button class="video-menu-cancel" id="video-menu-cancel">Cancel</button>
-  </div>
-
-  <!-- Edit Profile Sheet -->
-  <div class="edit-profile-backdrop" id="edit-profile-backdrop"></div>
-  <div class="edit-profile-sheet" id="edit-profile-sheet">
-    <div class="sheet-header">
-      <h2>Edit Profile</h2>
-      <button class="close-btn" id="close-edit-profile">✕</button>
-    </div>
-    <div class="sheet-content">
-      <div class="form-group">
-        <label class="form-label">Profile Picture</label>
-        <div class="pic-preview-container">
-          <img id="profile-pic-preview" class="pic-preview" src="" alt="Profile">
-          <button class="upload-btn" id="upload-pic-btn">📷 Choose Photo</button>
-          <input type="file" id="profile-pic-input" accept="image/*" style="display:none;">
+      <!-- Stats Grid -->
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-value" id="video-count">0</div>
+          <div class="stat-label">Videos</div>
         </div>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Name</label>
-        <input type="text" id="edit-name" class="form-input" placeholder="Your name" maxlength="50">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Category</label>
-        <select id="edit-category" class="form-input">
-          <option value="">-- Select Category (Optional) --</option>
-          <option value="musician">🎵 Musician</option>
-          <option value="artist">🎨 Artist</option>
-          <option value="guide">🧗 Tour Guide</option>
-          <option value="business">🏪 Business Owner</option>
-          <option value="student">📚 Student</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Bio</label>
-        <textarea id="edit-bio" class="form-input" placeholder="Tell your story..." maxlength="150" rows="3"></textarea>
-      </div>
-      <button class="save-btn" id="save-profile-btn">Save Changes</button>
-    </div>
-  </div>
-
-  <!-- Earnings Sheet -->
-  <div class="sheet-backdrop" id="earnings-backdrop"></div>
-  <div class="sheet" id="earnings-sheet">
-    <div class="sheet-header">
-      <h2>💰 Your Earnings</h2>
-      <button class="close-btn" onclick="closeEarningsSheet()">✕</button>
-    </div>
-    <div class="sheet-content">
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;">
-        <div style="background: #1a1a1a; padding: 12px; border-radius: 8px; text-align: center;">
-          <div style="font-size: 12px; color: #888; margin-bottom: 6px;">Tips Earned</div>
-          <div style="font-size: 20px; font-weight: 700; color: #4ade80;" id="tips-display">₹0</div>
+        <div class="stat-item">
+          <div class="stat-value" id="follower-count">0</div>
+          <div class="stat-label">Followers</div>
         </div>
-        <div style="background: #1a1a1a; padding: 12px; border-radius: 8px; text-align: center;">
-          <div style="font-size: 12px; color: #888; margin-bottom: 6px;">Available</div>
-          <div style="font-size: 20px; font-weight: 700; color: #D4A574;" id="available-display">₹0</div>
-        </div>
-      </div>
-      <button class="btn" onclick="openPayoutSheet()">💳 Withdraw Now</button>
-      <button class="btn secondary" onclick="closeEarningsSheet()">Close</button>
-    </div>
-  </div>
-
-  <!-- Referral Sheet -->
-  <div class="sheet-backdrop" id="referral-backdrop"></div>
-  <div class="sheet" id="referral-sheet">
-    <div class="sheet-header">
-      <h2>🔗 Referral Program</h2>
-      <button class="close-btn" onclick="closeReferralSheet()">✕</button>
-    </div>
-    <div class="sheet-content">
-      <div style="background: #1a1a1a; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
-        <div style="font-size: 12px; color: #888; margin-bottom: 6px;">Your Referral Link</div>
-        <div class="referral-code-box" id="referral-link">Loading...</div>
-      </div>
-      <button class="btn" onclick="copyReferralLink()">📋 Copy Link</button>
-      <button class="btn" onclick="shareReferralWhatsApp()">💬 Share on WhatsApp</button>
-      <div style="background: linear-gradient(135deg, #1a4d2e, #0d2d20); border: 1px solid #2d5a3d; padding: 14px; border-radius: 8px; margin-top: 16px; margin-bottom: 16px;">
-        <div style="font-size: 13px; line-height: 1.6; color: #ccc;">
-          <p style="margin-bottom: 8px;"><strong>How it works:</strong></p>
-          <p style="margin-bottom: 6px;">1️⃣ Share your link</p>
-          <p style="margin-bottom: 6px;">2️⃣ Friends join & earn tips</p>
-          <p>3️⃣ You get 10% of their tips 💰</p>
-        </div>
-      </div>
-      <button class="btn secondary" onclick="closeReferralSheet()">Close</button>
-    </div>
-  </div>
-
-  <!-- Payout Sheet -->
-  <div class="sheet-backdrop" id="payout-backdrop"></div>
-  <div class="sheet" id="payout-sheet">
-    <div class="sheet-header">
-      <h2>💳 Withdraw Earnings</h2>
-      <button class="close-btn" onclick="closePayoutSheet()">✕</button>
-    </div>
-    <div class="sheet-content">
-      <div style="background: linear-gradient(135deg, #1a1a1a, #0d2d3a); border: 1px solid #2d2d2d; padding: 14px; border-radius: 8px; margin-bottom: 16px;">
-        <div style="font-size: 12px; color: #888; margin-bottom: 6px;">Available Balance</div>
-        <div style="font-size: 24px; font-weight: 700; color: #4ade80;" id="available-balance">₹0</div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Bank Name</label>
-        <input type="text" id="bank-name" class="form-input" placeholder="e.g., HDFC Bank">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Account Number</label>
-        <input type="text" id="account-number" class="form-input" placeholder="1234567890">
-      </div>
-      <div class="form-group">
-        <label class="form-label">IFSC Code</label>
-        <input type="text" id="ifsc-code" class="form-input" placeholder="HDFC0000001">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Withdrawal Amount (₹)</label>
-        <input type="number" id="payout-amount" class="form-input" placeholder="Minimum ₹100">
-      </div>
-
-      <button class="btn" onclick="submitPayoutRequest()">Submit Request</button>
-
-      <div style="margin-top: 20px;">
-        <h3 style="font-size: 14px; margin-bottom: 12px;">Recent Payouts</h3>
-        <div class="payout-history" id="payout-history">
-          <div style="padding: 20px; text-align: center; color: #888;">No payouts yet</div>
+        <div class="stat-item">
+          <div class="stat-value" id="view-count">0</div>
+          <div class="stat-label">Views</div>
         </div>
       </div>
 
-      <button class="btn secondary" onclick="closePayoutSheet()" style="margin-top: 16px;">Close</button>
-    </div>
-  </div>
-
-  <!-- Crop Modal -->
-  <div class="crop-modal-backdrop" id="crop-modal-backdrop">
-    <div class="crop-modal">
-      <div class="crop-modal-header">Adjust Photo</div>
-      <div class="crop-area" id="crop-area">
-        <canvas class="crop-canvas" id="crop-canvas"></canvas>
-        <div class="crop-circle-overlay"></div>
+      <!-- Action Buttons -->
+      <div class="action-buttons">
+        <button class="btn" onclick="window.location='upload.html'" title="Upload a new video">
+          <div class="btn-icon">➕</div>
+          <div class="btn-text">Upload</div>
+        </button>
+        <button class="btn" onclick="editProfile()" title="Edit your profile">
+          <div class="btn-icon">✏️</div>
+          <div class="btn-text">Edit</div>
+        </button>
+        <button class="btn" onclick="window.location='creator-dashboard.html'" title="Manage earnings and settings">
+          <div class="btn-icon">🎛️</div>
+          <div class="btn-text">Creator Hub</div>
+        </button>
+        <button class="btn" onclick="window.location='creator-analytics.html'" title="View analytics and performance">
+          <div class="btn-icon">📊</div>
+          <div class="btn-text">Analytics</div>
+        </button>
       </div>
-      <div class="crop-controls">
-        <div class="crop-zoom-row">
-          <span>🔍</span>
-          <input type="range" class="crop-zoom-slider" id="crop-zoom" min="1" max="3" step="0.01" value="1">
+
+      <!-- Earnings Summary -->
+      <div class="section-title">💰 Earnings</div>
+      <div class="earnings-grid">
+        <div class="earning-card">
+          <div class="earning-label">Total Tips</div>
+          <div class="earning-value" id="total-tips">₹0</div>
+          <div class="earning-desc">From viewers</div>
         </div>
-        <div class="crop-hint">Drag to move • Slide to zoom</div>
-        <div class="crop-btn-row">
-          <button class="crop-cancel-btn" id="crop-cancel">Cancel</button>
-          <button class="crop-apply-btn" id="crop-apply">Apply</button>
+        <div class="earning-card">
+          <div class="earning-label">Referral Bonus</div>
+          <div class="earning-value" id="referral-bonus">₹0</div>
+          <div class="earning-desc">From network</div>
         </div>
+      </div>
+
+      <!-- My Videos -->
+      <div class="section-title">🎬 My Videos</div>
+      <div id="videos-container">
+        <div class="loading"><div class="spinner"></div></div>
       </div>
     </div>
   </div>
@@ -471,56 +354,14 @@
   <nav class="bottom-nav">
     <button class="nav-btn" onclick="window.location='index.html'"><span>🏠</span><span class="nav-label">Home</span></button>
     <button class="nav-btn" onclick="window.location='upload.html'"><span>➕</span><span class="nav-label">Create</span></button>
+    <button class="nav-btn" onclick="window.location='messages.html'"><span>💬</span><span class="nav-label">Chat</span></button>
     <button class="nav-btn active"><span>👤</span><span class="nav-label">Profile</span></button>
   </nav>
 
-  <!-- Drawer -->
-  <div class="drawer-backdrop" id="drawer-backdrop"></div>
-  <aside class="drawer" id="drawer">
-    <div class="drawer-head">
-      <img src="/logo-suite/primary/logo-khukuri-256x256.png" alt="">
-      <div><div class="dh-title">GorkhaReels</div><div class="dh-sub">Gorkha Stories, Global Reach</div></div>
-    </div>
-    <div class="drawer-items">
-      <button class="drawer-item" onclick="window.location='index.html'"><span class="di-icon">🏠</span> Home</button>
-      <button class="drawer-item" onclick="window.location='search.html'"><span class="di-icon">🔍</span> Search</button>
-      <button class="drawer-item" onclick="window.location='creator-dashboard.html'"><span class="di-icon">👤</span> My Profile</button>
-      <button class="drawer-item" onclick="openEditProfileSheet()"><span class="di-icon">✏️</span> Edit Profile</button>
-      <button class="drawer-item" onclick="window.location='creator-analytics.html'"><span class="di-icon">📊</span> Analytics</button>
-      <div class="drawer-sep"></div>
-      <button class="drawer-item drawer-item-danger" id="drawer-logout"><span class="di-icon">🚪</span> Logout</button>
-    </div>
-  </aside>
-
-  <script>
-    window.eruda = null;
-    window.Eruda = null;
-  </script>
   <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
   <script src="js/appwrite-config.js"></script>
   <script>
-    let REELS = [];
-    let CURRENT_REEL = null;
-    let CREATOR = null;
-    let SELECTED_PROFILE_PIC = null;
-
     const C = APPWRITE_CONFIG.COLLECTIONS;
-
-    function getThumbSrc(reel) {
-      const t = reel && reel.thumbnail;
-      const fallback = '/logo-suite/primary/logo-khukuri-512x512.png';
-      if (!t) return fallback;
-      if (/\.(mp4|mov|webm|m4v)(\?|$)/i.test(t)) return fallback;
-      return t;
-    }
-
-    function showToast(msg, isError = false) {
-      const toast = document.createElement('div');
-      toast.className = 'toast' + (isError ? ' error' : '');
-      toast.textContent = msg;
-      document.body.appendChild(toast);
-      setTimeout(() => toast.remove(), 3000);
-    }
 
     function escapeHtml(text) {
       if (!text) return '';
@@ -529,506 +370,96 @@
       return div.innerHTML;
     }
 
-    function getCategoryEmoji(cat) {
-      const map = { 'musician': '🎵', 'artist': '🎨', 'guide': '🧗', 'business': '🏪', 'student': '📚' };
-      return (map[cat] || '') + ' ' + (cat ? cat.charAt(0).toUpperCase() + cat.slice(1) : '');
-    }
-
     async function init() {
       await session.refresh();
       if (!session.isLoggedIn()) { window.location = 'login.html'; return; }
-      setupUI();
-      setupCropper();
-      await loadDashboard();
+      await loadProfile();
     }
 
-    function setupUI() {
-      const open = () => { document.getElementById('drawer').classList.add('open'); document.getElementById('drawer-backdrop').classList.add('open'); };
-      const close = () => { document.getElementById('drawer').classList.remove('open'); document.getElementById('drawer-backdrop').classList.remove('open'); };
-      document.getElementById('open-drawer').onclick = open;
-      document.getElementById('drawer-backdrop').onclick = close;
-      document.querySelectorAll('.drawer-item').forEach(btn => btn.addEventListener('click', close));
-      document.getElementById('drawer-logout').onclick = async () => { try { await session.logout(); } catch (e) {} window.location = 'login.html'; };
-      document.getElementById('edit-profile-btn').onclick = openEditProfileSheet;
-      document.getElementById('upload-btn').onclick = () => window.location = 'upload.html';
-      document.getElementById('video-menu-cancel').onclick = closeVideoMenu;
-      document.getElementById('video-menu-backdrop').onclick = closeVideoMenu;
-      document.getElementById('close-edit-profile').onclick = closeEditProfileSheet;
-      document.getElementById('edit-profile-backdrop').onclick = closeEditProfileSheet;
-      document.getElementById('upload-pic-btn').onclick = () => document.getElementById('profile-pic-input').click();
-      document.getElementById('profile-pic-input').onchange = handleProfilePicSelect;
-      document.getElementById('save-profile-btn').onclick = saveProfileChanges;
-      document.getElementById('earnings-backdrop').onclick = closeEarningsSheet;
-      document.getElementById('referral-backdrop').onclick = closeReferralSheet;
-      document.getElementById('payout-backdrop').onclick = closePayoutSheet;
-    }
-
-    async function getOrCreateCreator(uid) {
-      try {
-        return await db.get(C.CREATORS, uid);
-      } catch (err) {
-        const notFound = err && (err.code === 404 || err.type === 'document_not_found');
-        if (!notFound) throw err;
-
-        const acct = session.getUser() || {};
-        const safeName = acct.name || (acct.email ? acct.email.split('@')[0] : 'Creator');
-        const safeEmail = acct.email || (uid + '@gorkhareels.app');
-        const baseUsername = (acct.email ? acct.email.split('@')[0] : safeName)
-          .toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 20) || ('user' + uid.slice(0, 6));
-
-        const newProfile = {
-          userId: uid,
-          email: safeEmail,
-          name: safeName,
-          username: baseUsername,
-          bio: '',
-          category: '',
-          profilePic: '',
-          followers: 0,
-          totalViews: 0,
-          totalReels: 0,
-          totalTips: 0,
-          isVerified: false,
-          isActive: true,
-          isAdmin: false,
-          createdAt: new Date().toISOString()
-        };
-
-        const created = await db.create(C.CREATORS, newProfile, uid);
-        showToast('Welcome! Your profile is ready.');
-        return created;
-      }
-    }
-
-    async function loadDashboard() {
+    async function loadProfile() {
       try {
         const uid = session.getUserId();
-        CREATOR = await getOrCreateCreator(uid);
-        document.getElementById('creator-name').innerHTML = escapeHtml(CREATOR.name || 'Creator') + (CREATOR.isVerified ? ' <span class="verified-badge">✓</span>' : '');
-        document.getElementById('creator-bio').textContent = CREATOR.bio || 'No bio yet';
-        document.getElementById('creator-category').textContent = CREATOR.category ? getCategoryEmoji(CREATOR.category) : 'Common Zone';
-        document.getElementById('creator-avatar').src = CREATOR.profilePic || '/logo-suite/primary/logo-khukuri-512x512.png';
-
-        const followers = await db.list(C.FOLLOWERS, [Query.equal('followingId', uid)]);
-        document.getElementById('followers-count').textContent = followers.total;
-
-        const reels = await db.list(C.REELS, [
-          Query.equal('creatorId', uid),
-          Query.orderDesc('uploadedAt'),
-          Query.limit(100)
-        ]);
-        REELS = reels.documents.filter(r => !r.isDeleted);
-        document.getElementById('total-reels').textContent = REELS.length;
-        const totalViews = REELS.reduce((s, r) => s + (r.views || 0), 0);
-        document.getElementById('total-views').textContent = totalViews;
-
-        // Load earnings
-        const totalTips = CREATOR.totalTips || 0;
-        document.getElementById('total-tips').textContent = '₹' + totalTips.toLocaleString();
-
-        // Calculate referral earnings
-        const referrals = await db.list(C.REFERRALS, [Query.equal('referrerId', uid)]);
-        const referralEarnings = referrals.documents.reduce((sum, r) => sum + (r.bonusEarned || 0), 0);
-        document.getElementById('referral-earnings').textContent = '₹' + referralEarnings.toLocaleString();
-
-        // Update earnings sheet
-        document.getElementById('tips-display').textContent = '₹' + totalTips.toLocaleString();
-        const payouts = await db.list(C.PAYOUTS, [Query.equal('creatorId', uid), Query.equal('status', 'completed')]);
-        const totalPaidOut = payouts.documents.reduce((sum, p) => sum + (p.amount || 0), 0);
-        const available = Math.max(0, totalTips - totalPaidOut);
-        document.getElementById('available-display').textContent = '₹' + available.toLocaleString();
-        document.getElementById('available-balance').textContent = '₹' + available.toLocaleString();
-
-        // Load referral code
-        if (!CREATOR.referralCode) {
-          const code = uid.substring(0, 8).toUpperCase() + Math.random().toString(36).substring(2, 7).toUpperCase();
-          await db.update(C.CREATORS, uid, { referralCode: code });
-          CREATOR.referralCode = code;
-        }
-        const referralUrl = `${window.location.origin}/signup?ref=${CREATOR.referralCode}`;
-        document.getElementById('referral-link').textContent = referralUrl;
-
-        // Load payout history
-        const allPayouts = await db.list(C.PAYOUTS, [Query.equal('creatorId', uid)]);
-        if (allPayouts.documents.length > 0) {
-          const historyHtml = allPayouts.documents
-            .sort((a, b) => new Date(b.requestedAt) - new Date(a.requestedAt))
-            .map(p => `
-              <div class="payout-item">
-                <div class="payout-left">
-                  <span class="payout-amount">₹${p.amount}</span>
-                  <span class="payout-date">${new Date(p.requestedAt).toLocaleDateString()}</span>
-                </div>
-                <span class="payout-status ${p.status}">${p.status.charAt(0).toUpperCase() + p.status.slice(1)}</span>
-              </div>
-            `).join('');
-          document.getElementById('payout-history').innerHTML = historyHtml;
-        }
-
-        if (!REELS.length) {
-          document.getElementById('my-reels-container').innerHTML = '<div class="empty-state">No videos yet. Start uploading!</div>';
-          return;
-        }
-
-        const grid = document.createElement('div');
-        grid.className = 'videos-grid';
-        REELS.forEach(reel => {
-          const thumb = document.createElement('div');
-          thumb.className = 'video-thumb';
-          thumb.innerHTML = `
-            <img src="${getThumbSrc(reel)}" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'">
-            <button class="video-more" onclick="openVideoMenu(event, '${reel.$id}')">⋯</button>
-            <div class="video-views">👁️ ${reel.views || 0}</div>
-          `;
-          thumb.onclick = (e) => { if (e.target.classList.contains('video-more')) return; window.location = `video-modal.html?reelId=${reel.$id}`; };
-          grid.appendChild(thumb);
-        });
-        document.getElementById('my-reels-container').innerHTML = '';
-        document.getElementById('my-reels-container').appendChild(grid);
-      } catch (err) {
-        console.error('Dashboard load failed:', err);
-        document.getElementById('my-reels-container').innerHTML = '<div class="empty-state">Error loading dashboard</div>';
-      }
-    }
-
-    function openVideoMenu(e, reelId) {
-      e.stopPropagation();
-      CURRENT_REEL = REELS.find(r => r.$id === reelId);
-      if (!CURRENT_REEL) return;
-      const items = document.getElementById('video-menu-items');
-      items.innerHTML = '';
-      const add = (label, handler, danger) => {
-        const b = document.createElement('button');
-        b.className = 'video-menu-item' + (danger ? ' danger' : '');
-        b.textContent = label;
-        b.onclick = () => { closeVideoMenu(); handler(); };
-        items.appendChild(b);
-      };
-      add('✏️ Edit', () => window.location = `video-modal.html?reelId=${CURRENT_REEL.$id}`);
-      add('🗑️ Delete', () => deleteVideo(CURRENT_REEL), true);
-      document.getElementById('video-menu-backdrop').classList.add('open');
-      document.getElementById('video-menu').classList.add('open');
-    }
-
-    function closeVideoMenu() {
-      document.getElementById('video-menu-backdrop').classList.remove('open');
-      document.getElementById('video-menu').classList.remove('open');
-    }
-
-    async function deleteVideo(reel) {
-      if (!confirm('Delete this reel? This cannot be undone easily.')) return;
-      try {
-        await db.update(C.REELS, reel.$id, { isDeleted: true });
-        REELS = REELS.filter(r => r.$id !== reel.$id);
-        await loadDashboard();
-      } catch (e) {
-        console.error('Delete failed:', e);
-        alert('Could not delete');
-      }
-    }
-
-    function openEditProfileSheet() {
-      if (!CREATOR) return;
-      document.getElementById('edit-name').value = CREATOR.name || '';
-      document.getElementById('edit-bio').value = CREATOR.bio || '';
-      document.getElementById('edit-category').value = CREATOR.category || '';
-      document.getElementById('profile-pic-preview').src = CREATOR.profilePic || '/logo-suite/primary/logo-khukuri-512x512.png';
-      SELECTED_PROFILE_PIC = null;
-      document.getElementById('edit-profile-sheet').classList.add('open');
-      document.getElementById('edit-profile-backdrop').classList.add('open');
-    }
-
-    function closeEditProfileSheet() {
-      document.getElementById('edit-profile-sheet').classList.remove('open');
-      document.getElementById('edit-profile-backdrop').classList.remove('open');
-      SELECTED_PROFILE_PIC = null;
-    }
-
-    function openEarningsSheet() {
-      document.getElementById('earnings-backdrop').classList.add('open');
-      document.getElementById('earnings-sheet').classList.add('open');
-    }
-
-    function closeEarningsSheet() {
-      document.getElementById('earnings-backdrop').classList.remove('open');
-      document.getElementById('earnings-sheet').classList.remove('open');
-    }
-
-    function openReferralSheet() {
-      document.getElementById('referral-backdrop').classList.add('open');
-      document.getElementById('referral-sheet').classList.add('open');
-    }
-
-    function closeReferralSheet() {
-      document.getElementById('referral-backdrop').classList.remove('open');
-      document.getElementById('referral-sheet').classList.remove('open');
-    }
-
-    function openPayoutSheet() {
-      document.getElementById('payout-backdrop').classList.add('open');
-      document.getElementById('payout-sheet').classList.add('open');
-    }
-
-    function closePayoutSheet() {
-      document.getElementById('payout-backdrop').classList.remove('open');
-      document.getElementById('payout-sheet').classList.remove('open');
-    }
-
-    async function copyReferralLink() {
-      const link = document.getElementById('referral-link').textContent;
-      try {
-        await navigator.clipboard.writeText(link);
-        showToast('Link copied! 📋');
-      } catch (e) {
-        showToast('Failed to copy', true);
-      }
-    }
-
-    async function shareReferralWhatsApp() {
-      const link = document.getElementById('referral-link').textContent;
-      const text = `Join GorkhaReels with my referral code and let's earn together! 💰\n\n${link}`;
-      const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
-      window.open(whatsappUrl, '_blank');
-    }
-
-    async function submitPayoutRequest() {
-      const uid = session.getUserId();
-      const bankName = document.getElementById('bank-name').value.trim();
-      const accountNumber = document.getElementById('account-number').value.trim();
-      const ifscCode = document.getElementById('ifsc-code').value.trim();
-      const amount = parseInt(document.getElementById('payout-amount').value);
-
-      if (!bankName || !accountNumber || !ifscCode || !amount) {
-        showToast('Please fill all fields', true);
-        return;
-      }
-
-      if (amount < 100) {
-        showToast('Minimum withdrawal is ₹100', true);
-        return;
-      }
-
-      try {
         const creator = await db.get(C.CREATORS, uid);
-        const payouts = await db.list(C.PAYOUTS, [Query.equal('creatorId', uid), Query.equal('status', 'completed')]);
-        const totalPaidOut = payouts.documents.reduce((sum, p) => sum + (p.amount || 0), 0);
-        const available = Math.max(0, (creator.totalTips || 0) - totalPaidOut);
 
-        if (amount > available) {
-          showToast('Amount exceeds available balance', true);
+        // Profile info
+        document.getElementById('profile-pic').src = creator.profilePic || '/logo-suite/primary/logo-khukuri-512x512.png';
+        document.getElementById('profile-name').textContent = creator.name || 'Creator';
+        document.getElementById('profile-category').textContent = creator.category || 'No category';
+        document.getElementById('profile-bio').textContent = creator.bio || '';
+
+        // Stats
+        document.getElementById('video-count').textContent = (creator.videos || 0).toLocaleString();
+        document.getElementById('follower-count').textContent = (creator.followers || 0).toLocaleString();
+        document.getElementById('view-count').textContent = (creator.totalViews || 0).toLocaleString();
+
+        // Earnings
+        document.getElementById('total-tips').textContent = '₹' + (creator.totalTips || 0).toLocaleString();
+
+        // Referral earnings
+        let referralBonus = 0;
+        try {
+          const referrals = await db.list(C.REFERRALS, [Query.equal('referrerId', uid)]);
+          referralBonus = referrals.documents.reduce((sum, r) => sum + (r.bonusEarned || 0), 0);
+        } catch (e) {
+          console.log('Referrals not available');
+        }
+        document.getElementById('referral-bonus').textContent = '₹' + referralBonus.toLocaleString();
+
+        // Load videos
+        await loadVideos();
+
+      } catch (e) {
+        console.error('Profile load error:', e);
+        document.getElementById('profile-header').innerHTML = '<p style="color: #888;">Error loading profile</p>';
+      }
+    }
+
+    async function loadVideos() {
+      try {
+        const uid = session.getUserId();
+        const reelsRes = await db.list(C.REELS, [
+          Query.equal('creatorId', uid),
+          Query.equal('isDeleted', false),
+          Query.limit(20)
+        ]);
+
+        const reels = reelsRes.documents || [];
+
+        if (reels.length === 0) {
+          document.getElementById('videos-container').innerHTML = `
+            <div class="empty-state">
+              <div class="empty-icon">🎬</div>
+              <p>No videos yet</p>
+              <p style="font-size: 12px; margin-top: 8px;">Upload your first video to get started</p>
+            </div>
+          `;
           return;
         }
 
-        const payoutId = ID.unique();
-        await db.create(C.PAYOUTS, {
-          payoutId,
-          creatorId: uid,
-          amount: amount,
-          bankName: bankName,
-          accountNumber: accountNumber,
-          ifscCode: ifscCode,
-          status: 'pending',
-          requestedAt: new Date().toISOString()
-        }, payoutId);
+        const videosHtml = reels.map(reel => `
+          <div class="video-card" onclick="window.location='video-modal.html?id=${reel.$id}'">
+            <div style="position: relative;">
+              <img class="video-thumb" src="${reel.thumbnail || '/logo-suite/primary/logo-khukuri-256x256.png'}" alt="" onerror="this.src='/logo-suite/primary/logo-khukuri-256x256.png'">
+              <div class="video-overlay">▶️</div>
+            </div>
+            <div class="video-info">
+              <div style="margin-bottom: 4px;">👁️ ${(reel.views || 0).toLocaleString()}</div>
+              <div>❤️ ${(reel.likes || 0).toLocaleString()}</div>
+            </div>
+          </div>
+        `).join('');
 
-        showToast('Payout request submitted! 🎉');
-        document.getElementById('payout-amount').value = '';
-        closePayoutSheet();
-        await loadDashboard();
+        document.getElementById('videos-container').innerHTML = `<div class="video-grid">${videosHtml}</div>`;
+
       } catch (e) {
-        console.error('Payout error:', e);
-        showToast('Failed to submit payout request', true);
+        console.error('Videos load error:', e);
+        document.getElementById('videos-container').innerHTML = '<p style="color: #888; text-align: center;">Error loading videos</p>';
       }
     }
 
-    function handleProfilePicSelect(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      openCropper(file);
-      e.target.value = '';
-    }
-
-    async function saveProfileChanges() {
-      const name = document.getElementById('edit-name').value.trim();
-      const bio = document.getElementById('edit-bio').value.trim();
-      const category = document.getElementById('edit-category').value.trim();
-      if (!name) { alert('Name is required'); return; }
-
-      const saveBtn = document.getElementById('save-profile-btn');
-      try {
-        saveBtn.disabled = true;
-        saveBtn.textContent = 'Saving...';
-
-        let profilePicUrl = CREATOR.profilePic;
-
-        if (SELECTED_PROFILE_PIC) {
-          try {
-            const fileName = `profile_${session.getUserId()}_${Date.now()}.jpg`;
-            const bunnyStorageZone = 'gorkhareels';
-            const bunnyApiKey = 'cf694f78-8568-4497-9e764c8848c4-728e-4d89';
-            
-            const uploadRes = await fetch(`https://storage.bunnycdn.com/${bunnyStorageZone}/profile-pics/${fileName}`, {
-              method: 'PUT',
-              headers: { 
-                'AccessKey': bunnyApiKey,
-                'Content-Type': 'image/jpeg'
-              },
-              body: SELECTED_PROFILE_PIC
-            });
-            
-            if (!uploadRes.ok) {
-              const errText = await uploadRes.text();
-              throw new Error(`Bunny upload failed (${uploadRes.status}): ${errText}`);
-            }
-            
-            profilePicUrl = `https://gorkhareel-video.b-cdn.net/profile-pics/${fileName}`;
-          } catch (uploadErr) {
-            console.error('Picture upload failed:', uploadErr);
-            showToast('Could not upload picture: ' + uploadErr.message, true);
-            saveBtn.disabled = false;
-            saveBtn.textContent = 'Save Changes';
-            return;
-          }
-        }
-
-        await db.update(C.CREATORS, session.getUserId(), { name, bio, category, profilePic: profilePicUrl });
-        CREATOR.name = name;
-        CREATOR.bio = bio;
-        CREATOR.category = category;
-        CREATOR.profilePic = profilePicUrl;
-        showToast('Profile updated!');
-        closeEditProfileSheet();
-        await loadDashboard();
-      } catch (err) {
-        console.error('Save failed:', err);
-        showToast('Could not save profile', true);
-      } finally {
-        saveBtn.disabled = false;
-        saveBtn.textContent = 'Save Changes';
-      }
-    }
-
-    const cropState = { img: null, scale: 1, minScale: 1, offsetX: 0, offsetY: 0, dragging: false, startX: 0, startY: 0, canvasSize: 0 };
-
-    function setupCropper() {
-      const canvas = document.getElementById('crop-canvas');
-      const area = document.getElementById('crop-area');
-      const zoom = document.getElementById('crop-zoom');
-
-      document.getElementById('crop-cancel').onclick = closeCropper;
-      document.getElementById('crop-apply').onclick = applyCrop;
-
-      zoom.oninput = () => {
-        cropState.scale = parseFloat(zoom.value) * cropState.minScale;
-        clampOffsets();
-        drawCrop();
-      };
-
-      const getPoint = (e) => {
-        if (e.touches && e.touches[0]) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
-        return { x: e.clientX, y: e.clientY };
-      };
-      const start = (e) => { cropState.dragging = true; const p = getPoint(e); cropState.startX = p.x; cropState.startY = p.y; };
-      const move = (e) => {
-        if (!cropState.dragging) return;
-        e.preventDefault();
-        const p = getPoint(e);
-        cropState.offsetX += (p.x - cropState.startX);
-        cropState.offsetY += (p.y - cropState.startY);
-        cropState.startX = p.x;
-        cropState.startY = p.y;
-        clampOffsets();
-        drawCrop();
-      };
-      const end = () => { cropState.dragging = false; };
-
-      area.addEventListener('mousedown', start);
-      area.addEventListener('mousemove', move);
-      area.addEventListener('mouseup', end);
-      area.addEventListener('mouseleave', end);
-      area.addEventListener('touchstart', start, { passive: false });
-      area.addEventListener('touchmove', move, { passive: false });
-      area.addEventListener('touchend', end);
-    }
-
-    function openCropper(file) {
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        const img = new Image();
-        img.onload = () => {
-          cropState.img = img;
-          document.getElementById('crop-modal-backdrop').classList.add('open');
-          requestAnimationFrame(() => {
-            const canvas = document.getElementById('crop-canvas');
-            let size = document.getElementById('crop-area').clientWidth;
-            if (!size || size < 50) size = 300;
-            cropState.canvasSize = size;
-            canvas.width = size;
-            canvas.height = size;
-
-            cropState.minScale = Math.max(size / img.width, size / img.height);
-            cropState.scale = cropState.minScale;
-            document.getElementById('crop-zoom').value = 1;
-            cropState.offsetX = (size - img.width * cropState.scale) / 2;
-            cropState.offsetY = (size - img.height * cropState.scale) / 2;
-            drawCrop();
-          });
-        };
-        img.onerror = () => { showToast('Could not load image. Try another photo.', true); };
-        img.src = ev.target.result;
-      };
-      reader.onerror = () => { showToast('Could not read file', true); };
-      reader.readAsDataURL(file);
-    }
-
-    function clampOffsets() {
-      const size = cropState.canvasSize;
-      const w = cropState.img.width * cropState.scale;
-      const h = cropState.img.height * cropState.scale;
-      if (cropState.offsetX > 0) cropState.offsetX = 0;
-      if (cropState.offsetY > 0) cropState.offsetY = 0;
-      if (cropState.offsetX < size - w) cropState.offsetX = size - w;
-      if (cropState.offsetY < size - h) cropState.offsetY = size - h;
-    }
-
-    function drawCrop() {
-      const canvas = document.getElementById('crop-canvas');
-      const ctx = canvas.getContext('2d');
-      const size = cropState.canvasSize;
-      ctx.clearRect(0, 0, size, size);
-      ctx.fillStyle = '#000';
-      ctx.fillRect(0, 0, size, size);
-      const w = cropState.img.width * cropState.scale;
-      const h = cropState.img.height * cropState.scale;
-      ctx.drawImage(cropState.img, cropState.offsetX, cropState.offsetY, w, h);
-    }
-
-    function closeCropper() {
-      document.getElementById('crop-modal-backdrop').classList.remove('open');
-      cropState.img = null;
-    }
-
-    function applyCrop() {
-      const exportSize = 400;
-      const out = document.createElement('canvas');
-      out.width = exportSize;
-      out.height = exportSize;
-      const octx = out.getContext('2d');
-      const scaleFactor = exportSize / cropState.canvasSize;
-      octx.fillStyle = '#000';
-      octx.fillRect(0, 0, exportSize, exportSize);
-      const w = cropState.img.width * cropState.scale * scaleFactor;
-      const h = cropState.img.height * cropState.scale * scaleFactor;
-      octx.drawImage(cropState.img, cropState.offsetX * scaleFactor, cropState.offsetY * scaleFactor, w, h);
-
-      out.toBlob((blob) => {
-        if (!blob) { showToast('Crop failed', true); return; }
-        SELECTED_PROFILE_PIC = new File([blob], 'profile.jpg', { type: 'image/jpeg' });
-        const url = URL.createObjectURL(blob);
-        document.getElementById('profile-pic-preview').src = url;
-        closeCropper();
-        showToast('Photo ready! Tap Save Changes');
-      }, 'image/jpeg', 0.9);
+    function editProfile() {
+      // Could open an edit sheet here in future
+      alert('Edit profile feature coming soon!');
     }
 
     document.addEventListener('DOMContentLoaded', init);
