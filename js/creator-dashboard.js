@@ -178,7 +178,7 @@ class DashboardManager {
           onmouseout="this.style.background='rgba(0,0,0,0.6)'" 
           onclick="event.stopPropagation(); window.dashboardManager.confirmDelete('${reel.$id}', '${(reel.title || 'Video').replace(/'/g, "\\'")}');" 
           title="Delete video"
-        >🗑️</button>
+        >🤮</button>
       </div>
     `;
   }
