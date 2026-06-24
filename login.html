@@ -49,16 +49,23 @@
     }
 
     .auth-logo {
-      width: 64px;
-      height: 64px;
+      width: 80px;
+      height: 80px;
       margin: 0 auto 16px;
       background: linear-gradient(135deg, #0B5E6B 0%, #0D7377 100%);
-      border-radius: 16px;
+      border-radius: 20px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 32px;
-      box-shadow: 0 8px 20px rgba(11, 94, 107, 0.3);
+      box-shadow: 0 12px 30px rgba(11, 94, 107, 0.4);
+      overflow: hidden;
+    }
+
+    .auth-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      padding: 12px;
     }
 
     .auth-title {
@@ -350,11 +357,8 @@
       body { padding: 12px; }
       .auth-card { padding: 32px 20px; }
       .auth-title { font-size: 24px; }
-      .auth-logo { width: 56px; height: 56px; }
+      .auth-logo { width: 70px; height: 70px; }
     }
-
-    /* Loading state */
-    .loading { opacity: 0.6; pointer-events: none; }
   </style>
 </head>
 <body>
@@ -362,7 +366,9 @@
     <div class="auth-card">
       <!-- Header -->
       <div class="auth-header">
-        <div class="auth-logo">🎬</div>
+        <div class="auth-logo">
+          <img src="/logo-suite/primary/logo-khukuri-256x256.png" alt="GorkhaReels Logo" onerror="this.style.display='none'">
+        </div>
         <div class="auth-title">GorkhaReels</div>
         <div class="auth-subtitle">Gorkha Stories, Global Reach</div>
       </div>
@@ -371,11 +377,11 @@
       <div id="login-form">
         <div id="login-error" class="error-message"></div>
 
-        <form class="auth-form" onsubmit="handleLogin(event)">
+        <form class="auth-form" onsubmit="event.preventDefault(); window.authManager?.handleLogin();">
           <div class="form-group">
-            <label class="form-label">📧 Email or Username</label>
+            <label class="form-label">📧 Email</label>
             <input 
-              type="text" 
+              type="email" 
               id="login-email" 
               class="form-input"
               placeholder="your.email@gmail.com"
@@ -395,7 +401,10 @@
                 required
                 autocomplete="current-password"
               >
-              <button type="button" class="toggle-password" onclick="toggleLoginPassword()">👁️</button>
+              <button type="button" class="toggle-password" onclick="
+                const input = document.getElementById('login-password');
+                input.type = input.type === 'password' ? 'text' : 'password';
+              ">👁️</button>
             </div>
           </div>
 
@@ -416,7 +425,7 @@
       <div id="signup-form" style="display: none;">
         <div id="signup-error" class="error-message"></div>
 
-        <form class="auth-form" onsubmit="handleSignup(event)">
+        <form class="auth-form" onsubmit="event.preventDefault(); window.authManager?.handleSignup();">
           <div class="form-group">
             <label class="form-label">👤 Full Name</label>
             <input 
@@ -454,7 +463,10 @@
                 autocomplete="new-password"
                 oninput="checkPasswordStrength()"
               >
-              <button type="button" class="toggle-password" onclick="toggleSignupPassword()">👁️</button>
+              <button type="button" class="toggle-password" onclick="
+                const input = document.getElementById('signup-password');
+                input.type = input.type === 'password' ? 'text' : 'password';
+              ">👁️</button>
             </div>
             <div class="form-helper">Min 8 characters</div>
             <div class="password-strength" id="password-strength"></div>
@@ -493,25 +505,20 @@
     </div>
   </div>
 
+  <!-- Appwrite SDK -->
   <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
+  <!-- Config & Auth -->
   <script src="js/appwrite-config.js"></script>
+  <script src="js/auth.js"></script>
+  
   <script>
     function toggleForm() {
       const loginForm = document.getElementById('login-form');
       const signupForm = document.getElementById('signup-form');
-      loginForm.style.display = loginForm.style.display === 'none' ? 'block' : 'none';
-      signupForm.style.display = signupForm.style.display === 'none' ? 'block' : 'none';
-      clearErrors();
-    }
-
-    function toggleLoginPassword() {
-      const input = document.getElementById('login-password');
-      input.type = input.type === 'password' ? 'text' : 'password';
-    }
-
-    function toggleSignupPassword() {
-      const input = document.getElementById('signup-password');
-      input.type = input.type === 'password' ? 'text' : 'password';
+      loginForm.style.display = loginForm.style.display === 'none' ? 'flex' : 'none';
+      signupForm.style.display = signupForm.style.display === 'none' ? 'flex' : 'none';
+      document.getElementById('login-error').classList.remove('show');
+      document.getElementById('signup-error').classList.remove('show');
     }
 
     function checkPasswordStrength() {
@@ -531,94 +538,6 @@
         bar.className = 'strength-bar';
         if (i < strength) bar.classList.add(labels[strength - 1]);
         bars.appendChild(bar);
-      }
-    }
-
-    function clearErrors() {
-      document.getElementById('login-error').classList.remove('show');
-      document.getElementById('signup-error').classList.remove('show');
-    }
-
-    function showError(formType, msg) {
-      const errorEl = document.getElementById(formType + '-error');
-      errorEl.textContent = msg;
-      errorEl.classList.add('show');
-    }
-
-    async function handleLogin(e) {
-      e.preventDefault();
-      const email = document.getElementById('login-email').value.trim();
-      const password = document.getElementById('login-password').value;
-      const btn = document.getElementById('login-btn');
-
-      if (!email || !password) {
-        showError('login', 'Please fill all fields');
-        return;
-      }
-
-      btn.disabled = true;
-      btn.innerHTML = '<div class="spinner"></div> Signing in...';
-
-      try {
-        await session.login(email, password);
-        window.location = 'index.html';
-      } catch (err) {
-        const msg = err.message || 'Login failed. Check your email and password.';
-        showError('login', msg);
-        btn.disabled = false;
-        btn.innerHTML = '<span>🔓</span> Sign In';
-      }
-    }
-
-    async function handleSignup(e) {
-      e.preventDefault();
-      const name = document.getElementById('signup-name').value.trim();
-      const email = document.getElementById('signup-email').value.trim();
-      const password = document.getElementById('signup-password').value;
-      const referralCode = document.getElementById('signup-referral').value.trim();
-      const btn = document.getElementById('signup-btn');
-
-      if (!name || !email || !password) {
-        showError('signup', 'Please fill all fields');
-        return;
-      }
-
-      if (password.length < 8) {
-        showError('signup', 'Password must be at least 8 characters');
-        return;
-      }
-
-      btn.disabled = true;
-      btn.innerHTML = '<div class="spinner"></div> Creating account...';
-
-      try {
-        await session.signup(email, password, name);
-        
-        // If referral code provided, link referral
-        if (referralCode) {
-          try {
-            const userId = session.getUserId();
-            const referrals = await db.list(APPWRITE_CONFIG.COLLECTIONS.REFERRALS, [
-              Query.equal('referralCode', referralCode)
-            ]);
-            if (referrals.documents.length > 0) {
-              const referral = referrals.documents[0];
-              await db.update(APPWRITE_CONFIG.COLLECTIONS.REFERRALS, referral.$id, { 
-                newUserId: userId, 
-                status: 'active' 
-              });
-            }
-          } catch (refErr) {
-            console.log('Referral link skipped:', refErr.message);
-          }
-        }
-
-        window.location = 'index.html';
-      } catch (err) {
-        const msg = err.message || 'Signup failed. Try another email.';
-        showError('signup', msg);
-        btn.disabled = false;
-        btn.innerHTML = '<span>🎬</span> Create Account';
       }
     }
   </script>
