@@ -405,6 +405,49 @@
       animation: fadeStagger 0.4s ease; 
     }
 
+    .tip-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      padding: 20px 16px;
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .tip-btn {
+      padding: 16px;
+      background: #242424;
+      border: 1px solid #2d2d2d;
+      border-radius: 12px;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      animation: fadeStagger 0.4s ease forwards;
+    }
+    .tip-btn:nth-child(1) { animation-delay: 0s; }
+    .tip-btn:nth-child(2) { animation-delay: 0.06s; }
+    .tip-btn:nth-child(3) { animation-delay: 0.12s; }
+    .tip-btn:nth-child(4) { animation-delay: 0.18s; }
+    .tip-btn:active { 
+      transform: scale(0.94);
+      background: #0B5E6B;
+      border-color: #0B5E6B;
+    }
+    .tip-amount {
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .tip-label {
+      font-size: 12px;
+      color: #888;
+    }
+
     .toast {
       position: fixed; 
       top: 20px; 
@@ -446,7 +489,18 @@
     </div>
   </div>
 
+  <div class="sheet" id="tip-sheet">
+    <div class="sheet-head">💰 Send a Tip</div>
+    <div class="tip-grid" id="tip-grid">
+      <button class="tip-btn" onclick="openTipPayment(10)"><div class="tip-amount">₹10</div><div class="tip-label">Small</div></button>
+      <button class="tip-btn" onclick="openTipPayment(20)"><div class="tip-amount">₹20</div><div class="tip-label">Nice</div></button>
+      <button class="tip-btn" onclick="openTipPayment(50)"><div class="tip-amount">₹50</div><div class="tip-label">Great</div></button>
+      <button class="tip-btn" onclick="openTipPayment(100)"><div class="tip-amount">₹100</div><div class="tip-label">Amazing</div></button>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <script src="js/appwrite-config.js"></script>
   <script>
     function escapeHtml(text) {
@@ -463,6 +517,8 @@
     let currentIndex = 0;
     let currentReel = null;
     let likeBusy = new Set();
+
+    const RAZORPAY_KEY = 'rzp_test_T5NIK9x1L2J5pT';
 
     function toast(msg, isErr) {
       const t = document.createElement('div');
@@ -527,7 +583,6 @@
       const feed = document.getElementById('reels-feed');
       feed.innerHTML = '';
 
-      // Fetch fresh creator data for all reels
       const CREATORS_MAP = {};
       const uniqueCreatorIds = [...new Set(REELS.map(r => r.creatorId).filter(Boolean))];
       try {
@@ -563,6 +618,10 @@
               <button class="a-btn share" data-index="${i}">↗️</button>
               <span class="a-count">Share</span>
             </div>
+            <div class="action-col">
+              <button class="a-btn tip" data-index="${i}">💰</button>
+              <span class="a-count">Tip</span>
+            </div>
           </div>
           <div class="reel-bottom">
             <div class="reel-creator" data-creator-id="${reel.creatorId || ''}">
@@ -580,6 +639,7 @@
         slide.querySelector('.like').onclick = (e) => { e.stopPropagation(); toggleLike(i); };
         slide.querySelector('.comment').onclick = (e) => { e.stopPropagation(); openComments(i); };
         slide.querySelector('.share').onclick = (e) => { e.stopPropagation(); shareReel(reel); };
+        slide.querySelector('.tip').onclick = (e) => { e.stopPropagation(); openTip(i); };
         
         slide.querySelector('.reel-creator').onclick = (e) => {
           const creatorId = e.currentTarget.dataset.creatorId;
@@ -754,6 +814,7 @@
       document.getElementById('comments-sheet').classList.add('open');
       loadComments();
     }
+
     function closeComments() {
       document.getElementById('sheet-backdrop').classList.remove('open');
       document.getElementById('comments-sheet').classList.remove('open');
@@ -831,6 +892,83 @@
         toast('Could not post comment', true);
       } finally {
         postBtn.disabled = false; postBtn.textContent = 'Post';
+      }
+    }
+
+    function openTip(i) {
+      setActive(i);
+      document.getElementById('sheet-backdrop').classList.add('open');
+      document.getElementById('tip-sheet').classList.add('open');
+    }
+
+    function closeTip() {
+      document.getElementById('sheet-backdrop').classList.remove('open');
+      document.getElementById('tip-sheet').classList.remove('open');
+    }
+
+    async function openTipPayment(amount) {
+      if (!currentReel) return;
+      
+      let creatorEmail = 'creator@gorkhareels.app';
+      try {
+        const creator = await db.get(C.CREATORS, currentReel.creatorId);
+        creatorEmail = creator.email || creatorEmail;
+      } catch (e) {}
+
+      const options = {
+        key: RAZORPAY_KEY,
+        amount: amount * 100,
+        currency: 'INR',
+        name: 'GorkhaReels',
+        description: `Tip for ${currentReel.title}`,
+        prefill: {
+          email: session.getUser()?.email || 'user@gorkhareels.app'
+        },
+        handler: async (response) => {
+          await saveTip(amount, response.razorpay_payment_id);
+          closeTip();
+          toast(`💰 Tip of ₹${amount} sent!`);
+        },
+        modal: {
+          ondismiss: () => {
+            console.log('Payment cancelled');
+          }
+        },
+        theme: {
+          color: '#0B5E6B'
+        }
+      };
+
+      const rzp = new Razorpay(options);
+      rzp.open();
+    }
+
+    async function saveTip(amount, paymentId) {
+      try {
+        const tipId = ID.unique();
+        const tipData = {
+          tipId,
+          creatorId: currentReel.creatorId,
+          userId: MY_UID,
+          amount: amount,
+          paymentId: paymentId,
+          status: 'completed',
+          message: '',
+          createdAt: new Date().toISOString()
+        };
+
+        await db.create(C.TIPS, tipData, tipId);
+
+        // Update creator totalTips
+        try {
+          const creator = await db.get(C.CREATORS, currentReel.creatorId);
+          const newTotal = (creator.totalTips || 0) + amount;
+          await db.update(C.CREATORS, currentReel.creatorId, { totalTips: newTotal });
+        } catch (e) {
+          console.error('Could not update creator tips:', e);
+        }
+      } catch (err) {
+        console.error('Save tip error:', err);
       }
     }
 
