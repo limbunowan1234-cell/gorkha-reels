@@ -134,6 +134,7 @@
   <div class="category-tabs-section" id="category-tabs-section">
     <div class="category-tabs-scroll">
       <button class="category-tab active" onclick="filterByCategory('all', event)">All + Common</button>
+      <button class="category-tab" onclick="filterByCategory('trending', event)">🔥 Trending</button>
       <button class="category-tab" onclick="filterByCategory('musician', event)">🎵 Musicians</button>
       <button class="category-tab" onclick="filterByCategory('artist', event)">🎨 Artists</button>
       <button class="category-tab" onclick="filterByCategory('guide', event)">🧗 Guides</button>
@@ -175,6 +176,7 @@
     <div class="drawer-items">
       <button class="drawer-item" onclick="window.location='index.html'"><span class="di-icon">🏠</span> Home</button>
       <button class="drawer-item" onclick="window.location='trending.html'"><span class="di-icon">🔥</span> Trending</button>
+      <button class="drawer-item" onclick="window.location='creator-leaderboard.html'"><span class="di-icon">🏆</span> Leaderboard</button>
       <button class="drawer-item" onclick="window.location='creator-dashboard.html'"><span class="di-icon">👤</span> My Profile</button>
       <button class="drawer-item" onclick="window.location='creator-dashboard.html#edit'"><span class="di-icon">✏️</span> Edit Profile</button>
       <div class="drawer-sep"></div>
@@ -185,6 +187,7 @@
   <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
   <script src="js/appwrite-config.js"></script>
   <script src="js/last-seen-tracker.js"></script>
+  <script src="js/trending.js"></script>
 
   <script>
     let MY_USER_ID = null, lastOffset = 0, isLoadingMore = false, currentFilter = 'all';
@@ -235,7 +238,6 @@
         const html = creators.map(creator => `<div class="creator-card" onclick="window.location.href='creator-profile.html?creatorId=${creator.$id}'"><img class="creator-pic" src="${creator.profilePic || '/logo-suite/primary/logo-khukuri-512x512.png'}" alt="${creator.name}" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'"><div class="creator-name">${escapeHtml(creator.name || 'User')}</div><div class="creator-followers">${creator.followers || 0} followers</div><button class="follow-btn" id="follow-btn-${creator.$id}" onclick="event.stopPropagation(); followCreator('${creator.$id}', this)">Follow</button></div>`).join('');
         scroll.innerHTML = html;
         
-        // Check follow status for each creator
         for (const creator of creators) {
           const btn = scroll.querySelector(`#follow-btn-${creator.$id}`);
           if (btn) await checkFollowStatus(creator.$id, btn);
@@ -272,52 +274,122 @@
       }
     }
 
+    async function loadTrendingFeed() {
+      try {
+        const trendingContainer = document.getElementById('feed');
+        if (!trendingContainer) return;
+
+        trendingContainer.innerHTML = '<div class="loading">Loading trending...</div>';
+
+        const [reelsRes, creatorsRes] = await Promise.all([
+          db.list(APPWRITE_CONFIG.COLLECTIONS.REELS, [
+            Query.equal('isDeleted', false),
+            Query.limit(500)
+          ]),
+          db.list(APPWRITE_CONFIG.COLLECTIONS.CREATORS, [Query.limit(100)])
+        ]);
+
+        const trendingReels = TrendingCalculator.getTrendingReels(
+          reelsRes.documents,
+          creatorsRes.documents,
+          30
+        );
+
+        const creatorMap = {};
+        creatorsRes.documents.forEach(c => { creatorMap[c.$id] = c; });
+
+        trendingContainer.innerHTML = '';
+        
+        for (const reel of trendingReels) {
+          const creator = creatorMap[reel.creatorId] || {};
+          const badge = TrendingCalculator.getBadge(reel.trendingScore);
+          const liked = MY_USER_ID ? await isVideoLiked(reel.$id) : false;
+          
+          const reelItem = document.createElement('div');
+          reelItem.className = 'feed-item';
+          reelItem.innerHTML = `
+            <div class="feed-header">
+              <div class="feed-creator-info">
+                <img class="feed-avatar" src="${creator.profilePic || '/logo-suite/primary/logo-khukuri-512x512.png'}" 
+                     onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'" 
+                     onclick="window.location='creator-profile.html?creatorId=${creator.$id}'">
+                <div class="feed-creator-meta">
+                  <div class="feed-creator-name" onclick="window.location='creator-profile.html?creatorId=${creator.$id}'">
+                    ${escapeHtml(creator.name || 'User')}${creator.isVerified ? ' ✓' : ''}
+                    ${badge ? ` <span style="color: #ff6b35; margin-left: 4px;">${badge}</span>` : ''}
+                  </div>
+                  <div class="feed-time">${creator.category ? '📌 ' + creator.category : 'Common Zone'} • ${getTimeAgo(new Date(reel.uploadedAt))}</div>
+                </div>
+              </div>
+              <button class="feed-menu" onclick="showMoreOptions('${reel.$id}')">⋮</button>
+            </div>
+            <div class="feed-video" onclick="window.location.href='./video-modal.html?reelId=${reel.$id}'">
+              <video src="${reel.videoUrl}" muted playsinline></video>
+            </div>
+            <div class="feed-actions">
+              <button class="action-btn ${liked ? 'liked' : ''}" id="like-${reel.$id}" onclick="toggleLike('${reel.$id}', this, 'reel')">
+                ${liked ? '❤️' : '🤍'}
+              </button>
+              <button class="action-btn" onclick="window.location.href='./video-modal.html?reelId=${reel.$id}#comments'">💬</button>
+              <button class="action-btn" onclick="shareContent('${reel.$id}', 'reel')">📤</button>
+            </div>
+            <div class="feed-stats">
+              <span id="likes-${reel.$id}">${reel.likes || 0} likes</span> • 
+              <span id="views-${reel.$id}">${reel.views || 0} views</span>
+            </div>
+          `;
+          trendingContainer.appendChild(reelItem);
+        }
+
+        if (!trendingReels.length) {
+          trendingContainer.innerHTML = '<div class="loading">No trending videos yet. Check back soon!</div>';
+        }
+
+      } catch (e) {
+        console.error('Trending load error:', e);
+        document.getElementById('feed').innerHTML = '<div class="loading">Error loading trending</div>';
+      }
+    }
+
     async function loadVideos() {
       try {
         const [reelsResponse, postsResponse] = await Promise.all([ db.list(APPWRITE_CONFIG.COLLECTIONS.REELS, [ Query.equal('isDeleted', false), Query.orderDesc('uploadedAt'), Query.limit(20) ]), db.list('posts', [ Query.equal('isDeleted', false), Query.orderDesc('createdAt'), Query.limit(20) ]) ]);
         let allContent = [];
         
-        // Load reels with creator info
         for (const reel of reelsResponse.documents) {
           let creator = null;
           try { 
             creator = await db.get(APPWRITE_CONFIG.COLLECTIONS.CREATORS, reel.creatorId); 
           } catch (err) { 
-            continue; // Skip if creator not found
+            continue;
           }
           
-          // Filter by creator category (all content inherits creator's category)
-          // If creator has no category, only show in 'all' filter
           if (currentFilter !== 'all') {
             if (!creator.category || creator.category !== currentFilter) {
-              continue; // Skip this reel
+              continue;
             }
           }
           
           allContent.push({ type: 'reel', data: reel, creator: creator, timestamp: new Date(reel.uploadedAt) });
         }
         
-        // Load posts with creator info
         for (const post of postsResponse.documents) {
           let creator = null;
           try { 
             creator = await db.get(APPWRITE_CONFIG.COLLECTIONS.CREATORS, post.creatorId); 
           } catch (err) { 
-            continue; // Skip if creator not found
+            continue;
           }
           
-          // Filter by creator category (all content inherits creator's category)
-          // If creator has no category, only show in 'all' filter
           if (currentFilter !== 'all') {
             if (!creator.category || creator.category !== currentFilter) {
-              continue; // Skip this post
+              continue;
             }
           }
           
           allContent.push({ type: 'post', data: post, creator: creator, timestamp: new Date(post.createdAt) });
         }
         
-        // Sort all content by timestamp (newest first)
         allContent.sort((a, b) => b.timestamp - a.timestamp);
         
         const paginatedContent = allContent.slice(lastOffset, lastOffset + 10);
@@ -379,9 +451,25 @@
 
     function showMoreOptions(contentId) { alert('More options coming soon!'); }
 
-    function filterByCategory(category, evt) { currentFilter = category; document.querySelectorAll('.category-tab').forEach(tab => { tab.classList.remove('active'); }); if (evt && evt.target) { evt.target.classList.add('active'); } lastOffset = 0; isLoadingMore = false; loadVideos(); }
+    function filterByCategory(category, evt) { 
+      currentFilter = category; 
+      document.querySelectorAll('.category-tab').forEach(tab => { 
+        tab.classList.remove('active'); 
+      }); 
+      if (evt && evt.target) { 
+        evt.target.classList.add('active'); 
+      } 
+      lastOffset = 0; 
+      isLoadingMore = false; 
+      
+      if (category === 'trending') {
+        loadTrendingFeed();
+      } else {
+        loadVideos();
+      }
+    }
 
-    function setupInfiniteScroll() { window.addEventListener('scroll', () => { if ((window.innerHeight + window.scrollY) >= (document.body.offsetHeight - 500) && !isLoadingMore) { isLoadingMore = true; loadVideos(); } }); }
+    function setupInfiniteScroll() { window.addEventListener('scroll', () => { if ((window.innerHeight + window.scrollY) >= (document.body.offsetHeight - 500) && !isLoadingMore) { isLoadingMore = true; if (currentFilter === 'trending') { loadTrendingFeed(); } else { loadVideos(); } } }); }
 
     async function init() {
       try {
@@ -391,6 +479,13 @@
         await Promise.allSettled([ loadSuggestedCreators(), loadVideos() ]);
         setupInfiniteScroll();
       } catch (err) { setupDrawer(); await loadVideos(); }
+    }
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
     }
 
     if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', init); } else { init(); }
