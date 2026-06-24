@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Creator Dashboard - GorkhaReels</title>
+  <meta name="theme-color" content="#0B5E6B">
+  <link rel="icon" type="image/png" href="/logo-suite/favicon/logo-khukuri-32x32.png">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
+  
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body { 
+      background: #000; 
+      color: #fff; 
+      font-family: system-ui; 
+      overflow-x: hidden;
+      position: fixed;
+      width: 100%;
+      height: 100vh;
+    }
+
+    .container {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, #0B5E6B 0%, #0D7377 100%);
+      padding: 16px;
+      text-align: center;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+      flex-shrink: 0;
+    }
+    .header-title { 
+      font-size: 24px; 
+      font-weight: 900; 
+      font-family: 'Space Grotesk', sans-serif;
+      letter-spacing: -0.5px;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      background: #0f0f0f;
+      border-bottom: 1px solid #2d2d2d;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      flex-shrink: 0;
+    }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab-btn {
+      flex: 1;
+      min-width: 100px;
+      background: none;
+      border: none;
+      color: #666;
+      padding: 12px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      border-bottom: 3px solid transparent;
+      white-space: nowrap;
+    }
+    .tab-btn.active {
+      color: #0B5E6B;
+      border-bottom-color: #0B5E6B;
+    }
+    .tab-btn:active { background: rgba(255,255,255,0.05); }
+
+    /* Content Area */
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 20px;
+    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; padding: 16px; }
+
+    /* Profile Tab */
+    .profile-card {
+      background: linear-gradient(135deg, #1a1a1a, #0d2d3a);
+      border: 1px solid #2d2d2d;
+      border-radius: 16px;
+      padding: 24px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .profile-pic {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: #0B5E6B;
+      object-fit: cover;
+      margin: 0 auto 16px;
+      border: 3px solid #0D7377;
+    }
+    .profile-name { font-size: 20px; font-weight: 700; margin-bottom: 4px; font-family: 'Space Grotesk', sans-serif; }
+    .profile-category { 
+      display: inline-block;
+      background: #0B5E6B;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      margin-top: 8px;
+    }
+
+    /* Earnings Tab */
+    .earnings-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .earning-card {
+      background: linear-gradient(135deg, #1a1a1a, #0d2d3a);
+      border: 1px solid #2d2d2d;
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+    }
+    .earning-label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+    .earning-value { font-size: 24px; font-weight: 700; color: #4ade80; }
+
+    /* Referral Card */
+    .referral-card {
+      background: linear-gradient(135deg, #1a4d2e, #0d2d20);
+      border: 1px solid #2d5a3d;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .referral-title { font-size: 14px; font-weight: 700; margin-bottom: 12px; color: #4ade80; }
+    .referral-code {
+      background: rgba(0,0,0,0.3);
+      border: 1px solid #2d5a3d;
+      padding: 12px;
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 13px;
+      word-break: break-all;
+      margin-bottom: 12px;
+      color: #4ade80;
+    }
+    .referral-buttons {
+      display: flex;
+      gap: 8px;
+    }
+    .btn {
+      flex: 1;
+      background: #0B5E6B;
+      border: none;
+      color: #fff;
+      padding: 11px 16px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      min-height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .btn:active { transform: scale(0.94); background: #0D7377; }
+    .btn.secondary { background: #242424; color: #fff; border: 1px solid #2d2d2d; }
+
+    /* Payout Section */
+    .section-title {
+      font-size: 14px;
+      font-weight: 700;
+      margin: 20px 0 12px 0;
+      color: #0B5E6B;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    .form-group {
+      margin-bottom: 14px;
+    }
+    .form-label { font-size: 12px; color: #888; margin-bottom: 6px; display: block; text-transform: uppercase; letter-spacing: 0.5px; }
+    .form-input {
+      width: 100%;
+      background: #1a1a1a;
+      border: 1px solid #2d2d2d;
+      padding: 11px 12px;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    .form-input:focus { outline: none; border-color: #0B5E6B; box-shadow: 0 0 0 2px rgba(11,94,107,0.2); }
+    .form-input::placeholder { color: #666; }
+
+    .payout-card {
+      background: linear-gradient(135deg, #1a1a1a, #0d2d3a);
+      border: 1px solid #2d2d2d;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+
+    /* Edit Profile Sheet */
+    .sheet-backdrop { 
+      position: fixed; 
+      inset: 0; 
+      background: rgba(0,0,0,0.5); 
+      z-index: 40; 
+      display: none; 
+    }
+    .sheet-backdrop.open { display: block; }
+    .sheet {
+      position: fixed; 
+      bottom: 0; 
+      left: 0; 
+      right: 0; 
+      background: #1a1a1a; 
+      z-index: 50;
+      border-radius: 16px 16px 0 0; 
+      max-height: 85vh;
+      transform: translateY(100%);
+      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .sheet.open { transform: translateY(0); }
+    .sheet-head {
+      padding: 16px;
+      border-bottom: 1px solid #2d2d2d;
+      font-size: 16px;
+      font-weight: 700;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      background: #1a1a1a;
+    }
+    .sheet-body { padding: 16px; }
+    .sheet-close { 
+      position: absolute; 
+      top: 12px; 
+      right: 12px; 
+      background: none; 
+      border: none; 
+      color: #fff; 
+      font-size: 20px; 
+      cursor: pointer; 
+      z-index: 51;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #0B5E6B;
+      color: #fff;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      z-index: 100;
+      animation: slideUp 0.3s ease;
+    }
+    .toast.error { background: #dc2626; }
+    @keyframes slideUp { from { transform: translateX(-50%) translateY(100px); opacity: 0; } to { transform: translateX(-50%) translateY(0); opacity: 1; } }
+
+    .loading { padding: 40px 20px; text-align: center; color: #888; }
+    .spinner { width: 40px; height: 40px; border: 3px solid #2d2d2d; border-top-color: #0B5E6B; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 12px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="header-title">Creator Hub</div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="profile">👤 Profile</button>
+      <button class="tab-btn" data-tab="earnings">💰 Earnings</button>
+      <button class="tab-btn" data-tab="referral">🔗 Referral</button>
+      <button class="tab-btn" data-tab="payout">💳 Payout</button>
+    </div>
+
+    <div class="content">
+      <!-- Profile Tab -->
+      <div class="tab-content active" id="profile-tab">
+        <div class="loading" id="profile-loading">
+          <div class="spinner"></div>
+        </div>
+        <div id="profile-content" style="display: none;">
+          <div class="profile-card">
+            <img class="profile-pic" id="profile-pic" src="" alt="Profile">
+            <div class="profile-name" id="profile-name">Loading...</div>
+            <div class="profile-category" id="profile-category"></div>
+          </div>
+
+          <div style="margin-bottom: 20px;">
+            <button class="btn" onclick="openEditProfile()">✏️ Edit Profile</button>
+          </div>
+
+          <div class="section-title">Account Info</div>
+          <div class="payout-card">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+              <span style="color: #888; font-size: 12px;">Username</span>
+              <span id="profile-username">-</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+              <span style="color: #888; font-size: 12px;">Email</span>
+              <span id="profile-email" style="font-size: 12px;">-</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: #888; font-size: 12px;">Joined</span>
+              <span id="profile-joined" style="font-size: 12px;">-</span>
+            </div>
+          </div>
+
+          <button class="btn secondary" onclick="logout()" style="width: 100%;">🚪 Logout</button>
+        </div>
+      </div>
+
+      <!-- Earnings Tab -->
+      <div class="tab-content" id="earnings-tab">
+        <div class="loading" id="earnings-loading">
+          <div class="spinner"></div>
+        </div>
+        <div id="earnings-content" style="display: none;">
+          <div class="earnings-grid">
+            <div class="earning-card">
+              <div class="earning-label">Total Tips</div>
+              <div class="earning-value" id="total-tips">₹0</div>
+            </div>
+            <div class="earning-card">
+              <div class="earning-label">Pending</div>
+              <div class="earning-value" id="pending-earnings">₹0</div>
+            </div>
+          </div>
+
+          <div class="section-title">💡 Earnings Info</div>
+          <div class="payout-card">
+            <div style="font-size: 13px; line-height: 1.6; color: #ccc;">
+              <p style="margin-bottom: 8px;">✅ <strong>Tipping:</strong> Earn directly from viewers (100% goes to you)</p>
+              <p style="margin-bottom: 8px;">✅ <strong>Referrals:</strong> Earn 10% from tips of creators you refer</p>
+              <p>✅ <strong>Creator Fund:</strong> Coming soon - earn from views</p>
+            </div>
+          </div>
+
+          <div class="section-title">📊 Analytics</div>
+          <button class="btn" onclick="window.location='creator-analytics.html'" style="width: 100%;">📈 View Full Analytics</button>
+        </div>
+      </div>
+
+      <!-- Referral Tab -->
+      <div class="tab-content" id="referral-tab">
+        <div class="loading" id="referral-loading">
+          <div class="spinner"></div>
+        </div>
+        <div id="referral-content" style="display: none;">
+          <div class="referral-card">
+            <div class="referral-title">🎁 Your Referral Code</div>
+            <div class="referral-code" id="referral-code">Loading...</div>
+            <div class="referral-buttons">
+              <button class="btn" onclick="copyReferralLink()">📋 Copy Link</button>
+              <button class="btn" onclick="shareReferralWhatsApp()">💬 WhatsApp</button>
+            </div>
+          </div>
+
+          <div class="section-title">How It Works</div>
+          <div class="payout-card">
+            <div style="font-size: 13px; line-height: 1.8; color: #ccc;">
+              <p style="margin-bottom: 10px;"><strong>1️⃣ Share Your Link</strong><br>Send your referral code to friends & creators</p>
+              <p style="margin-bottom: 10px;"><strong>2️⃣ They Join</strong><br>When they sign up with your code, you're connected</p>
+              <p style="margin-bottom: 10px;"><strong>3️⃣ You Earn</strong><br>Get 10% of every tip they receive</p>
+              <p><strong>💰 Example:</strong> If they earn ₹100 in tips, you get ₹10</p>
+            </div>
+          </div>
+
+          <div class="section-title">📊 Referral Earnings</div>
+          <div class="payout-card">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+              <span style="color: #888; font-size: 12px;">Referrals Made</span>
+              <span id="referral-count">0</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: #888; font-size: 12px;">Referral Earnings</span>
+              <span style="color: #4ade80; font-weight: 700;" id="referral-earnings">₹0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Payout Tab -->
+      <div class="tab-content" id="payout-tab">
+        <div class="loading" id="payout-loading">
+          <div class="spinner"></div>
+        </div>
+        <div id="payout-content" style="display: none;">
+          <div class="payout-card">
+            <div style="text-align: center; margin-bottom: 16px;">
+              <div style="font-size: 28px; font-weight: 700; color: #4ade80; margin-bottom: 4px;" id="available-balance">₹0</div>
+              <div style="font-size: 12px; color: #888;">Available for Withdrawal</div>
+            </div>
+          </div>
+
+          <div class="section-title">Bank Details</div>
+          <div class="payout-card">
+            <div class="form-group">
+              <label class="form-label">Account Holder Name</label>
+              <input type="text" class="form-input" id="account-name" placeholder="Your Name">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Bank Name</label>
+              <input type="text" class="form-input" id="bank-name" placeholder="e.g., HDFC Bank">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Account Number</label>
+              <input type="text" class="form-input" id="account-number" placeholder="1234567890">
+            </div>
+            <div class="form-group">
+              <label class="form-label">IFSC Code</label>
+              <input type="text" class="form-input" id="ifsc-code" placeholder="HDFC0000001">
+            </div>
+          </div>
+
+          <div class="section-title">Request Withdrawal</div>
+          <div class="form-group">
+            <label class="form-label">Amount (₹)</label>
+            <input type="number" class="form-input" id="payout-amount" placeholder="Minimum ₹100">
+          </div>
+
+          <button class="btn" onclick="submitPayoutRequest()" style="width: 100%; margin-bottom: 20px;">💳 Request Withdrawal</button>
+
+          <div class="section-title">Recent Payouts</div>
+          <div id="payout-history">
+            <div style="text-align: center; padding: 20px; color: #888; font-size: 13px;">No payouts yet</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Profile Sheet -->
+  <div class="sheet-backdrop" id="sheet-backdrop" onclick="closeEditProfile()"></div>
+  <div class="sheet" id="edit-sheet">
+    <button class="sheet-close" onclick="closeEditProfile()">✕</button>
+    <div class="sheet-head">Edit Profile</div>
+    <div class="sheet-body">
+      <div class="form-group">
+        <label class="form-label">Display Name</label>
+        <input type="text" class="form-input" id="edit-name" placeholder="Your name">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Bio</label>
+        <input type="text" class="form-input" id="edit-bio" placeholder="Tell us about yourself" maxlength="100">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Category</label>
+        <select class="form-input" id="edit-category">
+          <option value="">Select a category...</option>
+          <option value="🎵 Musician">🎵 Musician</option>
+          <option value="🎨 Artist">🎨 Artist</option>
+          <option value="🧗 Tour Guide">🧗 Tour Guide</option>
+          <option value="🏪 Business Owner">🏪 Business Owner</option>
+          <option value="📚 Student">📚 Student</option>
+        </select>
+      </div>
+      <button class="btn" onclick="saveProfile()" style="width: 100%; margin-top: 16px;">💾 Save Changes</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
+  <script src="js/appwrite-config.js"></script>
+  <script>
+    const C = APPWRITE_CONFIG.COLLECTIONS;
+    let CURRENT_USER = null;
+    let CREATOR = null;
+
+    function toast(msg, isErr = false) {
+      const t = document.createElement('div');
+      t.className = 'toast' + (isErr ? ' error' : '');
+      t.textContent = msg;
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 3000);
+    }
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Tab switching
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tab = btn.dataset.tab;
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(tab + '-tab').classList.add('active');
+
+        if (tab === 'profile') loadProfileTab();
+        else if (tab === 'earnings') loadEarningsTab();
+        else if (tab === 'referral') loadReferralTab();
+        else if (tab === 'payout') loadPayoutTab();
+      });
+    });
+
+    async function init() {
+      await session.refresh();
+      if (!session.isLoggedIn()) { window.location = 'login.html'; return; }
+      
+      const uid = session.getUserId();
+      CURRENT_USER = session.getUser();
+
+      try {
+        CREATOR = await db.get(C.CREATORS, uid);
+      } catch (e) {
+        console.error('Creator load error:', e);
+      }
+
+      loadProfileTab();
+    }
+
+    async function loadProfileTab() {
+      const loading = document.getElementById('profile-loading');
+      const content = document.getElementById('profile-content');
+      loading.style.display = 'block';
+      content.style.display = 'none';
+
+      try {
+        const uid = session.getUserId();
+        CREATOR = await db.get(C.CREATORS, uid);
+
+        document.getElementById('profile-pic').src = CREATOR.profilePic || '/logo-suite/primary/logo-khukuri-512x512.png';
+        document.getElementById('profile-name').textContent = CREATOR.name || 'Creator';
+        
+        const category = CREATOR.category || 'No category';
+        document.getElementById('profile-category').textContent = category;
+
+        document.getElementById('profile-username').textContent = CREATOR.username || '-';
+        document.getElementById('profile-email').textContent = CREATOR.email || CURRENT_USER.email || '-';
+        
+        const joined = new Date(CREATOR.$createdAt).toLocaleDateString();
+        document.getElementById('profile-joined').textContent = joined;
+
+        loading.style.display = 'none';
+        content.style.display = 'block';
+      } catch (e) {
+        console.error('Profile load error:', e);
+        loading.innerHTML = '<p style="color: #888;">Error loading profile</p>';
+      }
+    }
+
+    async function loadEarningsTab() {
+      const loading = document.getElementById('earnings-loading');
+      const content = document.getElementById('earnings-content');
+      loading.style.display = 'block';
+      content.style.display = 'none';
+
+      try {
+        const uid = session.getUserId();
+        const creator = await db.get(C.CREATORS, uid);
+        const totalTips = creator.totalTips || 0;
+
+        document.getElementById('total-tips').textContent = '₹' + totalTips.toLocaleString();
+        
+        // Calculate pending (total tips - paid out)
+        const payouts = await db.list(C.PAYOUTS, [Query.equal('creatorId', uid), Query.equal('status', 'completed')]);
+        const totalPaidOut = payouts.documents.reduce((sum, p) => sum + (p.amount || 0), 0);
+        const pending = Math.max(0, totalTips - totalPaidOut);
+        document.getElementById('pending-earnings').textContent = '₹' + pending.toLocaleString();
+
+        loading.style.display = 'none';
+        content.style.display = 'block';
+      } catch (e) {
+        console.error('Earnings load error:', e);
+        loading.innerHTML = '<p style="color: #888;">Error loading earnings</p>';
+      }
+    }
+
+    async function loadReferralTab() {
+      const loading = document.getElementById('referral-loading');
+      const content = document.getElementById('referral-content');
+      loading.style.display = 'block';
+      content.style.display = 'none';
+
+      try {
+        const uid = session.getUserId();
+        let creator = await db.get(C.CREATORS, uid);
+
+        // Generate referral code if doesn't exist
+        if (!creator.referralCode) {
+          const code = uid.substring(0, 8).toUpperCase() + Math.random().toString(36).substring(2, 7).toUpperCase();
+          await db.update(C.CREATORS, uid, { referralCode: code });
+          creator.referralCode = code;
+        }
+
+        const referralUrl = `${window.location.origin}/signup?ref=${creator.referralCode}`;
+        document.getElementById('referral-code').textContent = referralUrl;
+
+        // Load referral earnings
+        const referrals = await db.list(C.REFERRALS, [Query.equal('referrerId', uid)]);
+        document.getElementById('referral-count').textContent = referrals.documents.length;
+
+        const referralEarnings = referrals.documents.reduce((sum, r) => sum + (r.bonusEarned || 0), 0);
+        document.getElementById('referral-earnings').textContent = '₹' + referralEarnings.toLocaleString();
+
+        loading.style.display = 'none';
+        content.style.display = 'block';
+      } catch (e) {
+        console.error('Referral load error:', e);
+        loading.innerHTML = '<p style="color: #888;">Error loading referral info</p>';
+      }
+    }
+
+    async function loadPayoutTab() {
+      const loading = document.getElementById('payout-loading');
+      const content = document.getElementById('payout-content');
+      loading.style.display = 'block';
+      content.style.display = 'none';
+
+      try {
+        const uid = session.getUserId();
+        const creator = await db.get(C.CREATORS, uid);
+        const totalTips = creator.totalTips || 0;
+
+        const payouts = await db.list(C.PAYOUTS, [Query.equal('creatorId', uid), Query.equal('status', 'completed')]);
+        const totalPaidOut = payouts.documents.reduce((sum, p) => sum + (p.amount || 0), 0);
+        const available = Math.max(0, totalTips - totalPaidOut);
+
+        document.getElementById('available-balance').textContent = '₹' + available.toLocaleString();
+
+        // Build payout history
+        const allPayouts = await db.list(C.PAYOUTS, [Query.equal('creatorId', uid)]);
+        const historyHtml = allPayouts.documents
+          .sort((a, b) => new Date(b.requestedAt) - new Date(a.requestedAt))
+          .map(p => `
+            <div style="padding: 12px; border-bottom: 1px solid #2d2d2d; display: flex; justify-content: space-between; font-size: 13px;">
+              <div>
+                <div>₹${p.amount}</div>
+                <div style="color: #888; font-size: 11px;">${new Date(p.requestedAt).toLocaleDateString()}</div>
+              </div>
+              <div style="text-align: right; color: ${p.status === 'completed' ? '#4ade80' : '#f59e0b'};">
+                ${p.status.charAt(0).toUpperCase() + p.status.slice(1)}
+              </div>
+            </div>
+          `).join('');
+
+        if (allPayouts.documents.length > 0) {
+          document.getElementById('payout-history').innerHTML = historyHtml;
+        }
+
+        loading.style.display = 'none';
+        content.style.display = 'block';
+      } catch (e) {
+        console.error('Payout load error:', e);
+        loading.innerHTML = '<p style="color: #888;">Error loading payout info</p>';
+      }
+    }
+
+    function openEditProfile() {
+      document.getElementById('sheet-backdrop').classList.add('open');
+      document.getElementById('edit-sheet').classList.add('open');
+
+      document.getElementById('edit-name').value = CREATOR.name || '';
+      document.getElementById('edit-bio').value = CREATOR.bio || '';
+      document.getElementById('edit-category').value = CREATOR.category || '';
+    }
+
+    function closeEditProfile() {
+      document.getElementById('sheet-backdrop').classList.remove('open');
+      document.getElementById('edit-sheet').classList.remove('open');
+    }
+
+    async function saveProfile() {
+      const uid = session.getUserId();
+      const name = document.getElementById('edit-name').value.trim();
+      const bio = document.getElementById('edit-bio').value.trim();
+      const category = document.getElementById('edit-category').value;
+
+      if (!name) { toast('Please enter your name', true); return; }
+
+      try {
+        await db.update(C.CREATORS, uid, { name, bio, category });
+        CREATOR = { ...CREATOR, name, bio, category };
+        toast('Profile updated!');
+        closeEditProfile();
+        loadProfileTab();
+      } catch (e) {
+        console.error('Save error:', e);
+        toast('Failed to save profile', true);
+      }
+    }
+
+    async function copyReferralLink() {
+      const code = document.getElementById('referral-code').textContent;
+      try {
+        await navigator.clipboard.writeText(code);
+        toast('Link copied! 📋');
+      } catch (e) {
+        toast('Failed to copy', true);
+      }
+    }
+
+    async function shareReferralWhatsApp() {
+      const code = document.getElementById('referral-code').textContent;
+      const text = `Join GorkhaReels with my referral code and let's earn together! 💰\n\n${code}`;
+      const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+      window.open(whatsappUrl, '_blank');
+    }
+
+    async function submitPayoutRequest() {
+      const uid = session.getUserId();
+      const bankName = document.getElementById('bank-name').value.trim();
+      const accountNumber = document.getElementById('account-number').value.trim();
+      const ifscCode = document.getElementById('ifsc-code').value.trim();
+      const amount = parseInt(document.getElementById('payout-amount').value);
+
+      if (!bankName || !accountNumber || !ifscCode || !amount) {
+        toast('Please fill all fields', true);
+        return;
+      }
+
+      if (amount < 100) {
+        toast('Minimum withdrawal is ₹100', true);
+        return;
+      }
+
+      try {
+        const creator = await db.get(C.CREATORS, uid);
+        const payouts = await db.list(C.PAYOUTS, [Query.equal('creatorId', uid), Query.equal('status', 'completed')]);
+        const totalPaidOut = payouts.documents.reduce((sum, p) => sum + (p.amount || 0), 0);
+        const available = Math.max(0, (creator.totalTips || 0) - totalPaidOut);
+
+        if (amount > available) {
+          toast('Amount exceeds available balance', true);
+          return;
+        }
+
+        const payoutId = ID.unique();
+        await db.create(C.PAYOUTS, {
+          payoutId,
+          creatorId: uid,
+          amount: amount,
+          bankName: bankName,
+          accountNumber: accountNumber,
+          ifscCode: ifscCode,
+          status: 'pending',
+          requestedAt: new Date().toISOString()
+        }, payoutId);
+
+        toast('Payout request submitted! 🎉');
+        document.getElementById('payout-amount').value = '';
+        loadPayoutTab();
+      } catch (e) {
+        console.error('Payout error:', e);
+        toast('Failed to submit payout request', true);
+      }
+    }
+
+    function logout() {
+      if (confirm('Are you sure you want to logout?')) {
+        session.logout();
+        window.location = 'login.html';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
