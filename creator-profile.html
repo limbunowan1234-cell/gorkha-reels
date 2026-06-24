@@ -12,29 +12,61 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #0f0f0f; color: #fff; font-family: system-ui; }
 
-    .banner { position: sticky; top: 0; z-index: 100; background: linear-gradient(135deg, #0B5E6B 0%, #0D7377 100%); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 14px rgba(0,0,0,0.4); }
+    :root {
+      --dark-bg: #0f0f0f;
+      --dark-card: #1a1a1a;
+      --dark-secondary: #2d2d2d;
+      --border-color: #2d2d2d;
+      --text-primary: #fff;
+      --text-secondary: #888;
+      --primary-teal: #0B5E6B;
+    }
+
+    .banner { 
+      position: sticky; 
+      top: 0; 
+      z-index: 100; 
+      background: linear-gradient(135deg, #0B5E6B 0%, #0D7377 100%); 
+      padding: 12px 16px; 
+      display: flex; 
+      align-items: center; 
+      justify-content: space-between; 
+      box-shadow: 0 2px 14px rgba(0,0,0,0.4); 
+    }
     .banner-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
     .banner-logo { width: 42px; height: 42px; border-radius: 11px; flex-shrink: 0; background: rgba(255,255,255,0.15); object-fit: cover; }
     .banner-text { min-width: 0; }
     .banner-title { font-size: 22px; font-weight: 900; letter-spacing: 0.6px; line-height: 1.1; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,0.3); font-family: 'Space Grotesk', sans-serif; }
     .banner-tagline { font-size: 11.5px; font-weight: 500; color: rgba(255,255,255,0.9); margin-top: 1px; }
     .banner-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
-    .banner-btn { width: 38px; height: 38px; border: none; border-radius: 50%; background: rgba(255,255,255,0.18); color: #fff; font-size: 19px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .banner-btn { width: 38px; height: 38px; border: none; border-radius: 50%; background: rgba(255,255,255,0.18); color: #fff; font-size: 19px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
     .banner-btn:active { background: rgba(255,255,255,0.3); }
 
     .profile-container { max-width: 600px; margin: 0 auto; padding: 20px 16px; padding-bottom: 100px; }
+    
     .profile-header { text-align: center; margin-bottom: 24px; }
     .profile-pic { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid #0B5E6B; margin: 0 auto 16px; background: #2d2d2d; }
     .profile-name { font-size: 20px; font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; justify-content: center; gap: 6px; }
     .verified-badge { width: 18px; height: 18px; background: #0284c7; border-radius: 50%; color: #fff; font-size: 11px; display: flex; align-items: center; justify-content: center; }
     .profile-category { font-size: 13px; color: #0B5E6B; margin-bottom: 6px; font-weight: 600; }
     .profile-bio { font-size: 14px; color: #888; margin-bottom: 16px; line-height: 1.5; }
+    
     .profile-stats { display: flex; justify-content: space-around; margin-bottom: 20px; }
     .stat { display: flex; flex-direction: column; align-items: center; gap: 4px; }
     .stat-num { font-size: 18px; font-weight: 700; }
     .stat-label { font-size: 12px; color: #888; }
+
     .profile-actions { display: flex; gap: 8px; margin-bottom: 24px; }
-    .action-btn { flex: 1; padding: 11px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .action-btn { 
+      flex: 1; 
+      padding: 11px; 
+      border: none; 
+      border-radius: 8px; 
+      font-size: 14px; 
+      font-weight: 600; 
+      cursor: pointer; 
+      transition: all 0.2s; 
+    }
     .btn-follow { background: #0B5E6B; color: #fff; }
     .btn-follow:disabled { opacity: 0.6; cursor: not-allowed; }
     .btn-follow.following { background: transparent; border: 1px solid #0B5E6B; color: #0B5E6B; }
@@ -42,19 +74,66 @@
 
     .videos-section { margin-top: 24px; }
     .section-title { font-size: 16px; font-weight: 700; margin-bottom: 12px; }
-    .videos-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-    .video-thumb { position: relative; aspect-ratio: 9/16; background: #1a1a1a; border-radius: 8px; overflow: hidden; cursor: pointer; }
-    .video-thumb img, .video-thumb video { width: 100%; height: 100%; object-fit: cover; }
-    .video-views { position: absolute; bottom: 8px; left: 8px; font-size: 12px; background: rgba(0,0,0,0.6); padding: 4px 8px; border-radius: 4px; }
+    .videos-grid { 
+      display: grid; 
+      grid-template-columns: repeat(2, 1fr); 
+      gap: 12px; 
+    }
+    .video-thumb { 
+      position: relative; 
+      aspect-ratio: 9/16; 
+      background: #1a1a1a; 
+      border-radius: 8px; 
+      overflow: hidden; 
+      cursor: pointer; 
+      transition: transform 0.2s;
+    }
+    .video-thumb:active { transform: scale(0.98); }
+    .video-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .video-views { 
+      position: absolute; 
+      bottom: 8px; 
+      left: 8px; 
+      font-size: 12px; 
+      background: rgba(0,0,0,0.6); 
+      padding: 4px 8px; 
+      border-radius: 4px;
+      font-weight: 600;
+    }
 
     .empty-state { text-align: center; padding: 40px 20px; color: #666; }
     .loading { text-align: center; padding: 40px 20px; }
     .spinner { display: inline-block; width: 40px; height: 40px; border: 3px solid #2d2d2d; border-top-color: #0B5E6B; border-radius: 50%; animation: spin 1s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #1a1a1a; border-top: 1px solid #2d2d2d; display: flex; justify-content: space-around; align-items: center; z-index: 100; padding: 8px 0; }
-    .nav-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; background: none; border: none; color: #666; cursor: pointer; flex: 1; padding: 10px; font-size: 18px; }
-    .nav-btn.active { color: #0B5E6B; }
+    .bottom-nav { 
+      position: fixed; 
+      bottom: 0; 
+      left: 0; 
+      right: 0; 
+      background: #1a1a1a; 
+      border-top: 1px solid #2d2d2d; 
+      display: flex; 
+      justify-content: space-around; 
+      align-items: center; 
+      z-index: 100; 
+      padding: 8px 0; 
+    }
+    .nav-btn { 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      gap: 4px; 
+      background: none; 
+      border: none; 
+      color: #666; 
+      cursor: pointer; 
+      flex: 1; 
+      padding: 10px; 
+      font-size: 18px; 
+      transition: color 0.2s;
+    }
+    .nav-btn:active { color: #0B5E6B; }
     .nav-label { font-size: 10px; font-weight: 500; }
   </style>
 </head>
@@ -72,7 +151,7 @@
     </div>
   </header>
 
-  <div class="profile-container">
+  <div class="profile-container" id="creator-profile-container">
     <div class="loading"><div class="spinner"></div></div>
   </div>
 
@@ -85,165 +164,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
   <script src="js/appwrite-config.js"></script>
-
-  <script>
-    let CREATOR = null, MY_USER_ID = null, REELS = [];
-
-    function getUrlParam(name) {
-      const params = new URLSearchParams(window.location.search);
-      return params.get(name);
-    }
-
-    async function checkFollowStatus(creatorId, btn) {
-      if (!MY_USER_ID || !btn) return;
-      try {
-        const existing = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [ 
-          Query.equal('followerId', MY_USER_ID), 
-          Query.equal('followingId', creatorId), 
-          Query.limit(1) 
-        ]);
-        
-        if (existing.total > 0) {
-          btn.textContent = 'Following';
-          btn.classList.add('following');
-          btn.disabled = true;
-        } else {
-          btn.textContent = 'Follow';
-          btn.classList.remove('following');
-          btn.disabled = false;
-        }
-      } catch (err) {
-        console.error('Check follow status error:', err);
-      }
-    }
-
-    async function followCreator(creatorId, btn) {
-      if (!session.isLoggedIn()) { window.location = 'login.html'; return; }
-      try {
-        const existing = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [ 
-          Query.equal('followerId', MY_USER_ID), 
-          Query.equal('followingId', creatorId), 
-          Query.limit(1) 
-        ]);
-        
-        if (existing.total === 0) { 
-          await db.create(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, ID.unique(), { 
-            followId: ID.unique(), 
-            followerId: MY_USER_ID, 
-            followingId: creatorId, 
-            CreatorId: creatorId, 
-            createdAt: new Date().toISOString() 
-          }); 
-        }
-        
-        btn.textContent = 'Following'; 
-        btn.classList.add('following');
-        btn.disabled = true;
-      } catch (err) { 
-        console.error('Follow error:', err); 
-      }
-    }
-
-    async function loadProfile() {
-      try {
-        const creatorId = getUrlParam('creatorId');
-        if (!creatorId) { window.location = 'index.html'; return; }
-
-        CREATOR = await db.get(APPWRITE_CONFIG.COLLECTIONS.CREATORS, creatorId);
-        
-        const followers = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [Query.equal('followingId', creatorId)]);
-        const reelsResponse = await db.list(APPWRITE_CONFIG.COLLECTIONS.REELS, [
-          Query.equal('creatorId', creatorId),
-          Query.equal('isDeleted', false),
-          Query.orderDesc('uploadedAt')
-        ]);
-        REELS = reelsResponse.documents;
-
-        const container = document.querySelector('.profile-container');
-        const categoryEmoji = CREATOR.category ? getCategoryEmoji(CREATOR.category) : 'Common Zone';
-        
-        let html = `
-          <div class="profile-header">
-            <img class="profile-pic" src="${CREATOR.profilePic || '/logo-suite/primary/logo-khukuri-512x512.png'}" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'">
-            <div class="profile-name">
-              ${escapeHtml(CREATOR.name || 'Creator')}
-              ${CREATOR.isVerified ? '<div class="verified-badge">✓</div>' : ''}
-            </div>
-            ${CREATOR.category ? `<div class="profile-category">${categoryEmoji}</div>` : ''}
-            <div class="profile-bio">${escapeHtml(CREATOR.bio || 'No bio')}</div>
-            
-            <div class="profile-stats">
-              <div class="stat">
-                <div class="stat-num">${REELS.length}</div>
-                <div class="stat-label">Videos</div>
-              </div>
-              <div class="stat">
-                <div class="stat-num">${followers.total}</div>
-                <div class="stat-label">Followers</div>
-              </div>
-              <div class="stat">
-                <div class="stat-num">${REELS.reduce((s, r) => s + (r.views || 0), 0)}</div>
-                <div class="stat-label">Views</div>
-              </div>
-            </div>
-
-            <div class="profile-actions">
-              ${MY_USER_ID && MY_USER_ID !== creatorId ? `
-                <button class="action-btn btn-follow" id="follow-btn" onclick="followCreator('${creatorId}', this)">Follow</button>
-                <button class="action-btn btn-message" onclick="window.location='messages.html?userId=${creatorId}'">Message</button>
-              ` : ''}
-            </div>
-          </div>
-
-          ${REELS.length > 0 ? `
-            <div class="videos-section">
-              <div class="section-title">🎬 Videos</div>
-              <div class="videos-grid">
-                ${REELS.map(reel => `
-                  <div class="video-thumb" onclick="window.location='video-modal.html?reelId=${reel.$id}'">
-                    <img src="${reel.thumbnail || '/logo-suite/primary/logo-khukuri-512x512.png'}" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'">
-                    <div class="video-views">👁️ ${reel.views || 0}</div>
-                  </div>
-                `).join('')}
-              </div>
-            </div>
-          ` : '<div class="empty-state">No videos yet</div>'}
-        `;
-
-        container.innerHTML = html;
-
-        // Check follow status if button exists
-        if (MY_USER_ID && MY_USER_ID !== creatorId) {
-          const followBtn = document.getElementById('follow-btn');
-          if (followBtn) await checkFollowStatus(creatorId, followBtn);
-        }
-      } catch (err) {
-        console.error('Load profile error:', err);
-        document.querySelector('.profile-container').innerHTML = '<div class="empty-state">Creator not found</div>';
-      }
-    }
-
-    function getCategoryEmoji(cat) {
-      const map = { 'musician': '🎵', 'artist': '🎨', 'guide': '🧗', 'business': '🏪', 'student': '📚' };
-      return (map[cat] || '') + ' ' + (cat ? cat.charAt(0).toUpperCase() + cat.slice(1) : '');
-    }
-
-    async function init() {
-      try {
-        await session.refresh();
-        if (session.isLoggedIn()) { MY_USER_ID = session.getUserId(); }
-        await loadProfile();
-      } catch (err) {
-        console.error('Init error:', err);
-        await loadProfile();
-      }
-    }
-
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', init);
-    } else {
-      init();
-    }
-  </script>
+  <script src="js/creator-profile-viewer.js"></script>
 </body>
 </html>
