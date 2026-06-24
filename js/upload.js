@@ -258,6 +258,7 @@ class SimpleUpload {
         title,
         description: document.getElementById('post-description').value.trim() || '',
         category: document.getElementById('post-category').value || 'other',
+        zone: (document.getElementById('post-zone')?.value || 'Darjeeling'),
         language: document.getElementById('post-language').value || 'Nepali',
         hashtags: hashtagsString,
         views: 0,
