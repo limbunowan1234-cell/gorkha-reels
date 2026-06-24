@@ -159,7 +159,7 @@ class DashboardManager {
 
   renderReelCard(reel) {
     return `
-      <div style="position:relative;aspect-ratio:9/16;border-radius:6px;overflow:hidden;background:var(--dark-secondary);cursor:pointer;" onclick="window.location.href='./index.html?reel=${reel.$id}'">
+      <div style="position:relative;aspect-ratio:9/16;border-radius:6px;overflow:hidden;background:var(--dark-secondary);cursor:pointer;" onclick="window.location.href='./video-modal.html?id=${reel.$id}'">
         <video
           src="${reel.videoUrl}#t=0.5"
           style="width:100%;height:100%;object-fit:cover;"
