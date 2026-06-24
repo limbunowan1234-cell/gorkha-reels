@@ -622,16 +622,35 @@
       const type = sheet.dataset.contentType;
       closeOptionsSheet();
       if (!session.isLoggedIn()) { window.location = 'login.html'; return; }
-      const reason = prompt('Why are you reporting this? (optional)');
+      const reason = prompt('Why are you reporting this?');
       if (reason === null) return; // user cancelled
       try {
-        await db.create(APPWRITE_CONFIG.COLLECTIONS.REPORTS, ID.unique(), {
-          reporterId: MY_USER_ID,
-          contentId: contentId,
-          contentType: type,
-          reason: reason || 'No reason given',
+        // Get the creator of this content (to fill reportedCreatorId)
+        let creatorId = null;
+        if (type === 'reel') {
+          const reel = await db.get(APPWRITE_CONFIG.COLLECTIONS.REELS, contentId);
+          creatorId = reel.creatorId;
+        } else if (type === 'post') {
+          const post = await db.get('posts', contentId);
+          creatorId = post.creatorId;
+        }
+        
+        // Build report document matching schema
+        const reportData = {
+          reportId: ID.unique(),
+          reportedBy: MY_USER_ID,
+          reportedCreatorId: creatorId,
+          reason: reason || 'User did not provide reason',
+          description: '',
+          status: 'pending',
           createdAt: new Date().toISOString()
-        });
+        };
+        
+        // Add content-specific field
+        if (type === 'reel') { reportData.reelId = contentId; }
+        else if (type === 'post') { reportData.commentId = contentId; }
+        
+        await db.create(APPWRITE_CONFIG.COLLECTIONS.REPORTS, ID.unique(), reportData);
         alert('Thank you. This content has been reported.');
       } catch (err) {
         console.error('Report error:', err);
