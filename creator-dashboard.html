@@ -12,6 +12,17 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #0f0f0f; color: #fff; font-family: system-ui; }
 
+    :root {
+      --dark-bg: #0f0f0f;
+      --dark-card: #1a1a1a;
+      --dark-secondary: #2d2d2d;
+      --border-color: #2d2d2d;
+      --text-primary: #fff;
+      --text-secondary: #888;
+      --primary-teal: #0B5E6B;
+      --primary-red: #dc2626;
+    }
+
     .container { max-width: 600px; margin: 0 auto; }
 
     /* Header */
@@ -33,33 +44,6 @@
     /* Content */
     .content { padding: 16px; margin-bottom: 80px; }
 
-    /* Card */
-    .card {
-      background: linear-gradient(135deg, #1a1a1a, #0d2d3a);
-      border: 1px solid #2d2d2d;
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 16px;
-    }
-    .card-title { font-size: 14px; font-weight: 700; color: #0B5E6B; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
-
-    /* Stats Grid */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 10px;
-      margin-bottom: 16px;
-    }
-    .stat-item {
-      background: #1a1a1a;
-      border: 1px solid #2d2d2d;
-      border-radius: 10px;
-      padding: 12px;
-      text-align: center;
-    }
-    .stat-value { font-size: 20px; font-weight: 700; color: #0B5E6B; margin-bottom: 4px; }
-    .stat-label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.3px; }
-
     /* Profile Header */
     .profile-header {
       text-align: center;
@@ -80,20 +64,28 @@
       font-family: 'Space Grotesk', sans-serif;
       margin-bottom: 4px;
     }
-    .profile-category {
-      display: inline-block;
-      background: #0B5E6B;
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-size: 13px;
-      font-weight: 600;
-      margin-bottom: 12px;
-    }
     .profile-bio {
       color: #ccc;
       font-size: 14px;
       margin-bottom: 16px;
     }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+    .stat-item {
+      background: #1a1a1a;
+      border: 1px solid #2d2d2d;
+      border-radius: 10px;
+      padding: 16px 12px;
+      text-align: center;
+    }
+    .stat-value { font-size: 22px; font-weight: 700; color: #0B5E6B; margin-bottom: 6px; }
+    .stat-label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.3px; }
 
     /* Action Buttons Grid */
     .action-buttons {
@@ -139,21 +131,21 @@
     /* Video Grid */
     .video-grid {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 4px;
       margin-bottom: 24px;
     }
     .video-card {
-      background: #1a1a1a;
-      border: 1px solid #2d2d2d;
-      border-radius: 10px;
-      overflow: hidden;
       position: relative;
+      aspect-ratio: 9/16;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #1a1a1a;
       cursor: pointer;
     }
     .video-thumb {
       width: 100%;
-      height: 120px;
+      height: 100%;
       object-fit: cover;
       background: #2d2d2d;
     }
@@ -168,10 +160,34 @@
       font-size: 24px;
     }
     .video-info {
-      padding: 8px;
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 6px 8px;
+      background: linear-gradient(transparent, rgba(0,0,0,0.8));
       font-size: 11px;
-      color: #888;
+      color: #fff;
+      font-weight: 600;
     }
+    .delete-btn {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 28px;
+      height: 28px;
+      background: rgba(0,0,0,0.6);
+      border: none;
+      border-radius: 50%;
+      color: #fff;
+      cursor: pointer;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+    .delete-btn:hover { background: rgba(220,38,38,0.8); }
 
     /* Loading */
     .loading { text-align: center; padding: 40px 20px; color: #888; }
@@ -215,6 +231,74 @@
     }
     .nav-btn.active { color: #0B5E6B; }
     .nav-label { font-size: 10px; font-weight: 500; }
+
+    /* Footer Section */
+    .footer-section {
+      margin-top: 48px;
+      padding-top: 24px;
+      padding-bottom: 24px;
+      border-top: 1px solid #2d2d2d;
+    }
+    .footer-divider {
+      height: 1px;
+      background: #2d2d2d;
+      margin-bottom: 16px;
+    }
+    .footer-content {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .logout-btn {
+      background: none;
+      border: 1px solid #2d2d2d;
+      color: #fff;
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .logout-btn:active {
+      background: rgba(220,38,38,0.1);
+      border-color: #dc2626;
+      color: #dc2626;
+    }
+    .footer-link {
+      font-size: 12px;
+      color: #888;
+      text-decoration: none;
+      transition: color 0.2s;
+      border: none;
+      background: none;
+      cursor: pointer;
+      padding: 0;
+    }
+    .footer-link:hover {
+      color: #0B5E6B;
+    }
+    .footer-link::after {
+      content: ' •';
+      margin-left: 12px;
+      color: #2d2d2d;
+    }
+    .footer-link:last-of-type::after {
+      content: '';
+      margin-left: 0;
+    }
+    .footer-copyright {
+      text-align: center;
+      font-size: 11px;
+      color: #555;
+      margin-top: 12px;
+    }
+    .footer-copyright p {
+      margin: 0;
+    }
   </style>
 </head>
 <body>
@@ -229,44 +313,43 @@
   <div class="container">
     <div class="content">
       <!-- Profile Header -->
-      <div class="profile-header" id="profile-header">
-        <img class="profile-pic" id="profile-pic" src="" alt="Profile" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'">
-        <div class="profile-name" id="profile-name">Loading...</div>
-        <div class="profile-category" id="profile-category"></div>
-        <div class="profile-bio" id="profile-bio"></div>
+      <div class="profile-header">
+        <img class="profile-pic" id="creator-avatar" src="" alt="Profile" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'">
+        <div class="profile-name" id="creator-name">Loading...</div>
+        <div class="profile-bio" id="creator-bio"></div>
       </div>
 
       <!-- Stats Grid -->
       <div class="stats-grid">
         <div class="stat-item">
-          <div class="stat-value" id="video-count">0</div>
+          <div class="stat-value" id="total-reels">0</div>
           <div class="stat-label">Videos</div>
         </div>
         <div class="stat-item">
-          <div class="stat-value" id="follower-count">0</div>
+          <div class="stat-value" id="followers-count">0</div>
           <div class="stat-label">Followers</div>
         </div>
         <div class="stat-item">
-          <div class="stat-value" id="view-count">0</div>
+          <div class="stat-value" id="total-views">0</div>
           <div class="stat-label">Views</div>
         </div>
       </div>
 
       <!-- Action Buttons -->
       <div class="action-buttons">
-        <button class="btn" onclick="window.location='upload.html'" title="Upload a new video">
+        <button class="btn" id="upload-btn" onclick="window.location='upload.html'">
           <div class="btn-icon">➕</div>
           <div class="btn-text">Upload</div>
         </button>
-        <button class="btn" onclick="editProfile()" title="Edit your profile">
+        <button class="btn" id="edit-profile-btn">
           <div class="btn-icon">✏️</div>
           <div class="btn-text">Edit</div>
         </button>
-        <button class="btn" onclick="window.location='creator-hub.html'" title="Manage earnings and settings">
-          <div class="btn-icon">🎛️</div>
+        <button class="btn" onclick="window.location='creator-hub.html'">
+          <div class="btn-icon">🏦</div>
           <div class="btn-text">Creator Hub</div>
         </button>
-        <button class="btn" onclick="window.location='creator-analytics.html'" title="View analytics and performance">
+        <button class="btn" onclick="window.location='creator-analytics.html'">
           <div class="btn-icon">📊</div>
           <div class="btn-text">Analytics</div>
         </button>
@@ -274,8 +357,22 @@
 
       <!-- My Videos -->
       <div class="section-title">🎬 My Videos</div>
-      <div id="videos-container">
+      <div id="my-reels-container">
         <div class="loading"><div class="spinner"></div></div>
+      </div>
+
+      <!-- Footer Section -->
+      <div class="footer-section">
+        <div class="footer-divider"></div>
+        <div class="footer-content">
+          <button id="logout-btn" class="footer-btn logout-btn">🚪 Logout</button>
+          <a href="#" class="footer-link">Terms & Conditions</a>
+          <a href="#" class="footer-link">About Us</a>
+          <a href="#" class="footer-link">Contact Us</a>
+        </div>
+        <div class="footer-copyright">
+          <p>&copy; 2024 GorkhaReels. All rights reserved.</p>
+        </div>
       </div>
     </div>
   </div>
@@ -290,95 +387,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
   <script src="js/appwrite-config.js"></script>
-  <script>
-    const C = APPWRITE_CONFIG.COLLECTIONS;
-
-    function escapeHtml(text) {
-      if (!text) return '';
-      const div = document.createElement('div');
-      div.textContent = text;
-      return div.innerHTML;
-    }
-
-    async function init() {
-      await session.refresh();
-      if (!session.isLoggedIn()) { window.location = 'login.html'; return; }
-      await loadProfile();
-    }
-
-    async function loadProfile() {
-      try {
-        const uid = session.getUserId();
-        const creator = await db.get(C.CREATORS, uid);
-
-        // Profile info
-        document.getElementById('profile-pic').src = creator.profilePic || '/logo-suite/primary/logo-khukuri-512x512.png';
-        document.getElementById('profile-name').textContent = creator.name || 'Creator';
-        document.getElementById('profile-category').textContent = creator.category || 'No category';
-        document.getElementById('profile-bio').textContent = creator.bio || '';
-
-        // Stats
-        document.getElementById('video-count').textContent = (creator.videos || 0).toLocaleString();
-        document.getElementById('follower-count').textContent = (creator.followers || 0).toLocaleString();
-        document.getElementById('view-count').textContent = (creator.totalViews || 0).toLocaleString();
-
-        // Load videos
-        await loadVideos();
-
-      } catch (e) {
-        console.error('Profile load error:', e);
-        document.getElementById('profile-header').innerHTML = '<p style="color: #888;">Error loading profile</p>';
-      }
-    }
-
-    async function loadVideos() {
-      try {
-        const uid = session.getUserId();
-        const reelsRes = await db.list(C.REELS, [
-          Query.equal('creatorId', uid),
-          Query.equal('isDeleted', false),
-          Query.limit(20)
-        ]);
-
-        const reels = reelsRes.documents || [];
-
-        if (reels.length === 0) {
-          document.getElementById('videos-container').innerHTML = `
-            <div class="empty-state">
-              <div class="empty-icon">🎬</div>
-              <p>No videos yet</p>
-              <p style="font-size: 12px; margin-top: 8px;">Upload your first video to get started</p>
-            </div>
-          `;
-          return;
-        }
-
-        const videosHtml = reels.map(reel => `
-          <div class="video-card" onclick="window.location='video-modal.html?id=${reel.$id}'">
-            <div style="position: relative;">
-              <img class="video-thumb" src="${reel.thumbnail || '/logo-suite/primary/logo-khukuri-256x256.png'}" alt="" onerror="this.src='/logo-suite/primary/logo-khukuri-256x256.png'">
-              <div class="video-overlay">▶️</div>
-            </div>
-            <div class="video-info">
-              <div style="margin-bottom: 4px;">👁️ ${(reel.views || 0).toLocaleString()}</div>
-              <div>❤️ ${(reel.likes || 0).toLocaleString()}</div>
-            </div>
-          </div>
-        `).join('');
-
-        document.getElementById('videos-container').innerHTML = `<div class="video-grid">${videosHtml}</div>`;
-
-      } catch (e) {
-        console.error('Videos load error:', e);
-        document.getElementById('videos-container').innerHTML = '<p style="color: #888; text-align: center;">Error loading videos</p>';
-      }
-    }
-
-    function editProfile() {
-      alert('Edit profile feature coming soon!');
-    }
-
-    document.addEventListener('DOMContentLoaded', init);
-  </script>
+  <script src="js/creator-dashboard.js"></script>
 </body>
 </html>
