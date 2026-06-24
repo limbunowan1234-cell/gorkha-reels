@@ -299,6 +299,82 @@
     .footer-copyright p {
       margin: 0;
     }
+
+    /* Options Sheet Styles */
+    .sheet-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.4);
+      z-index: 40;
+      display: none;
+      animation: fadeIn 0.25s ease;
+    }
+    .sheet-backdrop.open {
+      display: block;
+    }
+
+    .sheet {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #1a1a1a;
+      z-index: 50;
+      border-radius: 16px 16px 0 0;
+      transform: translateY(100%);
+      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      display: flex;
+      flex-direction: column;
+    }
+    .sheet.open {
+      transform: translateY(0);
+    }
+
+    .sheet-head {
+      padding: 16px;
+      border-bottom: 1px solid #2d2d2d;
+      font-size: 16px;
+      font-weight: 700;
+      text-align: center;
+      color: #fff;
+    }
+
+    .sheet-buttons {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .sheet-btn {
+      padding: 14px;
+      background: #0B5E6B;
+      border: none;
+      color: #fff;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    .sheet-btn:active {
+      transform: scale(0.95);
+    }
+
+    .sheet-btn.delete {
+      background: #dc2626;
+    }
+
+    .sheet-btn.cancel {
+      background: #1a1a1a;
+      border: 1px solid #2d2d2d;
+      color: #fff;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
   </style>
 </head>
 <body>
@@ -377,6 +453,18 @@
     </div>
   </div>
 
+  <!-- Options Sheet -->
+  <div class="sheet-backdrop" id="reel-options-backdrop"></div>
+  <div class="sheet" id="reel-options-sheet">
+    <div class="sheet-head">🎬 Video Options</div>
+    <div class="sheet-buttons">
+      <button id="opt-edit" class="sheet-btn">✏️ Edit Video</button>
+      <button id="opt-reshare" class="sheet-btn">🔄 Reshare</button>
+      <button id="opt-delete" class="sheet-btn delete">🤮 Delete</button>
+      <button id="opt-cancel" class="sheet-btn cancel">Cancel</button>
+    </div>
+  </div>
+
   <!-- Bottom Nav -->
   <nav class="bottom-nav">
     <button class="nav-btn" onclick="window.location='index.html'"><span>🏠</span><span class="nav-label">Home</span></button>
@@ -387,6 +475,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
   <script src="js/appwrite-config.js"></script>
-  <script src="js/creator-dashboard.js"></script>
+  <script src="js/dashboard.js"></script>
 </body>
 </html>
