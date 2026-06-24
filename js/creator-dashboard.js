@@ -1,5 +1,5 @@
 /**
- * GorkhaReels - Creator Dashboard (UPDATED)
+ * GorkhaReels - Creator Dashboard (UPDATED with Options Sheet)
  * 
  * UPDATES APPLIED:
  * ✅ View counting integrated: totalViews now includes VIEWS collection tracking
@@ -8,6 +8,7 @@
  * ✅ Delete videos with soft-delete via isDeleted flag
  * ✅ Bank details with corrected bankUpiId field
  * ✅ Profile editing with image upload
+ * ✅ Options sheet with Edit, Reshare, Delete buttons
  */
 
 class DashboardManager {
@@ -176,11 +177,61 @@ class DashboardManager {
           style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,0.6);border:none;color:#fff;width:28px;height:28px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:background 0.2s;" 
           onmouseover="this.style.background='rgba(220,38,38,0.8)'" 
           onmouseout="this.style.background='rgba(0,0,0,0.6)'" 
-          onclick="event.stopPropagation(); window.dashboardManager.confirmDelete('${reel.$id}', '${(reel.title || 'Video').replace(/'/g, "\\'")}');" 
-          title="Delete video"
-        >🤮</button>
+          onclick="event.stopPropagation(); window.dashboardManager.openReelOptions('${reel.$id}', '${(reel.title || 'Video').replace(/'/g, "\\'")}')"
+          title="More options"
+        >⋯</button>
       </div>
     `;
+  }
+
+  openReelOptions(reelId, title) {
+    const backdrop = document.getElementById('reel-options-backdrop');
+    const sheet = document.getElementById('reel-options-sheet');
+    
+    if (!backdrop || !sheet) {
+      console.error('Options sheet elements not found');
+      return;
+    }
+
+    backdrop.classList.add('open');
+    sheet.classList.add('open');
+
+    // Store current reel ID for use in button handlers
+    this.currentReelId = reelId;
+    this.currentReelTitle = title;
+    
+    // Close on backdrop click
+    backdrop.onclick = () => this.closeReelOptions();
+    
+    // Button handlers
+    document.getElementById('opt-edit').onclick = () => {
+      this.closeReelOptions();
+      Toast.info('📝 Edit coming soon!');
+    };
+    
+    document.getElementById('opt-reshare').onclick = () => {
+      this.closeReelOptions();
+      const shareUrl = `${location.origin}/video-modal.html?id=${reelId}`;
+      navigator.clipboard.writeText(shareUrl);
+      Toast.success('🔄 Link copied!');
+    };
+    
+    document.getElementById('opt-delete').onclick = () => {
+      this.closeReelOptions();
+      this.confirmDelete(reelId, title);
+    };
+    
+    document.getElementById('opt-cancel').onclick = () => {
+      this.closeReelOptions();
+    };
+  }
+
+  closeReelOptions() {
+    const backdrop = document.getElementById('reel-options-backdrop');
+    const sheet = document.getElementById('reel-options-sheet');
+    
+    if (backdrop) backdrop.classList.remove('open');
+    if (sheet) sheet.classList.remove('open');
   }
 
   confirmDelete(reelId, title) {
@@ -612,4 +663,4 @@ if (document.readyState === 'loading') {
   window.dashboardManager = new DashboardManager();
 }
 
-console.log('✅ Dashboard Manager Loaded (view counting integrated + VIEWS collection ready)');
+console.log('✅ Dashboard Manager Loaded (with options sheet for video actions)');
