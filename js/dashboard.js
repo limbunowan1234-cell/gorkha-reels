@@ -236,29 +236,10 @@ class DashboardManager {
   }
 
   setupEventListeners() {
-    document.getElementById('upload-btn')?.addEventListener('click', () => {
-      window.location.href = './upload.html';
-    });
     document.getElementById('edit-profile-btn')?.addEventListener('click', () => {
       this.openEditProfile();
     });
     document.getElementById('logout-btn')?.addEventListener('click', () => this.logout());
-
-    document.getElementById('withdraw-btn')?.addEventListener('click', () => {
-      Toast.info('💰 Withdrawals available once you reach ₹500');
-    });
-    document.getElementById('change-password-btn')?.addEventListener('click', () => {
-      this.openChangePassword();
-    });
-    document.getElementById('bank-details-btn')?.addEventListener('click', () => {
-      this.openBankDetails();
-    });
-    document.getElementById('guidelines-btn')?.addEventListener('click', () => {
-      this.openContentGuidelines();
-    });
-    document.getElementById('support-btn')?.addEventListener('click', () => {
-      this.openSupport();
-    });
   }
 
   openChangePassword() {
