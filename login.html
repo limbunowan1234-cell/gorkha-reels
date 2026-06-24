@@ -2,143 +2,244 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Login - GorkhaReels</title>
-  <meta name="description" content="Sign in to GorkhaReels">
-  <meta name="theme-color" content="#121212">
-  
-  <link rel="icon" type="image/png" href="assets/logo.png">
-  <link rel="stylesheet" href="css/styles.css">
+  <meta name="description" content="Sign in to GorkhaReels - Gorkha Stories, Global Reach">
+  <meta name="theme-color" content="#0B5E6B">
+  <link rel="icon" type="image/png" href="/logo-suite/favicon/logo-khukuri-32x32.png">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
   
   <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    
     body {
+      background: linear-gradient(135deg, #000 0%, #0B3C45 100%);
+      min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
-      min-height: 100vh;
-      padding: 20px;
+      font-family: system-ui;
+      color: #fff;
+      padding: 16px;
     }
 
     .auth-container {
       width: 100%;
-      max-width: 400px;
-      background: var(--dark-card);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 40px 24px;
+      max-width: 420px;
+      animation: slideUp 0.5s ease;
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .auth-card {
+      background: linear-gradient(135deg, #1a1a1a 0%, #0d2d3a 100%);
+      border: 1px solid #2d2d2d;
+      border-radius: 16px;
+      padding: 40px 28px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Header */
+    .auth-header {
       text-align: center;
+      margin-bottom: 32px;
     }
 
     .auth-logo {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 16px;
+      background: linear-gradient(135deg, #0B5E6B 0%, #0D7377 100%);
+      border-radius: 16px;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 12px;
-      margin-bottom: 30px;
+      font-size: 32px;
+      box-shadow: 0 8px 20px rgba(11, 94, 107, 0.3);
     }
 
-    .auth-logo img {
-      height: 40px;
-      width: auto;
-    }
-
-    .auth-logo .auth-title {
-      font-size: 24px;
-      font-weight: bold;
-      color: var(--primary-red);
+    .auth-title {
+      font-size: 28px;
+      font-weight: 900;
+      font-family: 'Space Grotesk', sans-serif;
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, #0B5E6B, #4ade80);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
 
     .auth-subtitle {
       font-size: 14px;
-      color: var(--text-secondary);
-      margin-bottom: 30px;
+      color: #888;
       line-height: 1.5;
     }
 
+    /* Form */
     .auth-form {
       display: flex;
       flex-direction: column;
       gap: 16px;
+      animation: fadeIn 0.4s ease 0.1s both;
     }
 
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
     .form-group {
-      text-align: left;
       position: relative;
     }
 
-    .form-group label {
+    .form-label {
       display: block;
       font-size: 12px;
       font-weight: 600;
-      color: var(--text-primary);
+      color: #0B5E6B;
       margin-bottom: 8px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
 
-    .form-icon {
-      position: absolute;
-      left: 12px;
-      top: 38px;
-      font-size: 18px;
-      color: var(--text-secondary);
-      pointer-events: none;
+    .form-input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
     }
 
-    .form-group input {
+    .form-input {
       width: 100%;
-      padding: 12px 12px 12px 40px;
-      background: var(--dark-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      color: var(--text-primary);
+      padding: 12px 14px;
+      background: #1a1a1a;
+      border: 1px solid #2d2d2d;
+      border-radius: 10px;
+      color: #fff;
       font-size: 14px;
       font-family: inherit;
       transition: all 0.2s;
     }
 
-    .form-group input:focus {
+    .form-input:focus {
       outline: none;
-      border-color: var(--primary-red);
-      box-shadow: 0 0 0 2px rgba(211, 47, 47, 0.1);
+      border-color: #0B5E6B;
+      box-shadow: 0 0 0 3px rgba(11, 94, 107, 0.1);
+      background: #222;
     }
 
-    .form-group input::placeholder {
-      color: var(--text-secondary);
-    }
+    .form-input::placeholder { color: #666; }
 
-    .auth-button {
-      padding: 12px;
-      background: var(--primary-red);
-      color: white;
+    .toggle-password {
+      position: absolute;
+      right: 12px;
+      background: none;
       border: none;
-      border-radius: 8px;
+      color: #888;
+      cursor: pointer;
+      font-size: 16px;
+      padding: 4px;
+      transition: color 0.2s;
+    }
+
+    .toggle-password:hover { color: #0B5E6B; }
+
+    .form-helper {
+      font-size: 11px;
+      color: #666;
+      margin-top: 4px;
+    }
+
+    .password-strength {
+      display: flex;
+      gap: 4px;
+      margin-top: 6px;
+    }
+
+    .strength-bar {
+      flex: 1;
+      height: 3px;
+      background: #2d2d2d;
+      border-radius: 2px;
+      transition: background 0.2s;
+    }
+
+    .strength-bar.weak { background: #dc2626; }
+    .strength-bar.medium { background: #f59e0b; }
+    .strength-bar.strong { background: #4ade80; }
+
+    /* Error Message */
+    .error-message {
+      background: rgba(220, 38, 38, 0.1);
+      border: 1px solid #dc2626;
+      color: #ff6b6b;
+      padding: 12px 14px;
+      border-radius: 10px;
+      font-size: 13px;
+      display: none;
+      animation: shake 0.3s ease;
+    }
+
+    .error-message.show { display: block; }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-4px); }
+      75% { transform: translateX(4px); }
+    }
+
+    /* Buttons */
+    .auth-button {
+      padding: 13px;
+      background: linear-gradient(135deg, #0B5E6B 0%, #0D7377 100%);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
       font-size: 14px;
-      font-weight: 600;
+      font-weight: 700;
       cursor: pointer;
       transition: all 0.2s;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 44px;
     }
 
     .auth-button:hover:not(:disabled) {
-      background: #b71c1c;
       transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(211, 47, 47, 0.3);
+      box-shadow: 0 8px 20px rgba(11, 94, 107, 0.3);
+    }
+
+    .auth-button:active:not(:disabled) {
+      transform: translateY(0);
     }
 
     .auth-button:disabled {
-      opacity: 0.5;
+      opacity: 0.6;
       cursor: not-allowed;
     }
 
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Divider */
     .auth-divider {
       display: flex;
       align-items: center;
       gap: 12px;
-      margin: 24px 0;
-      color: var(--text-secondary);
+      margin: 20px 0;
+      color: #666;
       font-size: 12px;
     }
 
@@ -147,167 +248,379 @@
       content: "";
       flex: 1;
       height: 1px;
-      background: var(--border-color);
+      background: #2d2d2d;
     }
 
+    /* Toggle Section */
     .auth-toggle {
       margin-top: 24px;
       padding-top: 24px;
-      border-top: 1px solid var(--border-color);
+      border-top: 1px solid #2d2d2d;
+      text-align: center;
     }
 
     .auth-toggle-text {
       font-size: 13px;
-      color: var(--text-secondary);
+      color: #888;
       margin-bottom: 12px;
     }
 
     .auth-toggle-button {
-      padding: 10px 16px;
+      padding: 10px 18px;
       background: transparent;
-      color: var(--primary-red);
-      border: 1px solid var(--primary-red);
+      color: #0B5E6B;
+      border: 1.5px solid #0B5E6B;
       border-radius: 8px;
       font-size: 13px;
-      font-weight: 600;
+      font-weight: 700;
       cursor: pointer;
       transition: all 0.2s;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
     }
 
     .auth-toggle-button:hover {
-      background: rgba(211, 47, 47, 0.1);
+      background: rgba(11, 94, 107, 0.1);
+      transform: translateY(-1px);
     }
 
-    .error-message {
-      background: rgba(211, 47, 47, 0.1);
-      border: 1px solid var(--primary-red);
-      color: var(--primary-red);
-      padding: 12px;
-      border-radius: 8px;
+    .auth-toggle-button:active {
+      transform: translateY(0);
+    }
+
+    /* Referral Code (Signup only) */
+    .referral-section {
+      background: rgba(11, 94, 107, 0.1);
+      border: 1px solid rgba(11, 94, 107, 0.2);
+      padding: 14px;
+      border-radius: 10px;
+      margin-bottom: 12px;
+    }
+
+    .referral-label {
       font-size: 12px;
-      margin-bottom: 16px;
-      display: none;
+      color: #0B5E6B;
+      margin-bottom: 8px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
     }
 
-    .error-message.show {
-      display: block;
+    .referral-input {
+      width: 100%;
+      padding: 10px 12px;
+      background: rgba(26, 26, 26, 0.6);
+      border: 1px solid rgba(11, 94, 107, 0.3);
+      border-radius: 8px;
+      color: #fff;
+      font-size: 13px;
+      font-family: monospace;
     }
 
-    .loading {
-      opacity: 0.6;
-      pointer-events: none;
-    }
+    .referral-input::placeholder { color: #666; }
 
-    .form-helper {
+    .referral-hint {
       font-size: 11px;
-      color: var(--text-secondary);
-      margin-top: 4px;
+      color: #666;
+      margin-top: 6px;
     }
 
-    @media (max-width: 480px) {
-      .auth-container {
-        padding: 30px 20px;
-      }
+    /* Links */
+    .auth-links {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid #2d2d2d;
+      font-size: 12px;
     }
+
+    .auth-link {
+      color: #0B5E6B;
+      text-decoration: none;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+
+    .auth-link:hover { color: #0D7377; }
+
+    /* Mobile */
+    @media (max-width: 480px) {
+      body { padding: 12px; }
+      .auth-card { padding: 32px 20px; }
+      .auth-title { font-size: 24px; }
+      .auth-logo { width: 56px; height: 56px; }
+    }
+
+    /* Loading state */
+    .loading { opacity: 0.6; pointer-events: none; }
   </style>
 </head>
 <body>
   <div class="auth-container">
-    <!-- Logo -->
-    <div class="auth-logo">
-      <img src="assets/logo.png" alt="GorkhaReels">
-      <div class="auth-title">GorkhaReels</div>
-    </div>
-
-    <!-- Login Form (Initially Visible) -->
-    <div id="login-form" class="auth-form">
-      <div class="auth-subtitle">
-        Sign in to watch, upload, and share videos
+    <div class="auth-card">
+      <!-- Header -->
+      <div class="auth-header">
+        <div class="auth-logo">🎬</div>
+        <div class="auth-title">GorkhaReels</div>
+        <div class="auth-subtitle">Gorkha Stories, Global Reach</div>
       </div>
 
-      <div id="login-error" class="error-message"></div>
+      <!-- Login Form -->
+      <div id="login-form">
+        <div id="login-error" class="error-message"></div>
 
-      <div class="form-group">
-        <label for="login-email">📧 Email or Username</label>
-        <input 
-          type="text" 
-          id="login-email" 
-          placeholder="your.email@gmail.com or username"
-          autocomplete="email"
-        >
+        <form class="auth-form" onsubmit="handleLogin(event)">
+          <div class="form-group">
+            <label class="form-label">📧 Email or Username</label>
+            <input 
+              type="text" 
+              id="login-email" 
+              class="form-input"
+              placeholder="your.email@gmail.com"
+              required
+              autocomplete="email"
+            >
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">🔐 Password</label>
+            <div class="form-input-wrapper">
+              <input 
+                type="password" 
+                id="login-password" 
+                class="form-input"
+                placeholder="Enter your password"
+                required
+                autocomplete="current-password"
+              >
+              <button type="button" class="toggle-password" onclick="toggleLoginPassword()">👁️</button>
+            </div>
+          </div>
+
+          <button type="submit" class="auth-button" id="login-btn">
+            <span>🔓</span> Sign In
+          </button>
+        </form>
+
+        <div class="auth-divider">or</div>
+
+        <div class="auth-toggle">
+          <div class="auth-toggle-text">Don't have an account?</div>
+          <button class="auth-toggle-button" type="button" onclick="toggleForm()">✨ Create One</button>
+        </div>
       </div>
 
-      <div class="form-group">
-        <label for="login-password">🔐 Password</label>
-        <input 
-          type="password" 
-          id="login-password" 
-          placeholder="Enter your password"
-          autocomplete="current-password"
-        >
+      <!-- Signup Form -->
+      <div id="signup-form" style="display: none;">
+        <div id="signup-error" class="error-message"></div>
+
+        <form class="auth-form" onsubmit="handleSignup(event)">
+          <div class="form-group">
+            <label class="form-label">👤 Full Name</label>
+            <input 
+              type="text" 
+              id="signup-name" 
+              class="form-input"
+              placeholder="Your full name"
+              required
+              autocomplete="name"
+            >
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">📧 Email</label>
+            <input 
+              type="email" 
+              id="signup-email" 
+              class="form-input"
+              placeholder="your.email@gmail.com"
+              required
+              autocomplete="email"
+            >
+            <div class="form-helper">We'll never share your email</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">🔐 Password</label>
+            <div class="form-input-wrapper">
+              <input 
+                type="password" 
+                id="signup-password" 
+                class="form-input"
+                placeholder="Create a strong password"
+                required
+                autocomplete="new-password"
+                oninput="checkPasswordStrength()"
+              >
+              <button type="button" class="toggle-password" onclick="toggleSignupPassword()">👁️</button>
+            </div>
+            <div class="form-helper">Min 8 characters</div>
+            <div class="password-strength" id="password-strength"></div>
+          </div>
+
+          <div class="referral-section">
+            <div class="referral-label">🔗 Referral Code (Optional)</div>
+            <input 
+              type="text" 
+              id="signup-referral" 
+              class="referral-input"
+              placeholder="If a friend invited you"
+            >
+            <div class="referral-hint">Earn 10% of their tips when they sign up with your code</div>
+          </div>
+
+          <button type="submit" class="auth-button" id="signup-btn">
+            <span>🎬</span> Create Account
+          </button>
+        </form>
+
+        <div class="auth-divider">or</div>
+
+        <div class="auth-toggle">
+          <div class="auth-toggle-text">Already have an account?</div>
+          <button class="auth-toggle-button" type="button" onclick="toggleForm()">🔓 Sign In</button>
+        </div>
       </div>
 
-      <button class="auth-button" id="login-btn">🔓 Sign In</button>
-
-      <div class="auth-toggle">
-        <div class="auth-toggle-text">Don't have an account?</div>
-        <button class="auth-toggle-button" onclick="toggleForm()">✨ Create Account</button>
-      </div>
-    </div>
-
-    <!-- Signup Form (Hidden Initially) -->
-    <div id="signup-form" class="auth-form" style="display: none;">
-      <div class="auth-subtitle">
-        Create your creator account and start sharing videos
-      </div>
-
-      <div id="signup-error" class="error-message"></div>
-
-      <div class="form-group">
-        <label for="signup-name">👤 Full Name</label>
-        <input 
-          type="text" 
-          id="signup-name" 
-          placeholder="Your full name"
-          autocomplete="name"
-        >
-      </div>
-
-      <div class="form-group">
-        <label for="signup-email">📧 Email</label>
-        <input 
-          type="email" 
-          id="signup-email" 
-          placeholder="your.email@gmail.com"
-          autocomplete="email"
-        >
-        <div class="form-helper">We'll never share your email</div>
-      </div>
-
-      <div class="form-group">
-        <label for="signup-password">🔐 Password</label>
-        <input 
-          type="password" 
-          id="signup-password" 
-          placeholder="Create a strong password"
-          autocomplete="new-password"
-        >
-        <div class="form-helper">Min 8 characters</div>
-      </div>
-
-      <button class="auth-button" id="signup-btn">🎬 Create Account</button>
-
-      <div class="auth-toggle">
-        <div class="auth-toggle-text">Already have an account?</div>
-        <button class="auth-toggle-button" onclick="toggleForm()">🔓 Sign In</button>
+      <!-- Footer Links -->
+      <div class="auth-links">
+        <a class="auth-link" href="https://gorkha-reels.pages.dev" target="_blank">About</a>
+        <a class="auth-link" href="https://gorkha-reels.pages.dev" target="_blank">Privacy</a>
+        <a class="auth-link" href="https://gorkha-reels.pages.dev" target="_blank">Terms</a>
       </div>
     </div>
   </div>
 
-  <!-- Appwrite Web SDK (must load first) -->
   <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
-  <!-- Scripts -->
   <script src="js/appwrite-config.js"></script>
-  <script src="js/auth.js"></script>
+  <script>
+    function toggleForm() {
+      const loginForm = document.getElementById('login-form');
+      const signupForm = document.getElementById('signup-form');
+      loginForm.style.display = loginForm.style.display === 'none' ? 'block' : 'none';
+      signupForm.style.display = signupForm.style.display === 'none' ? 'block' : 'none';
+      clearErrors();
+    }
+
+    function toggleLoginPassword() {
+      const input = document.getElementById('login-password');
+      input.type = input.type === 'password' ? 'text' : 'password';
+    }
+
+    function toggleSignupPassword() {
+      const input = document.getElementById('signup-password');
+      input.type = input.type === 'password' ? 'text' : 'password';
+    }
+
+    function checkPasswordStrength() {
+      const pwd = document.getElementById('signup-password').value;
+      const bars = document.getElementById('password-strength');
+      bars.innerHTML = '';
+
+      let strength = 0;
+      if (pwd.length >= 8) strength++;
+      if (/[a-z]/.test(pwd) && /[A-Z]/.test(pwd)) strength++;
+      if (/[0-9]/.test(pwd)) strength++;
+      if (/[^a-zA-Z0-9]/.test(pwd)) strength++;
+
+      const labels = ['weak', 'medium', 'medium', 'strong'];
+      for (let i = 0; i < 4; i++) {
+        const bar = document.createElement('div');
+        bar.className = 'strength-bar';
+        if (i < strength) bar.classList.add(labels[strength - 1]);
+        bars.appendChild(bar);
+      }
+    }
+
+    function clearErrors() {
+      document.getElementById('login-error').classList.remove('show');
+      document.getElementById('signup-error').classList.remove('show');
+    }
+
+    function showError(formType, msg) {
+      const errorEl = document.getElementById(formType + '-error');
+      errorEl.textContent = msg;
+      errorEl.classList.add('show');
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-password').value;
+      const btn = document.getElementById('login-btn');
+
+      if (!email || !password) {
+        showError('login', 'Please fill all fields');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<div class="spinner"></div> Signing in...';
+
+      try {
+        await session.login(email, password);
+        window.location = 'index.html';
+      } catch (err) {
+        const msg = err.message || 'Login failed. Check your email and password.';
+        showError('login', msg);
+        btn.disabled = false;
+        btn.innerHTML = '<span>🔓</span> Sign In';
+      }
+    }
+
+    async function handleSignup(e) {
+      e.preventDefault();
+      const name = document.getElementById('signup-name').value.trim();
+      const email = document.getElementById('signup-email').value.trim();
+      const password = document.getElementById('signup-password').value;
+      const referralCode = document.getElementById('signup-referral').value.trim();
+      const btn = document.getElementById('signup-btn');
+
+      if (!name || !email || !password) {
+        showError('signup', 'Please fill all fields');
+        return;
+      }
+
+      if (password.length < 8) {
+        showError('signup', 'Password must be at least 8 characters');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<div class="spinner"></div> Creating account...';
+
+      try {
+        await session.signup(email, password, name);
+        
+        // If referral code provided, link referral
+        if (referralCode) {
+          try {
+            const userId = session.getUserId();
+            const referrals = await db.list(APPWRITE_CONFIG.COLLECTIONS.REFERRALS, [
+              Query.equal('referralCode', referralCode)
+            ]);
+            if (referrals.documents.length > 0) {
+              const referral = referrals.documents[0];
+              await db.update(APPWRITE_CONFIG.COLLECTIONS.REFERRALS, referral.$id, { 
+                newUserId: userId, 
+                status: 'active' 
+              });
+            }
+          } catch (refErr) {
+            console.log('Referral link skipped:', refErr.message);
+          }
+        }
+
+        window.location = 'index.html';
+      } catch (err) {
+        const msg = err.message || 'Signup failed. Try another email.';
+        showError('signup', msg);
+        btn.disabled = false;
+        btn.innerHTML = '<span>🎬</span> Create Account';
+      }
+    }
+  </script>
 </body>
 </html>
