@@ -2,6 +2,7 @@
  * GorkhaReels - Appwrite & Bunny CDN Configuration
  * ✅ Complete production config with all utilities
  * ✅ Messaging/DMs with real-time support
+ * ✅ Notifications system for tags, likes, follows, shares
  */
 
 // ============== APPWRITE CONFIG ==============
@@ -19,7 +20,8 @@ const APPWRITE_CONFIG = {
     FOLLOWERS: 'followers',
     TRENDING: 'trending',
     REPORTS: 'reports',
-    MESSAGES: 'messages'
+    MESSAGES: 'messages',
+    NOTIFICATIONS: 'notifications'
   },
 
   BUCKETS: {
@@ -397,6 +399,7 @@ const mediaUploader = new MediaUploader();
 
 console.log('✅ GorkhaReels Config Loaded');
 console.log('✅ Globals: ID, Query, Permission, Role');
+console.log('✅ Collections: CREATORS, REELS, COMMENTS, LIKES, FOLLOWERS, MESSAGES, NOTIFICATIONS');
 console.log('✅ Classes: BunnyCDNClient, SessionManager, Toast, RealtimeMessaging, MediaUploader');
 console.log('✅ Helpers: db, fileStorage, ConversationManager, escapeHtml');
-console.log('✅ Messaging System Ready');
+console.log('✅ Messaging & Notifications System Ready');
