@@ -644,7 +644,7 @@
         slide.querySelector('.reel-creator').onclick = (e) => {
           const creatorId = e.currentTarget.dataset.creatorId;
           if (creatorId) {
-            window.location = `creator-profile.html?creatorId=${creatorId}`;
+            window.location = `creator-profile.html?creatorId=${encodeURIComponent(creatorId)}`;
           } else {
             toast('This creator is unavailable');
           }
@@ -907,7 +907,10 @@
     }
 
     async function openTipPayment(amount) {
-      if (!currentReel) return;
+      if (!currentReel) {
+        toast('No video selected', true);
+        return;
+      }
       
       let creatorEmail = 'creator@gorkhareels.app';
       try {
@@ -920,7 +923,7 @@
         amount: amount * 100,
         currency: 'INR',
         name: 'GorkhaReels',
-        description: `Tip for ${currentReel.title}`,
+        description: `Tip for ${currentReel.title || 'creator'}`,
         prefill: {
           email: session.getUser()?.email || 'user@gorkhareels.app'
         },
@@ -944,6 +947,11 @@
     }
 
     async function saveTip(amount, paymentId) {
+      if (!currentReel || !currentReel.creatorId) {
+        console.error('No reel or creator info');
+        return;
+      }
+      
       try {
         const tipId = ID.unique();
         const tipData = {
@@ -958,17 +966,20 @@
         };
 
         await db.create(C.TIPS, tipData, tipId);
+        console.log('✅ Tip saved:', tipId);
 
         // Update creator totalTips
         try {
           const creator = await db.get(C.CREATORS, currentReel.creatorId);
           const newTotal = (creator.totalTips || 0) + amount;
           await db.update(C.CREATORS, currentReel.creatorId, { totalTips: newTotal });
+          console.log('✅ Creator tips updated:', newTotal);
         } catch (e) {
-          console.error('Could not update creator tips:', e);
+          console.error('Could not update creator tips:', e?.message || e);
         }
       } catch (err) {
-        console.error('Save tip error:', err);
+        console.error('Save tip error:', err?.message || err);
+        toast('Failed to save tip', true);
       }
     }
 
