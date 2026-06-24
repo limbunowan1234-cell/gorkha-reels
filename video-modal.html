@@ -510,7 +510,7 @@
       return div.innerHTML;
     }
 
-    const C = APPWRITE_CONFIG.COLLECTIONS;
+    const C = { ...APPWRITE_CONFIG.COLLECTIONS, VIEWS: 'views', TIPS: 'tips' };
     let REELS = [];
     let MY_UID = null;
     let LIKED = new Set();
@@ -729,11 +729,40 @@
       const reel = REELS[i];
       if (!reel || viewed.has(reel.$id)) return;
       viewed.add(reel.$id);
+      
       try {
+        // Check if user already viewed this reel today
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const todayStr = today.toISOString();
+        
+        const existingView = await db.list(C.VIEWS, [
+          Query.equal('userId', MY_UID),
+          Query.equal('reelId', reel.$id),
+          Query.greaterThanOrEqual('viewedAt', todayStr),
+          Query.limit(1)
+        ]);
+        
+        // If already viewed today, don't count again
+        if (existingView.documents.length > 0) return;
+        
+        // Count the view
         const newViews = (reel.views || 0) + 1;
         await db.update(C.REELS, reel.$id, { views: newViews });
         reel.views = newViews;
-      } catch (e) {}
+        
+        // Record the view
+        const viewId = ID.unique();
+        await db.create(C.VIEWS, {
+          viewId,
+          userId: MY_UID,
+          reelId: reel.$id,
+          creatorId: reel.creatorId,
+          viewedAt: new Date().toISOString()
+        }, viewId);
+      } catch (e) {
+        console.error('View count error:', e?.message || e);
+      }
     }
 
     async function toggleLike(i, forceLike) {
