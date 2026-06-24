@@ -397,7 +397,7 @@
               <button class="feed-menu" onclick="showMoreOptions('${reel.$id}')">⋮</button>
             </div>
             <div class="feed-video" onclick="window.location.href='./video-modal.html?reelId=${reel.$id}'">
-              <video src="${reel.videoUrl}" muted playsinline></video>
+              <video src="${reel.videoUrl}" muted playsinline preload="metadata" webkit-playsinline></video>
             </div>
             <div class="feed-actions">
               <button class="action-btn ${liked ? 'liked' : ''}" id="like-${reel.$id}" onclick="toggleLike('${reel.$id}', this, 'reel')">
@@ -417,6 +417,7 @@
         if (!trendingReels.length) {
           trendingContainer.innerHTML = '<div class="loading">No trending videos yet. Check back soon!</div>';
         }
+        setTimeout(primeVideoThumbnails, 100);
 
       } catch (e) {
         console.error('Trending load error:', e);
@@ -496,7 +497,7 @@
             const liked = MY_USER_ID ? await isVideoLiked(reel.$id) : false;
             const reelItem = document.createElement('div');
             reelItem.className = 'feed-item';
-            reelItem.innerHTML = `<div class="feed-header"><div class="feed-creator-info"><img class="feed-avatar" src="${creator.profilePic || '/logo-suite/primary/logo-khukuri-512x512.png'}" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'" onclick="window.location='creator-profile.html?creatorId=${creator.$id}'"><div class="feed-creator-meta"><div class="feed-creator-name" onclick="window.location='creator-profile.html?creatorId=${creator.$id}'">${escapeHtml(creator.name || 'User')}${creator.isVerified ? ' ✓' : ''}</div><div class="feed-time">${creator.category ? '📌 ' + creator.category : 'Common Zone'} • ${getTimeAgo(new Date(reel.uploadedAt))}${reel.zone ? `<span class="zone-pill">📍 ${escapeHtml(reel.zone)}</span>` : ''}</div></div></div><button class="feed-menu" onclick="showMoreOptions('${reel.$id}')">⋮</button></div><div class="feed-video" onclick="window.location.href='./video-modal.html?reelId=${reel.$id}'"><video src="${reel.videoUrl}" muted playsinline></video></div><div class="feed-actions"><button class="action-btn ${liked ? 'liked' : ''}" id="like-${reel.$id}" onclick="toggleLike('${reel.$id}', this, 'reel')">${liked ? '❤️' : '🤍'}</button><button class="action-btn" onclick="window.location.href='./video-modal.html?reelId=${reel.$id}#comments'">💬</button><button class="action-btn" onclick="shareContent('${reel.$id}', 'reel')">📤</button></div><div class="feed-stats"><span id="likes-${reel.$id}">${reel.likes || 0} likes</span> • <span id="views-${reel.$id}">${reel.views || 0} views</span></div>`;
+            reelItem.innerHTML = `<div class="feed-header"><div class="feed-creator-info"><img class="feed-avatar" src="${creator.profilePic || '/logo-suite/primary/logo-khukuri-512x512.png'}" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'" onclick="window.location='creator-profile.html?creatorId=${creator.$id}'"><div class="feed-creator-meta"><div class="feed-creator-name" onclick="window.location='creator-profile.html?creatorId=${creator.$id}'">${escapeHtml(creator.name || 'User')}${creator.isVerified ? ' ✓' : ''}</div><div class="feed-time">${creator.category ? '📌 ' + creator.category : 'Common Zone'} • ${getTimeAgo(new Date(reel.uploadedAt))}${reel.zone ? `<span class="zone-pill">📍 ${escapeHtml(reel.zone)}</span>` : ''}</div></div></div><button class="feed-menu" onclick="showMoreOptions('${reel.$id}')">⋮</button></div><div class="feed-video" onclick="window.location.href='./video-modal.html?reelId=${reel.$id}'"><video src="${reel.videoUrl}" muted playsinline preload="metadata" webkit-playsinline></video></div><div class="feed-actions"><button class="action-btn ${liked ? 'liked' : ''}" id="like-${reel.$id}" onclick="toggleLike('${reel.$id}', this, 'reel')">${liked ? '❤️' : '🤍'}</button><button class="action-btn" onclick="window.location.href='./video-modal.html?reelId=${reel.$id}#comments'">💬</button><button class="action-btn" onclick="shareContent('${reel.$id}', 'reel')">📤</button></div><div class="feed-stats"><span id="likes-${reel.$id}">${reel.likes || 0} likes</span> • <span id="views-${reel.$id}">${reel.views || 0} views</span></div>`;
             feed.appendChild(reelItem);
           } else if (item.type === 'post') {
             const post = item.data, creator = item.creator;
@@ -521,6 +522,7 @@
         }
         
         isLoadingMore = false;
+        setTimeout(primeVideoThumbnails, 100);
       } catch (err) { 
         console.error('Load videos error:', err);
         isLoadingMore = false; 
@@ -662,12 +664,13 @@
         const top2 = scored.slice(0, 2);
         feed.innerHTML = top2.map(reel => `
           <div class="zone-reel-card" onclick="window.location.href='./video-modal.html?reelId=${reel.$id}'">
-            <video src="${reel.videoUrl}" muted playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>
+            <video src="${reel.videoUrl}" muted playsinline preload="metadata" webkit-playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>
             <div class="zone-reel-card-overlay">
               <div class="zone-reel-stats">❤️ ${reel.likes || 0} • 👁️ ${reel.views || 0}</div>
             </div>
           </div>
         `).join('');
+        setTimeout(primeVideoThumbnails, 100);
       } catch (err) {
         console.error('Zone highlights error:', err);
         document.getElementById('zone-highlights-feed').innerHTML = '<div class="loading">Error loading</div>';
@@ -697,6 +700,21 @@
       } else {
         loadVideos();
       }
+    }
+
+    // iOS fix: force video to show first frame as thumbnail
+    function primeVideoThumbnails() {
+      document.querySelectorAll('.feed-video video, .zone-reel-card video').forEach(v => {
+        if (v.dataset.primed) return;
+        v.dataset.primed = '1';
+        const seek = () => {
+          try { if (v.currentTime < 0.1 && v.duration) v.currentTime = 0.1; } catch (e) {}
+        };
+        v.addEventListener('loadeddata', seek, { once: true });
+        v.addEventListener('loadedmetadata', () => { try { v.currentTime = 0.1; } catch(e){} }, { once: true });
+        // Kick the load (iOS sometimes needs an explicit nudge)
+        try { v.load(); } catch (e) {}
+      });
     }
 
     function escapeHtml(text) {
