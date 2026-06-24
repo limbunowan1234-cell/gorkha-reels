@@ -3,29 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Creator Dashboard - GorkhaReels</title>
+  <title>Creator Analytics - GorkhaReels</title>
   <meta name="theme-color" content="#0B5E6B">
   <link rel="icon" type="image/png" href="/logo-suite/favicon/logo-khukuri-32x32.png">
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
   
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    body { 
-      background: #000; 
-      color: #fff; 
-      font-family: system-ui; 
-      overflow-x: hidden;
-      position: fixed;
-      width: 100%;
-      height: 100vh;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #0f0f0f; color: #fff; font-family: system-ui; }
 
-    .container {
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
+    .container { max-width: 600px; margin: 0 auto; }
 
     /* Header */
     .header {
@@ -33,461 +21,240 @@
       padding: 16px;
       text-align: center;
       box-shadow: 0 2px 12px rgba(0,0,0,0.3);
-      flex-shrink: 0;
-    }
-    .header-title { 
-      font-size: 24px; 
-      font-weight: 900; 
-      font-family: 'Space Grotesk', sans-serif;
-      letter-spacing: -0.5px;
-    }
-
-    /* Tabs */
-    .tabs {
       display: flex;
-      background: #0f0f0f;
-      border-bottom: 1px solid #2d2d2d;
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: none;
-      flex-shrink: 0;
+      align-items: center;
+      justify-content: space-between;
     }
-    .tabs::-webkit-scrollbar { display: none; }
-    .tab-btn {
-      flex: 1;
-      min-width: 100px;
-      background: none;
-      border: none;
-      color: #666;
-      padding: 12px 16px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-      border-bottom: 3px solid transparent;
-      white-space: nowrap;
-    }
-    .tab-btn.active {
-      color: #0B5E6B;
-      border-bottom-color: #0B5E6B;
-    }
-    .tab-btn:active { background: rgba(255,255,255,0.05); }
+    .header-left { display: flex; align-items: center; gap: 12px; }
+    .header-logo { width: 40px; height: 40px; border-radius: 10px; background: rgba(255,255,255,0.15); object-fit: cover; }
+    .header-title { font-size: 20px; font-weight: 900; font-family: 'Space Grotesk', sans-serif; }
+    .back-btn { background: rgba(255,255,255,0.18); border: none; color: #fff; width: 38px; height: 38px; border-radius: 50%; cursor: pointer; font-size: 18px; }
+    .back-btn:active { background: rgba(255,255,255,0.28); }
 
-    /* Content Area */
-    .content {
-      flex: 1;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-      padding-bottom: 20px;
-    }
-    .tab-content { display: none; }
-    .tab-content.active { display: block; padding: 16px; }
+    /* Content */
+    .content { padding: 16px; margin-bottom: 80px; }
 
-    /* Profile Tab */
-    .profile-card {
+    /* Card */
+    .card {
       background: linear-gradient(135deg, #1a1a1a, #0d2d3a);
       border: 1px solid #2d2d2d;
-      border-radius: 16px;
-      padding: 24px;
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    .profile-pic {
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      background: #0B5E6B;
-      object-fit: cover;
-      margin: 0 auto 16px;
-      border: 3px solid #0D7377;
-    }
-    .profile-name { font-size: 20px; font-weight: 700; margin-bottom: 4px; font-family: 'Space Grotesk', sans-serif; }
-    .profile-category { 
-      display: inline-block;
-      background: #0B5E6B;
-      padding: 4px 12px;
       border-radius: 12px;
-      font-size: 12px;
-      margin-top: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
     }
+    .card-title { font-size: 14px; font-weight: 700; color: #0B5E6B; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
 
-    /* Earnings Tab */
-    .earnings-grid {
+    /* Stats Grid */
+    .stats-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 12px;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
     }
-    .earning-card {
-      background: linear-gradient(135deg, #1a1a1a, #0d2d3a);
+    .stat-item {
+      background: #1a1a1a;
       border: 1px solid #2d2d2d;
-      border-radius: 12px;
-      padding: 16px;
+      border-radius: 10px;
+      padding: 12px;
       text-align: center;
     }
-    .earning-label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
-    .earning-value { font-size: 24px; font-weight: 700; color: #4ade80; }
+    .stat-value { font-size: 24px; font-weight: 700; color: #0B5E6B; margin-bottom: 4px; }
+    .stat-label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.3px; }
 
-    /* Referral Card */
-    .referral-card {
-      background: linear-gradient(135deg, #1a4d2e, #0d2d20);
-      border: 1px solid #2d5a3d;
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 20px;
+    /* Chart Container */
+    .chart-container {
+      position: relative;
+      height: 250px;
+      margin-bottom: 16px;
     }
-    .referral-title { font-size: 14px; font-weight: 700; margin-bottom: 12px; color: #4ade80; }
-    .referral-code {
-      background: rgba(0,0,0,0.3);
-      border: 1px solid #2d5a3d;
+
+    /* Video List */
+    .video-item {
+      display: flex;
+      gap: 12px;
       padding: 12px;
-      border-radius: 8px;
-      font-family: monospace;
-      font-size: 11px;
-      word-break: break-all;
-      margin-bottom: 12px;
-      color: #4ade80;
-      max-height: 80px;
-      overflow-y: auto;
+      background: #1a1a1a;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      border: 1px solid #2d2d2d;
     }
-    .referral-buttons {
+    .video-thumb {
+      width: 60px;
+      height: 60px;
+      border-radius: 8px;
+      background: #2d2d2d;
+      object-fit: cover;
+      flex-shrink: 0;
+    }
+    .video-info { flex: 1; min-width: 0; }
+    .video-title { font-size: 13px; font-weight: 600; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .video-stats { font-size: 11px; color: #888; }
+    .video-stats span { margin-right: 8px; }
+
+    /* Period Selector */
+    .period-selector {
       display: flex;
       gap: 8px;
+      margin-bottom: 16px;
     }
-    .btn {
+    .period-btn {
       flex: 1;
-      background: #0B5E6B;
-      border: none;
-      color: #fff;
-      padding: 11px 16px;
+      padding: 10px;
+      background: #1a1a1a;
+      border: 1px solid #2d2d2d;
+      color: #888;
       border-radius: 8px;
       font-size: 12px;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.2s;
-      min-height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
     }
-    .btn:active { transform: scale(0.94); background: #0D7377; }
-    .btn.secondary { background: #242424; color: #fff; border: 1px solid #2d2d2d; }
-
-    /* Payout Section */
-    .section-title {
-      font-size: 14px;
-      font-weight: 700;
-      margin: 20px 0 12px 0;
-      color: #0B5E6B;
-      font-family: 'Space Grotesk', sans-serif;
-    }
-    .form-group {
-      margin-bottom: 14px;
-    }
-    .form-label { font-size: 12px; color: #888; margin-bottom: 6px; display: block; text-transform: uppercase; letter-spacing: 0.5px; }
-    .form-input {
-      width: 100%;
-      background: #1a1a1a;
-      border: 1px solid #2d2d2d;
-      padding: 11px 12px;
-      border-radius: 8px;
-      color: #fff;
-      font-size: 14px;
-      transition: all 0.2s;
-    }
-    .form-input:focus { outline: none; border-color: #0B5E6B; box-shadow: 0 0 0 2px rgba(11,94,107,0.2); }
-    .form-input::placeholder { color: #666; }
-
-    .payout-card {
-      background: linear-gradient(135deg, #1a1a1a, #0d2d3a);
-      border: 1px solid #2d2d2d;
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 20px;
-    }
-
-    /* Edit Profile Sheet */
-    .sheet-backdrop { 
-      position: fixed; 
-      inset: 0; 
-      background: rgba(0,0,0,0.5); 
-      z-index: 40; 
-      display: none; 
-    }
-    .sheet-backdrop.open { display: block; }
-    .sheet {
-      position: fixed; 
-      bottom: 0; 
-      left: 0; 
-      right: 0; 
-      background: #1a1a1a; 
-      z-index: 50;
-      border-radius: 16px 16px 0 0; 
-      max-height: 85vh;
-      transform: translateY(100%);
-      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-    }
-    .sheet.open { transform: translateY(0); }
-    .sheet-head {
-      padding: 16px;
-      border-bottom: 1px solid #2d2d2d;
-      font-size: 16px;
-      font-weight: 700;
-      text-align: center;
-      position: sticky;
-      top: 0;
-      background: #1a1a1a;
-    }
-    .sheet-body { padding: 16px; }
-    .sheet-close { 
-      position: absolute; 
-      top: 12px; 
-      right: 12px; 
-      background: none; 
-      border: none; 
-      color: #fff; 
-      font-size: 20px; 
-      cursor: pointer; 
-      z-index: 51;
-    }
-
-    .toast {
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
+    .period-btn.active {
       background: #0B5E6B;
+      border-color: #0B5E6B;
       color: #fff;
-      padding: 12px 16px;
-      border-radius: 8px;
-      font-size: 13px;
-      z-index: 100;
-      animation: slideUp 0.3s ease;
     }
-    .toast.error { background: #dc2626; }
-    @keyframes slideUp { from { transform: translateX(-50%) translateY(100px); opacity: 0; } to { transform: translateX(-50%) translateY(0); opacity: 1; } }
 
+    /* Loading */
     .loading { padding: 40px 20px; text-align: center; color: #888; }
     .spinner { width: 40px; height: 40px; border: 3px solid #2d2d2d; border-top-color: #0B5E6B; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 12px; }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Bottom Nav */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #1a1a1a;
+      border-top: 1px solid #2d2d2d;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 8px 0;
+      z-index: 100;
+    }
+    .nav-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      background: none;
+      border: none;
+      color: #666;
+      cursor: pointer;
+      flex: 1;
+      padding: 10px;
+      font-size: 18px;
+    }
+    .nav-btn.active { color: #0B5E6B; }
+    .nav-label { font-size: 10px; font-weight: 500; }
   </style>
 </head>
 <body>
+  <div class="header">
+    <div class="header-left">
+      <img class="header-logo" src="/logo-suite/primary/logo-khukuri-256x256.png" alt="">
+      <div class="header-title">Analytics</div>
+    </div>
+    <button class="back-btn" onclick="window.location='creator-dashboard.html'">←</button>
+  </div>
+
   <div class="container">
-    <div class="header">
-      <div class="header-title">Creator Hub</div>
-    </div>
-
-    <div class="tabs">
-      <button class="tab-btn active" data-tab="profile">👤 Profile</button>
-      <button class="tab-btn" data-tab="earnings">💰 Earnings</button>
-      <button class="tab-btn" data-tab="referral">🔗 Referral</button>
-      <button class="tab-btn" data-tab="payout">💳 Payout</button>
-    </div>
-
     <div class="content">
-      <!-- Profile Tab -->
-      <div class="tab-content active" id="profile-tab">
-        <div class="loading" id="profile-loading">
-          <div class="spinner"></div>
-        </div>
-        <div id="profile-content" style="display: none;">
-          <div class="profile-card">
-            <img class="profile-pic" id="profile-pic" src="" alt="Profile">
-            <div class="profile-name" id="profile-name">Loading...</div>
-            <div class="profile-category" id="profile-category"></div>
+      <!-- Overview Stats -->
+      <div class="card">
+        <div class="card-title">📊 Overview</div>
+        <div class="stats-grid">
+          <div class="stat-item">
+            <div class="stat-value" id="total-views">0</div>
+            <div class="stat-label">Total Views</div>
           </div>
-
-          <div style="margin-bottom: 20px;">
-            <button class="btn" onclick="openEditProfile()">✏️ Edit Profile</button>
+          <div class="stat-item">
+            <div class="stat-value" id="total-likes">0</div>
+            <div class="stat-label">Total Likes</div>
           </div>
-
-          <div class="section-title">Account Info</div>
-          <div class="payout-card">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-              <span style="color: #888; font-size: 12px;">Username</span>
-              <span id="profile-username">-</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-              <span style="color: #888; font-size: 12px;">Email</span>
-              <span id="profile-email" style="font-size: 12px;">-</span>
-            </div>
-            <div style="display: flex; justify-content: space-between;">
-              <span style="color: #888; font-size: 12px;">Joined</span>
-              <span id="profile-joined" style="font-size: 12px;">-</span>
-            </div>
+          <div class="stat-item">
+            <div class="stat-value" id="total-comments">0</div>
+            <div class="stat-label">Comments</div>
           </div>
-
-          <button class="btn secondary" onclick="logout()" style="width: 100%;">🚪 Logout</button>
-        </div>
-      </div>
-
-      <!-- Earnings Tab -->
-      <div class="tab-content" id="earnings-tab">
-        <div class="loading" id="earnings-loading">
-          <div class="spinner"></div>
-        </div>
-        <div id="earnings-content" style="display: none;">
-          <div class="earnings-grid">
-            <div class="earning-card">
-              <div class="earning-label">Total Tips</div>
-              <div class="earning-value" id="total-tips">₹0</div>
-            </div>
-            <div class="earning-card">
-              <div class="earning-label">Pending</div>
-              <div class="earning-value" id="pending-earnings">₹0</div>
-            </div>
-          </div>
-
-          <div class="section-title">💡 Earnings Info</div>
-          <div class="payout-card">
-            <div style="font-size: 13px; line-height: 1.6; color: #ccc;">
-              <p style="margin-bottom: 8px;">✅ <strong>Tipping:</strong> Earn directly from viewers (100% goes to you)</p>
-              <p style="margin-bottom: 8px;">✅ <strong>Referrals:</strong> Earn 10% from tips of creators you refer</p>
-              <p>✅ <strong>Creator Fund:</strong> Coming soon - earn from views</p>
-            </div>
-          </div>
-
-          <div class="section-title">📊 Analytics</div>
-          <button class="btn" onclick="window.location='creator-analytics.html'" style="width: 100%;">📈 View Full Analytics</button>
-        </div>
-      </div>
-
-      <!-- Referral Tab -->
-      <div class="tab-content" id="referral-tab">
-        <div class="loading" id="referral-loading">
-          <div class="spinner"></div>
-        </div>
-        <div id="referral-content" style="display: none;">
-          <div class="referral-card">
-            <div class="referral-title">🎁 Your Referral Code</div>
-            <div class="referral-code" id="referral-code">Loading...</div>
-            <div class="referral-buttons">
-              <button class="btn" onclick="copyReferralLink()">📋 Copy Link</button>
-              <button class="btn" onclick="shareReferralWhatsApp()">💬 WhatsApp</button>
-            </div>
-          </div>
-
-          <div class="section-title">How It Works</div>
-          <div class="payout-card">
-            <div style="font-size: 13px; line-height: 1.8; color: #ccc;">
-              <p style="margin-bottom: 10px;"><strong>1️⃣ Share Your Link</strong><br>Send your referral code to friends & creators</p>
-              <p style="margin-bottom: 10px;"><strong>2️⃣ They Join</strong><br>When they sign up with your code, you're connected</p>
-              <p style="margin-bottom: 10px;"><strong>3️⃣ You Earn</strong><br>Get 10% of every tip they receive</p>
-              <p><strong>💰 Example:</strong> If they earn ₹100 in tips, you get ₹10</p>
-            </div>
-          </div>
-
-          <div class="section-title">📊 Referral Earnings</div>
-          <div class="payout-card">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-              <span style="color: #888; font-size: 12px;">Referrals Made</span>
-              <span id="referral-count">0</span>
-            </div>
-            <div style="display: flex; justify-content: space-between;">
-              <span style="color: #888; font-size: 12px;">Referral Earnings</span>
-              <span style="color: #4ade80; font-weight: 700;" id="referral-earnings">₹0</span>
-            </div>
+          <div class="stat-item">
+            <div class="stat-value" id="total-videos">0</div>
+            <div class="stat-label">Videos</div>
           </div>
         </div>
       </div>
 
-      <!-- Payout Tab -->
-      <div class="tab-content" id="payout-tab">
-        <div class="loading" id="payout-loading">
-          <div class="spinner"></div>
+      <!-- Engagement Chart -->
+      <div class="card">
+        <div class="card-title">📈 7-Day Trend</div>
+        <div class="period-selector">
+          <button class="period-btn active" onclick="changePeriod('7d')">7 Days</button>
+          <button class="period-btn" onclick="changePeriod('30d')">30 Days</button>
+          <button class="period-btn" onclick="changePeriod('all')">All Time</button>
         </div>
-        <div id="payout-content" style="display: none;">
-          <div class="payout-card">
-            <div style="text-align: center; margin-bottom: 16px;">
-              <div style="font-size: 28px; font-weight: 700; color: #4ade80; margin-bottom: 4px;" id="available-balance">₹0</div>
-              <div style="font-size: 12px; color: #888;">Available for Withdrawal</div>
-            </div>
+        <div class="chart-container">
+          <canvas id="views-chart"></canvas>
+        </div>
+      </div>
+
+      <!-- Engagement Breakdown -->
+      <div class="card">
+        <div class="card-title">❤️ Engagement Breakdown</div>
+        <div class="stats-grid">
+          <div class="stat-item">
+            <div class="stat-value" id="engagement-rate">0%</div>
+            <div class="stat-label">Engagement Rate</div>
           </div>
-
-          <div class="section-title">Bank Details</div>
-          <div class="payout-card">
-            <div class="form-group">
-              <label class="form-label">Account Holder Name</label>
-              <input type="text" class="form-input" id="account-name" placeholder="Your Name">
-            </div>
-            <div class="form-group">
-              <label class="form-label">Bank Name</label>
-              <input type="text" class="form-input" id="bank-name" placeholder="e.g., HDFC Bank">
-            </div>
-            <div class="form-group">
-              <label class="form-label">Account Number</label>
-              <input type="text" class="form-input" id="account-number" placeholder="1234567890">
-            </div>
-            <div class="form-group">
-              <label class="form-label">IFSC Code</label>
-              <input type="text" class="form-input" id="ifsc-code" placeholder="HDFC0000001">
-            </div>
+          <div class="stat-item">
+            <div class="stat-value" id="avg-likes">0</div>
+            <div class="stat-label">Avg Likes/Video</div>
           </div>
+        </div>
+        <div class="chart-container" style="height: 200px;">
+          <canvas id="engagement-chart"></canvas>
+        </div>
+      </div>
 
-          <div class="section-title">Request Withdrawal</div>
-          <div class="form-group">
-            <label class="form-label">Amount (₹)</label>
-            <input type="number" class="form-input" id="payout-amount" placeholder="Minimum ₹100">
+      <!-- Top Videos -->
+      <div class="card">
+        <div class="card-title">🎥 Top Performing Videos</div>
+        <div id="top-videos">
+          <div class="loading"><div class="spinner"></div></div>
+        </div>
+      </div>
+
+      <!-- Revenue -->
+      <div class="card">
+        <div class="card-title">💰 Revenue</div>
+        <div class="stats-grid">
+          <div class="stat-item">
+            <div class="stat-value" id="total-earnings">₹0</div>
+            <div class="stat-label">Total Earnings</div>
           </div>
-
-          <button class="btn" onclick="submitPayoutRequest()" style="width: 100%; margin-bottom: 20px;">💳 Request Withdrawal</button>
-
-          <div class="section-title">Recent Payouts</div>
-          <div id="payout-history">
-            <div style="text-align: center; padding: 20px; color: #888; font-size: 13px;">No payouts yet</div>
+          <div class="stat-item">
+            <div class="stat-value" id="avg-earning">₹0</div>
+            <div class="stat-label">Avg Per Video</div>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Edit Profile Sheet -->
-  <div class="sheet-backdrop" id="sheet-backdrop" onclick="closeEditProfile()"></div>
-  <div class="sheet" id="edit-sheet">
-    <button class="sheet-close" onclick="closeEditProfile()">✕</button>
-    <div class="sheet-head">Edit Profile</div>
-    <div class="sheet-body">
-      <div class="form-group">
-        <label class="form-label">Display Name</label>
-        <input type="text" class="form-input" id="edit-name" placeholder="Your name">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Bio</label>
-        <input type="text" class="form-input" id="edit-bio" placeholder="Tell us about yourself" maxlength="100">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Category</label>
-        <select class="form-input" id="edit-category">
-          <option value="">Select a category...</option>
-          <option value="musician">🎵 Musician</option>
-          <option value="artist">🎨 Artist</option>
-          <option value="guide">🧗 Tour Guide</option>
-          <option value="business">🏪 Business Owner</option>
-          <option value="student">📚 Student</option>
-        </select>
-      </div>
-      <button class="btn" onclick="saveProfile()" style="width: 100%; margin-top: 16px;">💾 Save Changes</button>
-    </div>
-  </div>
+  <nav class="bottom-nav">
+    <button class="nav-btn" onclick="window.location='index.html'"><span>🏠</span><span class="nav-label">Home</span></button>
+    <button class="nav-btn" onclick="window.location='upload.html'"><span>＋</span><span class="nav-label">Create</span></button>
+    <button class="nav-btn" onclick="window.location='messages.html'"><span>💬</span><span class="nav-label">Messages</span></button>
+    <button class="nav-btn active"><span>📊</span><span class="nav-label">Analytics</span></button>
+  </nav>
 
   <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
   <script src="js/appwrite-config.js"></script>
   <script>
     const C = APPWRITE_CONFIG.COLLECTIONS;
-    let CURRENT_USER = null;
-    let CREATOR = null;
-
-    function toast(msg, isErr = false) {
-      const t = document.createElement('div');
-      t.className = 'toast' + (isErr ? ' error' : '');
-      t.textContent = msg;
-      document.body.appendChild(t);
-      setTimeout(() => t.remove(), 3000);
-    }
+    let viewsChart = null;
+    let engagementChart = null;
+    let currentPeriod = '7d';
 
     function escapeHtml(text) {
       if (!text) return '';
@@ -496,320 +263,172 @@
       return div.innerHTML;
     }
 
-    // Tab switching
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const tab = btn.dataset.tab;
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-        btn.classList.add('active');
-        document.getElementById(tab + '-tab').classList.add('active');
-
-        if (tab === 'profile') loadProfileTab();
-        else if (tab === 'earnings') loadEarningsTab();
-        else if (tab === 'referral') loadReferralTab();
-        else if (tab === 'payout') loadPayoutTab();
-      });
-    });
-
     async function init() {
       await session.refresh();
       if (!session.isLoggedIn()) { window.location = 'login.html'; return; }
+      await loadAnalytics();
+    }
+
+    async function loadAnalytics() {
+      try {
+        const uid = session.getUserId();
+
+        // Load all reels
+        const reelsRes = await db.list(C.REELS, [
+          Query.equal('creatorId', uid),
+          Query.equal('isDeleted', false),
+          Query.limit(1000)
+        ]);
+
+        const reels = reelsRes.documents || [];
+
+        // Calculate overall stats
+        const totalViews = reels.reduce((sum, r) => sum + (r.views || 0), 0);
+        const totalLikes = reels.reduce((sum, r) => sum + (r.likes || 0), 0);
+        const totalComments = reels.reduce((sum, r) => sum + (r.comments || 0), 0);
+
+        document.getElementById('total-views').textContent = totalViews.toLocaleString();
+        document.getElementById('total-likes').textContent = totalLikes.toLocaleString();
+        document.getElementById('total-comments').textContent = totalComments.toLocaleString();
+        document.getElementById('total-videos').textContent = reels.length;
+
+        // Engagement rate
+        const engagementRate = totalViews > 0 ? ((totalLikes + totalComments) / totalViews * 100).toFixed(1) : 0;
+        document.getElementById('engagement-rate').textContent = engagementRate + '%';
+        document.getElementById('avg-likes').textContent = reels.length > 0 ? Math.round(totalLikes / reels.length) : 0;
+
+        // Sort reels by views
+        const sortedReels = [...reels].sort((a, b) => (b.views || 0) - (a.views || 0));
+
+        // Top videos
+        const topVideosHtml = sortedReels.slice(0, 5).map(reel => `
+          <div class="video-item">
+            <img class="video-thumb" src="${reel.thumbnail || '/logo-suite/primary/logo-khukuri-256x256.png'}" alt="" onerror="this.src='/logo-suite/primary/logo-khukuri-256x256.png'">
+            <div class="video-info">
+              <div class="video-title">${escapeHtml(reel.title || 'Untitled')}</div>
+              <div class="video-stats">
+                <span>👁️ ${(reel.views || 0).toLocaleString()}</span>
+                <span>❤️ ${(reel.likes || 0).toLocaleString()}</span>
+                <span>💬 ${(reel.comments || 0).toLocaleString()}</span>
+              </div>
+            </div>
+          </div>
+        `).join('');
+        document.getElementById('top-videos').innerHTML = topVideosHtml || '<p style="color: #888; text-align: center;">No videos yet</p>';
+
+        // Revenue
+        const creator = await db.get(C.CREATORS, uid);
+        const totalEarnings = creator.totalTips || 0;
+        const avgPerVideo = reels.length > 0 ? Math.round(totalEarnings / reels.length) : 0;
+        document.getElementById('total-earnings').textContent = '₹' + totalEarnings.toLocaleString();
+        document.getElementById('avg-earning').textContent = '₹' + avgPerVideo.toLocaleString();
+
+        // Chart data
+        drawViewsChart(reels);
+        drawEngagementChart(reels);
+
+      } catch (e) {
+        console.error('Analytics load error:', e);
+        document.body.innerHTML += `<div style="padding: 40px 20px; text-align: center; color: #888;">Error loading analytics</div>`;
+      }
+    }
+
+    function drawViewsChart(reels) {
+      const ctx = document.getElementById('views-chart').getContext('2d');
       
-      const uid = session.getUserId();
-      CURRENT_USER = session.getUser();
+      // Get last 7 days data
+      const days = [];
+      const viewData = [];
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        days.push(dateStr);
 
-      try {
-        CREATOR = await db.get(C.CREATORS, uid);
-      } catch (e) {
-        console.error('Creator load error:', e);
-        toast('Creator profile not found', true);
+        // Count views for this day
+        const dayViews = reels
+          .filter(r => {
+            const rDate = new Date(r.uploadedAt);
+            return rDate.toDateString() === d.toDateString();
+          })
+          .reduce((sum, r) => sum + (r.views || 0), 0);
+        viewData.push(dayViews);
       }
 
-      loadProfileTab();
-    }
+      if (viewsChart) viewsChart.destroy();
 
-    async function loadProfileTab() {
-      const loading = document.getElementById('profile-loading');
-      const content = document.getElementById('profile-content');
-      loading.style.display = 'block';
-      content.style.display = 'none';
-
-      try {
-        const uid = session.getUserId();
-        CREATOR = await db.get(C.CREATORS, uid);
-
-        document.getElementById('profile-pic').src = CREATOR.profilePic || '/logo-suite/primary/logo-khukuri-512x512.png';
-        document.getElementById('profile-name').textContent = CREATOR.name || 'Creator';
-        
-        const category = CREATOR.category || 'No category';
-        document.getElementById('profile-category').textContent = category;
-
-        document.getElementById('profile-username').textContent = CREATOR.username || '-';
-        document.getElementById('profile-email').textContent = CREATOR.email || CURRENT_USER.email || '-';
-        
-        const joined = new Date(CREATOR.$createdAt).toLocaleDateString();
-        document.getElementById('profile-joined').textContent = joined;
-
-        loading.style.display = 'none';
-        content.style.display = 'block';
-      } catch (e) {
-        console.error('Profile load error:', e);
-        loading.innerHTML = '<p style="color: #888;">Error loading profile</p>';
-      }
-    }
-
-    async function loadEarningsTab() {
-      const loading = document.getElementById('earnings-loading');
-      const content = document.getElementById('earnings-content');
-      loading.style.display = 'block';
-      content.style.display = 'none';
-
-      try {
-        const uid = session.getUserId();
-        const creator = await db.get(C.CREATORS, uid);
-        const totalTips = creator.totalTips || 0;
-
-        document.getElementById('total-tips').textContent = '₹' + totalTips.toLocaleString();
-        
-        // Calculate pending - safe error handling
-        let pending = totalTips;
-        try {
-          const payouts = await db.list(C.PAYOUTS, [
-            Query.equal('creatorId', uid), 
-            Query.equal('status', 'completed')
-          ]);
-          const totalPaidOut = payouts.documents.reduce((sum, p) => sum + (p.amount || 0), 0);
-          pending = Math.max(0, totalTips - totalPaidOut);
-        } catch (e) {
-          console.log('Payouts not available yet:', e.message);
-          pending = totalTips;
-        }
-        
-        document.getElementById('pending-earnings').textContent = '₹' + pending.toLocaleString();
-
-        loading.style.display = 'none';
-        content.style.display = 'block';
-      } catch (e) {
-        console.error('Earnings load error:', e);
-        loading.innerHTML = '<p style="color: #888;">Error loading earnings</p>';
-      }
-    }
-
-    async function loadReferralTab() {
-      const loading = document.getElementById('referral-loading');
-      const content = document.getElementById('referral-content');
-      loading.style.display = 'block';
-      content.style.display = 'none';
-
-      try {
-        const uid = session.getUserId();
-        let creator = await db.get(C.CREATORS, uid);
-
-        // Generate referral code if doesn't exist
-        if (!creator.referralCode) {
-          const code = uid.substring(0, 8).toUpperCase() + Math.random().toString(36).substring(2, 7).toUpperCase();
-          await db.update(C.CREATORS, uid, { referralCode: code });
-          creator.referralCode = code;
-        }
-
-        const referralUrl = `${window.location.origin}/login.html?ref=${creator.referralCode}`;
-        document.getElementById('referral-code').textContent = referralUrl;
-
-        // Load referral earnings - safe error handling
-        let referralCount = 0;
-        let referralEarnings = 0;
-        try {
-          const referrals = await db.list(C.REFERRALS, [Query.equal('referrerId', uid)]);
-          referralCount = referrals.documents.length;
-          referralEarnings = referrals.documents.reduce((sum, r) => sum + (r.bonusEarned || 0), 0);
-        } catch (e) {
-          console.log('Referrals not available yet:', e.message);
-        }
-
-        document.getElementById('referral-count').textContent = referralCount;
-        document.getElementById('referral-earnings').textContent = '₹' + referralEarnings.toLocaleString();
-
-        loading.style.display = 'none';
-        content.style.display = 'block';
-      } catch (e) {
-        console.error('Referral load error:', e);
-        loading.innerHTML = '<p style="color: #888;">Error loading referral info</p>';
-      }
-    }
-
-    async function loadPayoutTab() {
-      const loading = document.getElementById('payout-loading');
-      const content = document.getElementById('payout-content');
-      loading.style.display = 'block';
-      content.style.display = 'none';
-
-      try {
-        const uid = session.getUserId();
-        const creator = await db.get(C.CREATORS, uid);
-        const totalTips = creator.totalTips || 0;
-
-        let totalPaidOut = 0;
-        try {
-          const payouts = await db.list(C.PAYOUTS, [
-            Query.equal('creatorId', uid), 
-            Query.equal('status', 'completed')
-          ]);
-          totalPaidOut = payouts.documents.reduce((sum, p) => sum + (p.amount || 0), 0);
-        } catch (e) {
-          console.log('Payouts not available yet:', e.message);
-        }
-
-        const available = Math.max(0, totalTips - totalPaidOut);
-        document.getElementById('available-balance').textContent = '₹' + available.toLocaleString();
-
-        // Build payout history - safe error handling
-        let historyHtml = '<div style="text-align: center; padding: 20px; color: #888; font-size: 13px;">No payouts yet</div>';
-        try {
-          const allPayouts = await db.list(C.PAYOUTS, [Query.equal('creatorId', uid)]);
-          if (allPayouts.documents.length > 0) {
-            historyHtml = allPayouts.documents
-              .sort((a, b) => new Date(b.requestedAt) - new Date(a.requestedAt))
-              .map(p => `
-                <div style="padding: 12px; border-bottom: 1px solid #2d2d2d; display: flex; justify-content: space-between; font-size: 13px;">
-                  <div>
-                    <div>₹${p.amount}</div>
-                    <div style="color: #888; font-size: 11px;">${new Date(p.requestedAt).toLocaleDateString()}</div>
-                  </div>
-                  <div style="text-align: right; color: ${p.status === 'completed' ? '#4ade80' : '#f59e0b'};">
-                    ${p.status.charAt(0).toUpperCase() + p.status.slice(1)}
-                  </div>
-                </div>
-              `).join('');
+      viewsChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: days,
+          datasets: [{
+            label: 'Views',
+            data: viewData,
+            borderColor: '#0B5E6B',
+            backgroundColor: 'rgba(11, 94, 107, 0.1)',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: '#0B5E6B',
+            pointBorderColor: '#fff',
+            pointRadius: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: { color: '#888', font: { size: 11 } },
+              grid: { color: '#2d2d2d' }
+            },
+            x: {
+              ticks: { color: '#888', font: { size: 11 } },
+              grid: { display: false }
+            }
           }
-        } catch (e) {
-          console.log('Payout history not available:', e.message);
         }
-
-        document.getElementById('payout-history').innerHTML = historyHtml;
-
-        loading.style.display = 'none';
-        content.style.display = 'block';
-      } catch (e) {
-        console.error('Payout load error:', e);
-        loading.innerHTML = '<p style="color: #888;">Error loading payout info</p>';
-      }
+      });
     }
 
-    function openEditProfile() {
-      document.getElementById('sheet-backdrop').classList.add('open');
-      document.getElementById('edit-sheet').classList.add('open');
+    function drawEngagementChart(reels) {
+      const ctx = document.getElementById('engagement-chart').getContext('2d');
+      
+      const totalLikes = reels.reduce((sum, r) => sum + (r.likes || 0), 0);
+      const totalComments = reels.reduce((sum, r) => sum + (r.comments || 0), 0);
 
-      document.getElementById('edit-name').value = CREATOR.name || '';
-      document.getElementById('edit-bio').value = CREATOR.bio || '';
-      document.getElementById('edit-category').value = CREATOR.category || '';
-    }
+      if (engagementChart) engagementChart.destroy();
 
-    function closeEditProfile() {
-      document.getElementById('sheet-backdrop').classList.remove('open');
-      document.getElementById('edit-sheet').classList.remove('open');
-    }
-
-    async function saveProfile() {
-      const uid = session.getUserId();
-      const name = document.getElementById('edit-name').value.trim();
-      const bio = document.getElementById('edit-bio').value.trim();
-      const category = document.getElementById('edit-category').value;
-
-      if (!name) { toast('Please enter your name', true); return; }
-
-      try {
-        await db.update(C.CREATORS, uid, { name, bio, category });
-        CREATOR = { ...CREATOR, name, bio, category };
-        toast('Profile updated!');
-        closeEditProfile();
-        loadProfileTab();
-      } catch (e) {
-        console.error('Save error:', e);
-        toast('Failed to save profile', true);
-      }
-    }
-
-    async function copyReferralLink() {
-      const code = document.getElementById('referral-code').textContent;
-      try {
-        await navigator.clipboard.writeText(code);
-        toast('Link copied! 📋');
-      } catch (e) {
-        toast('Failed to copy', true);
-      }
-    }
-
-    async function shareReferralWhatsApp() {
-      const code = document.getElementById('referral-code').textContent;
-      const text = `Join GorkhaReels with my referral code and let's earn together! 💰\n\n${code}`;
-      const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
-      window.open(whatsappUrl, '_blank');
-    }
-
-    async function submitPayoutRequest() {
-      const uid = session.getUserId();
-      const bankName = document.getElementById('bank-name').value.trim();
-      const accountNumber = document.getElementById('account-number').value.trim();
-      const ifscCode = document.getElementById('ifsc-code').value.trim();
-      const amount = parseInt(document.getElementById('payout-amount').value);
-
-      if (!bankName || !accountNumber || !ifscCode || !amount) {
-        toast('Please fill all fields', true);
-        return;
-      }
-
-      if (amount < 100) {
-        toast('Minimum withdrawal is ₹100', true);
-        return;
-      }
-
-      try {
-        const creator = await db.get(C.CREATORS, uid);
-        let totalPaidOut = 0;
-        try {
-          const payouts = await db.list(C.PAYOUTS, [
-            Query.equal('creatorId', uid), 
-            Query.equal('status', 'completed')
-          ]);
-          totalPaidOut = payouts.documents.reduce((sum, p) => sum + (p.amount || 0), 0);
-        } catch (e) {
-          console.log('Payouts not available yet');
+      engagementChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Likes', 'Comments'],
+          datasets: [{
+            data: [totalLikes, totalComments],
+            backgroundColor: ['#0B5E6B', '#0D7377'],
+            borderColor: '#0f0f0f',
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              labels: { color: '#fff', font: { size: 12 } }
+            }
+          }
         }
-
-        const available = Math.max(0, (creator.totalTips || 0) - totalPaidOut);
-
-        if (amount > available) {
-          toast('Amount exceeds available balance', true);
-          return;
-        }
-
-        const payoutId = ID.unique();
-        await db.create(C.PAYOUTS, {
-          payoutId,
-          creatorId: uid,
-          amount: amount,
-          bankName: bankName,
-          accountNumber: accountNumber,
-          ifscCode: ifscCode,
-          status: 'pending',
-          requestedAt: new Date().toISOString()
-        }, payoutId);
-
-        toast('Payout request submitted! 🎉');
-        document.getElementById('payout-amount').value = '';
-        loadPayoutTab();
-      } catch (e) {
-        console.error('Payout error:', e);
-        toast('Failed to submit payout request', true);
-      }
+      });
     }
 
-    function logout() {
-      if (confirm('Are you sure you want to logout?')) {
-        session.logout();
-        window.location = 'login.html';
-      }
+    function changePeriod(period) {
+      currentPeriod = period;
+      document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+      // Could implement different periods here
     }
 
     document.addEventListener('DOMContentLoaded', init);
