@@ -3,62 +3,64 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Creator Profile - GorkhaReels</title>
+  <title>Creator Dashboard - GorkhaReels</title>
   <meta name="theme-color" content="#0B5E6B">
   <link rel="icon" type="image/png" href="/logo-suite/favicon/logo-khukuri-32x32.png">
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
   
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    body { 
-      background: #0f0f0f; 
-      color: #fff; 
-      font-family: system-ui;
-      position: fixed;
-      width: 100%;
-      height: 100vh;
-      overflow: hidden;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #0f0f0f; color: #fff; font-family: system-ui; }
 
-    .container {
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-      padding-bottom: 80px;
-    }
+    .container { max-width: 600px; margin: 0 auto; }
 
     /* Header */
     .header {
       background: linear-gradient(135deg, #0B5E6B 0%, #0D7377 100%);
       padding: 16px;
+      text-align: center;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.3);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      flex-shrink: 0;
     }
-    .header-title { 
-      font-size: 20px; 
-      font-weight: 900; 
-      font-family: 'Space Grotesk', sans-serif;
-    }
-    .header-btn {
-      background: rgba(255,255,255,0.18);
-      border: none;
-      color: #fff;
-      width: 38px;
-      height: 38px;
-      border-radius: 50%;
-      cursor: pointer;
-      font-size: 18px;
-    }
-    .header-btn:active { background: rgba(255,255,255,0.28); }
+    .header-left { display: flex; align-items: center; gap: 12px; }
+    .header-logo { width: 40px; height: 40px; border-radius: 10px; background: rgba(255,255,255,0.15); object-fit: cover; }
+    .header-title { font-size: 20px; font-weight: 900; font-family: 'Space Grotesk', sans-serif; }
+    .back-btn { background: rgba(255,255,255,0.18); border: none; color: #fff; width: 38px; height: 38px; border-radius: 50%; cursor: pointer; font-size: 18px; }
+    .back-btn:active { background: rgba(255,255,255,0.28); }
 
     /* Content */
-    .content { padding: 20px; }
+    .content { padding: 16px; margin-bottom: 80px; }
 
-    /* Profile Card */
+    /* Card */
+    .card {
+      background: linear-gradient(135deg, #1a1a1a, #0d2d3a);
+      border: 1px solid #2d2d2d;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .card-title { font-size: 14px; font-weight: 700; color: #0B5E6B; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .stat-item {
+      background: #1a1a1a;
+      border: 1px solid #2d2d2d;
+      border-radius: 10px;
+      padding: 12px;
+      text-align: center;
+    }
+    .stat-value { font-size: 20px; font-weight: 700; color: #0B5E6B; margin-bottom: 4px; }
+    .stat-label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.3px; }
+
+    /* Profile Header */
     .profile-header {
       text-align: center;
       margin-bottom: 24px;
@@ -91,33 +93,6 @@
       color: #ccc;
       font-size: 14px;
       margin-bottom: 16px;
-    }
-
-    /* Stats Grid */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 10px;
-      margin-bottom: 24px;
-    }
-    .stat-item {
-      background: linear-gradient(135deg, #1a1a1a, #0d2d3a);
-      border: 1px solid #2d2d2d;
-      border-radius: 12px;
-      padding: 16px 8px;
-      text-align: center;
-    }
-    .stat-value {
-      font-size: 20px;
-      font-weight: 700;
-      color: #0B5E6B;
-      margin-bottom: 4px;
-    }
-    .stat-label {
-      font-size: 11px;
-      color: #888;
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
     }
 
     /* Action Buttons Grid */
@@ -161,38 +136,6 @@
       color: #fff;
     }
 
-    /* Earnings Cards */
-    .earnings-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 24px;
-    }
-    .earning-card {
-      background: linear-gradient(135deg, #1a1a1a, #0d2d3a);
-      border: 1px solid #2d2d2d;
-      border-radius: 12px;
-      padding: 16px;
-      text-align: center;
-    }
-    .earning-label {
-      font-size: 11px;
-      color: #888;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 8px;
-    }
-    .earning-value {
-      font-size: 22px;
-      font-weight: 700;
-      color: #4ade80;
-      margin-bottom: 4px;
-    }
-    .earning-desc {
-      font-size: 11px;
-      color: #666;
-    }
-
     /* Video Grid */
     .video-grid {
       display: grid;
@@ -206,6 +149,7 @@
       border-radius: 10px;
       overflow: hidden;
       position: relative;
+      cursor: pointer;
     }
     .video-thumb {
       width: 100%;
@@ -233,6 +177,14 @@
     .loading { text-align: center; padding: 40px 20px; color: #888; }
     .spinner { width: 40px; height: 40px; border: 3px solid #2d2d2d; border-top-color: #0B5E6B; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 12px; }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #888;
+    }
+    .empty-icon { font-size: 48px; margin-bottom: 12px; }
 
     /* Bottom Nav */
     .bottom-nav {
@@ -263,25 +215,18 @@
     }
     .nav-btn.active { color: #0B5E6B; }
     .nav-label { font-size: 10px; font-weight: 500; }
-
-    /* Empty State */
-    .empty-state {
-      text-align: center;
-      padding: 40px 20px;
-      color: #888;
-    }
-    .empty-icon { font-size: 48px; margin-bottom: 12px; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <!-- Header -->
-    <div class="header">
+  <div class="header">
+    <div class="header-left">
+      <img class="header-logo" src="/logo-suite/primary/logo-khukuri-256x256.png" alt="">
       <div class="header-title">Profile</div>
-      <button class="header-btn" onclick="window.location='index.html'">✕</button>
     </div>
+    <button class="back-btn" onclick="window.location='index.html'">✕</button>
+  </div>
 
-    <!-- Content -->
+  <div class="container">
     <div class="content">
       <!-- Profile Header -->
       <div class="profile-header" id="profile-header">
@@ -317,7 +262,7 @@
           <div class="btn-icon">✏️</div>
           <div class="btn-text">Edit</div>
         </button>
-        <button class="btn" onclick="window.location='creator-dashboard.html'" title="Manage earnings and settings">
+        <button class="btn" onclick="window.location='creator-hub.html'" title="Manage earnings and settings">
           <div class="btn-icon">🎛️</div>
           <div class="btn-text">Creator Hub</div>
         </button>
@@ -325,21 +270,6 @@
           <div class="btn-icon">📊</div>
           <div class="btn-text">Analytics</div>
         </button>
-      </div>
-
-      <!-- Earnings Summary -->
-      <div class="section-title">💰 Earnings</div>
-      <div class="earnings-grid">
-        <div class="earning-card">
-          <div class="earning-label">Total Tips</div>
-          <div class="earning-value" id="total-tips">₹0</div>
-          <div class="earning-desc">From viewers</div>
-        </div>
-        <div class="earning-card">
-          <div class="earning-label">Referral Bonus</div>
-          <div class="earning-value" id="referral-bonus">₹0</div>
-          <div class="earning-desc">From network</div>
-        </div>
       </div>
 
       <!-- My Videos -->
@@ -391,19 +321,6 @@
         document.getElementById('video-count').textContent = (creator.videos || 0).toLocaleString();
         document.getElementById('follower-count').textContent = (creator.followers || 0).toLocaleString();
         document.getElementById('view-count').textContent = (creator.totalViews || 0).toLocaleString();
-
-        // Earnings
-        document.getElementById('total-tips').textContent = '₹' + (creator.totalTips || 0).toLocaleString();
-
-        // Referral earnings
-        let referralBonus = 0;
-        try {
-          const referrals = await db.list(C.REFERRALS, [Query.equal('referrerId', uid)]);
-          referralBonus = referrals.documents.reduce((sum, r) => sum + (r.bonusEarned || 0), 0);
-        } catch (e) {
-          console.log('Referrals not available');
-        }
-        document.getElementById('referral-bonus').textContent = '₹' + referralBonus.toLocaleString();
 
         // Load videos
         await loadVideos();
@@ -458,7 +375,6 @@
     }
 
     function editProfile() {
-      // Could open an edit sheet here in future
       alert('Edit profile feature coming soon!');
     }
 
