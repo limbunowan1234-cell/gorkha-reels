@@ -2,225 +2,319 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Creator Profile - GorkhaReels</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Creator Dashboard - GorkhaReels</title>
+  <meta name="description" content="Manage your GorkhaReels profile, track earnings, and grow your audience">
+  <meta name="theme-color" content="#0f0f0f">
   <link rel="icon" type="image/png" href="/logo-suite/favicon/logo-khukuri-32x32.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #0f0f0f; color: #fff; font-family: system-ui; }
 
-    .banner { position: sticky; top: 0; z-index: 100; background: linear-gradient(135deg, #0B5E6B 0%, #0D7377 100%); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 14px rgba(0,0,0,0.4); }
+    .banner {
+      position: sticky; top: 0; z-index: 100;
+      background: linear-gradient(135deg, #0B5E6B 0%, #0D7377 100%);
+      padding: 12px 16px;
+      display: flex; align-items: center; justify-content: space-between;
+      box-shadow: 0 2px 14px rgba(0,0,0,0.4);
+    }
     .banner-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
     .banner-logo { width: 42px; height: 42px; border-radius: 11px; flex-shrink: 0; background: rgba(255,255,255,0.15); object-fit: cover; }
     .banner-text { min-width: 0; }
     .banner-title { font-size: 22px; font-weight: 900; letter-spacing: 0.6px; line-height: 1.1; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,0.3); font-family: 'Space Grotesk', sans-serif; }
-    .banner-tagline { font-size: 11.5px; font-weight: 500; color: rgba(255,255,255,0.9); margin-top: 1px; }
+    .banner-tagline { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.95); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0.2px; }
     .banner-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
-    .banner-btn { width: 38px; height: 38px; border: none; border-radius: 50%; background: rgba(255,255,255,0.18); color: #fff; font-size: 19px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .banner-btn {
+      width: 38px; height: 38px; border: none; border-radius: 50%;
+      background: rgba(255,255,255,0.18); color: #fff; font-size: 19px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+    }
     .banner-btn:active { background: rgba(255,255,255,0.3); }
 
-    .profile-container { max-width: 600px; margin: 0 auto; padding: 20px 16px; padding-bottom: 100px; }
-    .profile-header { text-align: center; margin-bottom: 24px; }
-    .profile-pic { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid #0B5E6B; margin: 0 auto 16px; background: #2d2d2d; }
-    .profile-name { font-size: 20px; font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; justify-content: center; gap: 6px; }
-    .verified-badge { width: 18px; height: 18px; background: #0284c7; border-radius: 50%; color: #fff; font-size: 11px; display: flex; align-items: center; justify-content: center; }
-    .profile-category { font-size: 13px; color: #0B5E6B; margin-bottom: 6px; font-weight: 600; }
-    .profile-bio { font-size: 14px; color: #888; margin-bottom: 16px; line-height: 1.5; }
-    .profile-stats { display: flex; justify-content: space-around; margin-bottom: 20px; }
-    .stat { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-    .stat-num { font-size: 18px; font-weight: 700; }
-    .stat-label { font-size: 12px; color: #888; }
+    .dashboard-container { max-width: 600px; margin: 0 auto; padding: 16px; margin-bottom: 90px; }
+
+    .profile-top { display: flex; align-items: center; gap: 24px; margin: 8px 0 16px; }
+    .profile-avatar-lg { width: 86px; height: 86px; border-radius: 50%; object-fit: cover; border: 2px solid #2d2d2d; flex-shrink: 0; }
+    .profile-stats-row { display: flex; flex: 1; justify-content: space-around; }
+    .stat-cell { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+    .stat-num { font-size: 20px; font-weight: 700; }
+    .stat-lbl { font-size: 13px; color: #888; }
+
+    .profile-identity { margin-bottom: 16px; }
+    .profile-name-lg { font-size: 16px; font-weight: 700; margin-bottom: 2px; }
+    .verified-badge { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; background: #0284c7; border-radius: 50%; color: #fff; font-size: 10px; margin-left: 4px; vertical-align: middle; }
+    .profile-bio { font-size: 14px; color: #888; line-height: 1.4; }
+    .profile-category { font-size: 13px; color: #0B5E6B; margin-top: 6px; font-weight: 600; }
+
     .profile-actions { display: flex; gap: 8px; margin-bottom: 24px; }
-    .action-btn { flex: 1; padding: 11px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-    .btn-follow { background: #0B5E6B; color: #fff; }
-    .btn-follow:disabled { opacity: 0.6; cursor: not-allowed; }
-    .btn-follow.following { background: transparent; border: 1px solid #0B5E6B; color: #0B5E6B; }
-    .btn-message { background: #1a1a1a; color: #fff; border: 1px solid #2d2d2d; }
+    .action-btn-secondary, .action-btn-primary { flex: 1; padding: 9px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: opacity 0.15s; }
+    .action-btn-secondary { background: #1a1a1a; color: #fff; border: 1px solid #2d2d2d; }
+    .action-btn-primary { background: #0B5E6B; color: #fff; }
+    .action-btn-secondary:active, .action-btn-primary:active { opacity: 0.7; }
 
-    .videos-section { margin-top: 24px; }
-    .section-title { font-size: 16px; font-weight: 700; margin-bottom: 12px; }
-    .videos-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-    .video-thumb { position: relative; aspect-ratio: 9/16; background: #1a1a1a; border-radius: 8px; overflow: hidden; cursor: pointer; }
-    .video-thumb img, .video-thumb video { width: 100%; height: 100%; object-fit: cover; }
-    .video-views { position: absolute; bottom: 8px; left: 8px; font-size: 12px; background: rgba(0,0,0,0.6); padding: 4px 8px; border-radius: 4px; }
+    .earnings-strip { display: flex; align-items: center; justify-content: space-between; background: linear-gradient(135deg, #1a1a1a, #20190c); border: 1px solid #2d2d2d; border-radius: 12px; padding: 14px 16px; margin-bottom: 24px; }
+    .earnings-left { display: flex; flex-direction: column; gap: 2px; }
+    .earnings-label { font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
+    .earnings-amount { font-size: 22px; font-weight: 700; color: #D4A574; }
+    .withdraw-btn { background: #D4A574; color: #0f0f0f; border: none; border-radius: 8px; padding: 9px 18px; font-size: 14px; font-weight: 700; cursor: pointer; }
+    .withdraw-btn:active { opacity: 0.8; }
 
-    .empty-state { text-align: center; padding: 40px 20px; color: #666; }
-    .loading { text-align: center; padding: 40px 20px; }
-    .spinner { display: inline-block; width: 40px; height: 40px; border: 3px solid #2d2d2d; border-top-color: #0B5E6B; border-radius: 50%; animation: spin 1s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    .videos-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .videos-title { font-size: 16px; font-weight: 700; }
 
-    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #1a1a1a; border-top: 1px solid #2d2d2d; display: flex; justify-content: space-around; align-items: center; z-index: 100; padding: 8px 0; }
+    .videos-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+    .video-thumb { position: relative; aspect-ratio: 9/16; background: #1a1a1a; cursor: pointer; overflow: hidden; }
+    .video-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .video-more { position: absolute; top: 6px; right: 6px; width: 32px; height: 32px; background: rgba(0,0,0,0.6); border: none; color: #fff; border-radius: 50%; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .video-more:active { background: rgba(0,0,0,0.8); }
+    .video-views { position: absolute; bottom: 6px; left: 6px; font-size: 12px; color: white; background: rgba(0,0,0,0.6); padding: 2px 6px; border-radius: 4px; }
+
+    .empty-state { text-align: center; padding: 40px 20px; color: #888; }
+
+    .video-menu-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 300; display: none; }
+    .video-menu-backdrop.open { display: block; }
+    .video-menu { position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 310; max-width: 476px; margin: 0 auto; transform: translateY(140%); transition: transform 0.25s ease; }
+    .video-menu.open { transform: translateY(0); }
+    .video-menu-items { background: #1c1c1e; border-radius: 14px; overflow: hidden; margin-bottom: 8px; }
+    .video-menu-item { width: 100%; padding: 16px; background: none; border: none; color: #fff; font-size: 15px; cursor: pointer; text-align: left; border-bottom: 1px solid #2c2c2e; }
+    .video-menu-item:last-child { border-bottom: none; }
+    .video-menu-item.danger { color: #ff453a; }
+    .video-menu-cancel { width: 100%; padding: 16px; background: #1c1c1e; border: none; border-radius: 14px; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; }
+
+    .edit-profile-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 300; display: none; }
+    .edit-profile-backdrop.open { display: block; }
+    .edit-profile-sheet { position: fixed; bottom: 0; left: 0; right: 0; background: #1c1c1e; z-index: 310; border-radius: 16px 16px 0 0; transform: translateY(100%); transition: transform 0.3s ease; max-height: 85vh; overflow-y: auto; max-width: 640px; margin: 0 auto; width: 100%; }
+    .edit-profile-sheet.open { transform: translateY(0); }
+    .sheet-header { display: flex; justify-content: space-between; align-items: center; padding: 16px; border-bottom: 1px solid #2d2d2d; position: sticky; top: 0; background: #1c1c1e; z-index: 5; }
+    .sheet-header h2 { font-size: 18px; font-weight: 700; }
+    .close-btn { background: none; border: none; color: #fff; font-size: 24px; cursor: pointer; }
+    .sheet-content { padding: 20px 16px; }
+    .edit-section { margin-bottom: 20px; }
+    .edit-section label { display: block; font-size: 13px; font-weight: 600; color: #888; margin-bottom: 8px; text-transform: uppercase; }
+    .edit-section input, .edit-section textarea, .edit-section select { width: 100%; padding: 10px; background: #2d2d2d; color: #fff; border: 1px solid #3d3d3d; border-radius: 8px; font-size: 15px; font-family: inherit; }
+    .edit-section textarea { resize: vertical; }
+    .edit-section select option { background: #1c1c1e; }
+    .pic-preview-container { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+    .pic-preview { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid #0B5E6B; }
+    .upload-btn { padding: 9px 16px; background: #0B5E6B; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
+    .edit-actions { display: flex; gap: 10px; margin-top: 20px; margin-bottom: 20px; }
+    .save-btn { flex: 1; padding: 11px; background: #0B5E6B; color: #fff; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
+
+    .crop-modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 500; display: none; align-items: center; justify-content: center; padding: 16px; }
+    .crop-modal-backdrop.open { display: flex; }
+    .crop-modal { background: #1c1c1e; border-radius: 16px; width: 100%; max-width: 400px; overflow: hidden; }
+    .crop-modal-header { padding: 16px; border-bottom: 1px solid #2d2d2d; text-align: center; font-size: 17px; font-weight: 700; }
+    .crop-area { position: relative; width: 100%; aspect-ratio: 1; background: #000; overflow: hidden; touch-action: none; cursor: move; }
+    .crop-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+    .crop-circle-overlay { position: absolute; inset: 0; pointer-events: none; box-shadow: 0 0 0 9999px rgba(0,0,0,0.5); border-radius: 50%; margin: 10%; }
+    .crop-controls { padding: 16px; }
+    .crop-zoom-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+    .crop-zoom-row span { font-size: 18px; }
+    .crop-zoom-slider { flex: 1; -webkit-appearance: none; appearance: none; height: 5px; border-radius: 5px; background: #3d3d3d; outline: none; }
+    .crop-zoom-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 22px; height: 22px; border-radius: 50%; background: #0B5E6B; cursor: pointer; }
+    .crop-zoom-slider::-moz-range-thumb { width: 22px; height: 22px; border-radius: 50%; background: #0B5E6B; cursor: pointer; border: none; }
+    .crop-hint { text-align: center; font-size: 12px; color: #888; margin-bottom: 14px; }
+    .crop-btn-row { display: flex; gap: 10px; }
+    .crop-cancel-btn { flex: 1; padding: 12px; background: #2d2d2d; color: #fff; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; }
+    .crop-apply-btn { flex: 1; padding: 12px; background: #0B5E6B; color: #fff; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; }
+
+    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #1a1a1a; border-top: 1px solid #2d2d2d; display: flex; justify-content: space-around; align-items: center; padding: 8px 0; z-index: 100; }
     .nav-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; background: none; border: none; color: #666; cursor: pointer; flex: 1; padding: 10px; font-size: 18px; }
     .nav-btn.active { color: #0B5E6B; }
     .nav-label { font-size: 10px; font-weight: 500; }
+
+    .drawer-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 150; display: none; }
+    .drawer-backdrop.open { display: block; }
+    .drawer { position: fixed; top: 0; right: 0; bottom: 0; width: 80%; max-width: 320px; background: #161616; z-index: 160; transform: translateX(100%); transition: transform 0.25s ease; display: flex; flex-direction: column; box-shadow: -4px 0 20px rgba(0,0,0,0.5); }
+    .drawer.open { transform: translateX(0); }
+    .drawer-head { background: linear-gradient(135deg, #0B5E6B, #0D7377); padding: 20px 16px; display: flex; align-items: center; gap: 12px; }
+    .drawer-head img { width: 40px; height: 40px; border-radius: 10px; background: rgba(255,255,255,0.15); }
+    .drawer-head .dh-title { font-size: 16px; font-weight: 800; }
+    .drawer-head .dh-sub { font-size: 11px; color: rgba(255,255,255,0.9); }
+    .drawer-items { flex: 1; overflow-y: auto; padding: 8px 0; }
+    .drawer-item { width: 100%; display: flex; align-items: center; gap: 14px; padding: 15px 18px; background: none; border: none; color: #fff; font-size: 15px; cursor: pointer; text-align: left; }
+    .drawer-item:active { background: #222; }
+    .drawer-item .di-icon { font-size: 20px; width: 26px; text-align: center; }
+    .drawer-sep { height: 1px; background: #262626; margin: 6px 18px; }
+    .drawer-item-danger { color: #ef4444; }
+
+    .loading { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 200px; gap: 12px; }
+    .spinner { width: 40px; height: 40px; border: 3px solid #2d2d2d; border-top-color: #0B5E6B; border-radius: 50%; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .toast { position: fixed; top: 20px; right: 20px; padding: 12px 20px; background: #0B5E6B; color: #fff; border-radius: 8px; z-index: 2000; }
+    .toast.error { background: #dc2626; }
   </style>
 </head>
 <body>
-
   <header class="banner">
     <div class="banner-left">
-      <button class="banner-btn" onclick="window.history.back()">←</button>
+      <img class="banner-logo" src="/logo-suite/primary/logo-khukuri-256x256.png" alt="GorkhaReels">
       <div class="banner-text">
-        <div class="banner-title">Creator</div>
+        <div class="banner-title">GorkhaReels</div>
+        <div class="banner-tagline">Gorkha Stories, Global Reach</div>
       </div>
     </div>
     <div class="banner-right">
-      <button class="banner-btn" onclick="window.location='search.html'">🔍</button>
+      <button class="banner-btn" onclick="window.location='search.html'" aria-label="Search">🔍</button>
+      <button class="banner-btn" id="open-drawer" aria-label="Menu">☰</button>
     </div>
   </header>
 
-  <div class="profile-container">
-    <div class="loading"><div class="spinner"></div></div>
+  <div class="dashboard-container">
+    <div class="profile-top">
+      <img id="creator-avatar" src="/logo-suite/primary/logo-khukuri-512x512.png" alt="Profile" class="profile-avatar-lg" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'">
+      <div class="profile-stats-row">
+        <div class="stat-cell"><span class="stat-num" id="total-reels">0</span><span class="stat-lbl">Videos</span></div>
+        <div class="stat-cell"><span class="stat-num" id="followers-count">0</span><span class="stat-lbl">Followers</span></div>
+        <div class="stat-cell"><span class="stat-num" id="total-views">0</span><span class="stat-lbl">Views</span></div>
+      </div>
+    </div>
+
+    <div class="profile-identity">
+      <div class="profile-name-lg" id="creator-name">Loading...</div>
+      <div class="profile-category" id="creator-category"></div>
+      <div class="profile-bio" id="creator-bio">No bio yet</div>
+    </div>
+
+    <div class="profile-actions">
+      <button class="action-btn-secondary" id="edit-profile-btn">Edit Profile</button>
+      <button class="action-btn-primary" id="upload-btn">+ Upload</button>
+    </div>
+
+    <div class="earnings-strip">
+      <div class="earnings-left">
+        <span class="earnings-label">Total Earnings</span>
+        <span class="earnings-amount" id="total-earnings">₹ 0.00</span>
+      </div>
+      <button class="withdraw-btn" id="withdraw-btn">Withdraw</button>
+    </div>
+
+    <div class="videos-header"><span class="videos-title">🎬 My Videos</span></div>
+    <div id="my-reels-container"><div class="loading"><div class="spinner"></div></div></div>
+  </div>
+
+  <div class="video-menu-backdrop" id="video-menu-backdrop"></div>
+  <div class="video-menu" id="video-menu">
+    <div class="video-menu-items" id="video-menu-items"></div>
+    <button class="video-menu-cancel" id="video-menu-cancel">Cancel</button>
+  </div>
+
+  <div class="edit-profile-backdrop" id="edit-profile-backdrop"></div>
+  <div class="edit-profile-sheet" id="edit-profile-sheet">
+    <div class="sheet-header">
+      <h2>Edit Profile</h2>
+      <button class="close-btn" id="close-edit-profile">✕</button>
+    </div>
+    <div class="sheet-content">
+      <div class="edit-section">
+        <label>Profile Picture</label>
+        <div class="pic-preview-container">
+          <img id="profile-pic-preview" class="pic-preview" src="" alt="Profile">
+          <button class="upload-btn" id="upload-pic-btn">📷 Choose Photo</button>
+          <input type="file" id="profile-pic-input" accept="image/*" style="display:none;">
+        </div>
+      </div>
+      <div class="edit-section">
+        <label for="edit-name">Name</label>
+        <input type="text" id="edit-name" placeholder="Your name" maxlength="50">
+      </div>
+      <div class="edit-section">
+        <label for="edit-category">Category</label>
+        <select id="edit-category">
+          <option value="">-- Select Category (Optional) --</option>
+          <option value="musician">🎵 Musician</option>
+          <option value="artist">🎨 Artist</option>
+          <option value="guide">🧗 Tour Guide</option>
+          <option value="business">🏪 Business Owner</option>
+          <option value="student">📚 Student</option>
+        </select>
+        <small style="color: #888; margin-top: 4px; display: block;">Leave blank to appear in Common zone</small>
+      </div>
+      <div class="edit-section">
+        <label for="edit-bio">Bio</label>
+        <textarea id="edit-bio" placeholder="Tell your story..." maxlength="150" rows="3"></textarea>
+      </div>
+      <div class="edit-actions">
+        <button class="save-btn" id="save-profile-btn">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="crop-modal-backdrop" id="crop-modal-backdrop">
+    <div class="crop-modal">
+      <div class="crop-modal-header">Adjust Photo</div>
+      <div class="crop-area" id="crop-area">
+        <canvas class="crop-canvas" id="crop-canvas"></canvas>
+        <div class="crop-circle-overlay"></div>
+      </div>
+      <div class="crop-controls">
+        <div class="crop-zoom-row">
+          <span>🔍</span>
+          <input type="range" class="crop-zoom-slider" id="crop-zoom" min="1" max="3" step="0.01" value="1">
+        </div>
+        <div class="crop-hint">Drag to move • Slide to zoom</div>
+        <div class="crop-btn-row">
+          <button class="crop-cancel-btn" id="crop-cancel">Cancel</button>
+          <button class="crop-apply-btn" id="crop-apply">Apply</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <nav class="bottom-nav">
     <button class="nav-btn" onclick="window.location='index.html'"><span>🏠</span><span class="nav-label">Home</span></button>
-    <button class="nav-btn" onclick="window.location='upload.html'"><span>＋</span><span class="nav-label">Create</span></button>
-    <button class="nav-btn" onclick="window.location='messages.html'"><span>💬</span><span class="nav-label">Messages</span></button>
-    <button class="nav-btn" onclick="window.location='creator-dashboard.html'"><span>👤</span><span class="nav-label">Profile</span></button>
+    <button class="nav-btn" onclick="window.location='upload.html'"><span>➕</span><span class="nav-label">Create</span></button>
+    <button class="nav-btn active"><span>👤</span><span class="nav-label">Profile</span></button>
   </nav>
 
-  <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
-  <script src="js/appwrite-config.js"></script>
+  <div class="drawer-backdrop" id="drawer-backdrop"></div>
+  <aside class="drawer" id="drawer">
+    <div class="drawer-head">
+      <img src="/logo-suite/primary/logo-khukuri-256x256.png" alt="">
+      <div><div class="dh-title">GorkhaReels</div><div class="dh-sub">Gorkha Stories, Global Reach</div></div>
+    </div>
+    <div class="drawer-items">
+      <button class="drawer-item" onclick="window.location='index.html'"><span class="di-icon">🏠</span> Home</button>
+      <button class="drawer-item" onclick="window.location='search.html'"><span class="di-icon">🔍</span> Search</button>
+      <button class="drawer-item" onclick="window.location='creator-dashboard.html'"><span class="di-icon">👤</span> My Profile</button>
+      <button class="drawer-item" id="edit-profile-drawer"><span class="di-icon">✏️</span> Edit Profile</button>
+      <div class="drawer-sep"></div>
+      <button class="drawer-item drawer-item-danger" id="drawer-logout"><span class="di-icon">🚪</span> Logout</button>
+    </div>
+  </aside>
 
   <script>
-    let CREATOR = null, MY_USER_ID = null, REELS = [];
+    window.eruda = null;
+    window.Eruda = null;
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
+  <script src="js/appwrite-config.js"></script>
+  <script>
+    let REELS = [];
+    let CURRENT_REEL = null;
+    let CREATOR = null;
+    let SELECTED_PROFILE_PIC = null;
+    let viewsChartInstance = null;
 
-    function getUrlParam(name) {
-      const params = new URLSearchParams(window.location.search);
-      return params.get(name);
+    function getThumbSrc(reel) {
+      const t = reel && reel.thumbnail;
+      const fallback = '/logo-suite/primary/logo-khukuri-512x512.png';
+      if (!t) return fallback;
+      if (/\.(mp4|mov|webm|m4v)(\?|$)/i.test(t)) return fallback;
+      return t;
     }
 
-    async function checkFollowStatus(creatorId, btn) {
-      if (!MY_USER_ID || !btn) return;
-      try {
-        const existing = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [ 
-          Query.equal('followerId', MY_USER_ID), 
-          Query.equal('followingId', creatorId), 
-          Query.limit(1) 
-        ]);
-        
-        if (existing.total > 0) {
-          btn.textContent = 'Following';
-          btn.classList.add('following');
-          btn.disabled = true;
-        } else {
-          btn.textContent = 'Follow';
-          btn.classList.remove('following');
-          btn.disabled = false;
-        }
-      } catch (err) {
-        console.error('Check follow status error:', err);
-      }
-    }
-
-    async function followCreator(creatorId, btn) {
-      if (!session.isLoggedIn()) { window.location = 'login.html'; return; }
-      try {
-        const existing = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [ 
-          Query.equal('followerId', MY_USER_ID), 
-          Query.equal('followingId', creatorId), 
-          Query.limit(1) 
-        ]);
-        
-        if (existing.total === 0) { 
-          await db.create(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, ID.unique(), { 
-            followId: ID.unique(), 
-            followerId: MY_USER_ID, 
-            followingId: creatorId, 
-            CreatorId: creatorId, 
-            createdAt: new Date().toISOString() 
-          }); 
-        }
-        
-        btn.textContent = 'Following'; 
-        btn.classList.add('following');
-        btn.disabled = true;
-      } catch (err) { 
-        console.error('Follow error:', err); 
-      }
-    }
-
-    async function loadProfile() {
-      try {
-        const creatorId = getUrlParam('creatorId');
-        if (!creatorId) { window.location = 'index.html'; return; }
-
-        CREATOR = await db.get(APPWRITE_CONFIG.COLLECTIONS.CREATORS, creatorId);
-        
-        const followers = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [Query.equal('followingId', creatorId)]);
-        const reelsResponse = await db.list(APPWRITE_CONFIG.COLLECTIONS.REELS, [
-          Query.equal('creatorId', creatorId),
-          Query.equal('isDeleted', false),
-          Query.orderDesc('uploadedAt')
-        ]);
-        REELS = reelsResponse.documents;
-
-        const container = document.querySelector('.profile-container');
-        const categoryEmoji = CREATOR.category ? getCategoryEmoji(CREATOR.category) : 'Common Zone';
-        
-        let html = `
-          <div class="profile-header">
-            <img class="profile-pic" src="${CREATOR.profilePic || '/logo-suite/primary/logo-khukuri-512x512.png'}" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'">
-            <div class="profile-name">
-              ${escapeHtml(CREATOR.name || 'Creator')}
-              ${CREATOR.isVerified ? '<div class="verified-badge">✓</div>' : ''}
-            </div>
-            ${CREATOR.category ? `<div class="profile-category">${categoryEmoji}</div>` : ''}
-            <div class="profile-bio">${escapeHtml(CREATOR.bio || 'No bio')}</div>
-            
-            <div class="profile-stats">
-              <div class="stat">
-                <div class="stat-num">${REELS.length}</div>
-                <div class="stat-label">Videos</div>
-              </div>
-              <div class="stat">
-                <div class="stat-num">${followers.total}</div>
-                <div class="stat-label">Followers</div>
-              </div>
-              <div class="stat">
-                <div class="stat-num">${REELS.reduce((s, r) => s + (r.views || 0), 0)}</div>
-                <div class="stat-label">Views</div>
-              </div>
-            </div>
-
-            <div class="profile-actions">
-              ${MY_USER_ID && MY_USER_ID !== creatorId ? `
-                <button class="action-btn btn-follow" id="follow-btn" onclick="followCreator('${creatorId}', this)">Follow</button>
-                <button class="action-btn btn-message" onclick="window.location='messages.html?userId=${creatorId}'">Message</button>
-              ` : ''}
-            </div>
-          </div>
-
-          ${REELS.length > 0 ? `
-            <div class="videos-section">
-              <div class="section-title">🎬 Videos</div>
-              <div class="videos-grid">
-                ${REELS.map(reel => `
-                  <div class="video-thumb" onclick="window.location='video-modal.html?reelId=${reel.$id}'">
-                    <img src="${reel.thumbnail || '/logo-suite/primary/logo-khukuri-512x512.png'}" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'">
-                    <div class="video-views">👁️ ${reel.views || 0}</div>
-                  </div>
-                `).join('')}
-              </div>
-            </div>
-          ` : '<div class="empty-state">No videos yet</div>'}
-        `;
-
-        container.innerHTML = html;
-
-        // Check follow status if button exists
-        if (MY_USER_ID && MY_USER_ID !== creatorId) {
-          const followBtn = document.getElementById('follow-btn');
-          if (followBtn) await checkFollowStatus(creatorId, followBtn);
-        }
-      } catch (err) {
-        console.error('Load profile error:', err);
-        document.querySelector('.profile-container').innerHTML = '<div class="empty-state">Creator not found</div>';
-      }
+    function showToast(msg, isError = false) {
+      const toast = document.createElement('div');
+      toast.className = 'toast' + (isError ? ' error' : '');
+      toast.textContent = msg;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
     }
 
     function getCategoryEmoji(cat) {
@@ -229,21 +323,363 @@
     }
 
     async function init() {
+      await session.refresh();
+      if (!session.isLoggedIn()) { window.location = 'login.html'; return; }
+      setupUI();
+      setupCropper();
+      await loadDashboard();
+    }
+
+    function setupUI() {
+      const open = () => { document.getElementById('drawer').classList.add('open'); document.getElementById('drawer-backdrop').classList.add('open'); };
+      const close = () => { document.getElementById('drawer').classList.remove('open'); document.getElementById('drawer-backdrop').classList.remove('open'); };
+      document.getElementById('open-drawer').onclick = open;
+      document.getElementById('drawer-backdrop').onclick = close;
+      document.querySelectorAll('.drawer-item').forEach(btn => btn.addEventListener('click', close));
+      document.getElementById('drawer-logout').onclick = async () => { try { await session.logout(); } catch (e) {} window.location = 'login.html'; };
+      document.getElementById('edit-profile-btn').onclick = openEditProfileSheet;
+      document.getElementById('upload-btn').onclick = () => window.location = 'upload.html';
+      document.getElementById('withdraw-btn').onclick = () => showToast('Withdrawal coming soon!');
+      document.getElementById('edit-profile-drawer').onclick = openEditProfileSheet;
+      document.getElementById('video-menu-cancel').onclick = closeVideoMenu;
+      document.getElementById('video-menu-backdrop').onclick = closeVideoMenu;
+      document.getElementById('close-edit-profile').onclick = closeEditProfileSheet;
+      document.getElementById('edit-profile-backdrop').onclick = closeEditProfileSheet;
+      document.getElementById('upload-pic-btn').onclick = () => document.getElementById('profile-pic-input').click();
+      document.getElementById('profile-pic-input').onchange = handleProfilePicSelect;
+      document.getElementById('save-profile-btn').onclick = saveProfileChanges;
+    }
+
+    async function getOrCreateCreator(uid) {
       try {
-        await session.refresh();
-        if (session.isLoggedIn()) { MY_USER_ID = session.getUserId(); }
-        await loadProfile();
+        return await db.get(APPWRITE_CONFIG.COLLECTIONS.CREATORS, uid);
       } catch (err) {
-        console.error('Init error:', err);
-        await loadProfile();
+        const notFound = err && (err.code === 404 || err.type === 'document_not_found');
+        if (!notFound) throw err;
+
+        const acct = session.getUser() || {};
+        const safeName = acct.name || (acct.email ? acct.email.split('@')[0] : 'Creator');
+        const safeEmail = acct.email || (uid + '@gorkhareels.app');
+        const baseUsername = (acct.email ? acct.email.split('@')[0] : safeName)
+          .toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 20) || ('user' + uid.slice(0, 6));
+
+        const newProfile = {
+          userId: uid,
+          email: safeEmail,
+          name: safeName,
+          username: baseUsername,
+          bio: '',
+          category: '',
+          profilePic: '',
+          followers: 0,
+          totalViews: 0,
+          totalReels: 0,
+          totalEarnings: 0,
+          isVerified: false,
+          isActive: true,
+          isAdmin: false,
+          createdAt: new Date().toISOString()
+        };
+
+        const created = await db.create(APPWRITE_CONFIG.COLLECTIONS.CREATORS, newProfile, uid);
+        showToast('Welcome! Your profile is ready.');
+        return created;
       }
     }
 
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', init);
-    } else {
-      init();
+    async function loadDashboard() {
+      try {
+        const uid = session.getUserId();
+        CREATOR = await getOrCreateCreator(uid);
+        document.getElementById('creator-name').innerHTML = escapeHtml(CREATOR.name || 'Creator') + (CREATOR.isVerified ? ' <span class="verified-badge">✓</span>' : '');
+        document.getElementById('creator-bio').textContent = CREATOR.bio || 'No bio yet';
+        document.getElementById('creator-category').textContent = CREATOR.category ? getCategoryEmoji(CREATOR.category) : 'Common Zone';
+        document.getElementById('creator-avatar').src = CREATOR.profilePic || '/logo-suite/primary/logo-khukuri-512x512.png';
+
+        const followers = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [Query.equal('followingId', uid)]);
+        document.getElementById('followers-count').textContent = followers.total;
+
+        const reels = await db.list(APPWRITE_CONFIG.COLLECTIONS.REELS, [
+          Query.equal('creatorId', uid),
+          Query.orderDesc('uploadedAt'),
+          Query.limit(100)
+        ]);
+        REELS = reels.documents.filter(r => !r.isDeleted);
+        document.getElementById('total-reels').textContent = REELS.length;
+        const totalViews = REELS.reduce((s, r) => s + (r.views || 0), 0);
+        document.getElementById('total-views').textContent = totalViews;
+        document.getElementById('total-earnings').textContent = '₹ ' + (CREATOR.totalEarnings || 0).toFixed(2);
+
+        if (!REELS.length) {
+          document.getElementById('my-reels-container').innerHTML = '<div class="empty-state">No videos yet. Start uploading!</div>';
+          return;
+        }
+
+        const grid = document.createElement('div');
+        grid.className = 'videos-grid';
+        REELS.forEach(reel => {
+          const thumb = document.createElement('div');
+          thumb.className = 'video-thumb';
+          thumb.innerHTML = `
+            <img src="${getThumbSrc(reel)}" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'">
+            <button class="video-more" onclick="openVideoMenu(event, '${reel.$id}')">⋯</button>
+            <div class="video-views">👁️ ${reel.views || 0}</div>
+          `;
+          thumb.onclick = (e) => { if (e.target.classList.contains('video-more')) return; window.location = `video-modal.html?reelId=${reel.$id}`; };
+          grid.appendChild(thumb);
+        });
+        document.getElementById('my-reels-container').innerHTML = '';
+        document.getElementById('my-reels-container').appendChild(grid);
+      } catch (err) {
+        console.error('Dashboard load failed:', err);
+        document.getElementById('my-reels-container').innerHTML = '<div class="empty-state">Error loading dashboard</div>';
+      }
     }
+
+    function openVideoMenu(e, reelId) {
+      e.stopPropagation();
+      CURRENT_REEL = REELS.find(r => r.$id === reelId);
+      if (!CURRENT_REEL) return;
+      const items = document.getElementById('video-menu-items');
+      items.innerHTML = '';
+      const add = (label, handler, danger) => {
+        const b = document.createElement('button');
+        b.className = 'video-menu-item' + (danger ? ' danger' : '');
+        b.textContent = label;
+        b.onclick = () => { closeVideoMenu(); handler(); };
+        items.appendChild(b);
+      };
+      add('✏️ Edit', () => window.location = `video-modal.html?reelId=${CURRENT_REEL.$id}`);
+      add('🗑️ Delete', () => deleteVideo(CURRENT_REEL), true);
+      document.getElementById('video-menu-backdrop').classList.add('open');
+      document.getElementById('video-menu').classList.add('open');
+    }
+
+    function closeVideoMenu() {
+      document.getElementById('video-menu-backdrop').classList.remove('open');
+      document.getElementById('video-menu').classList.remove('open');
+    }
+
+    async function deleteVideo(reel) {
+      if (!confirm('Delete this reel? This cannot be undone easily.')) return;
+      try {
+        await db.update(APPWRITE_CONFIG.COLLECTIONS.REELS, reel.$id, { isDeleted: true });
+        REELS = REELS.filter(r => r.$id !== reel.$id);
+        await loadDashboard();
+      } catch (e) {
+        console.error('Delete failed:', e);
+        alert('Could not delete');
+      }
+    }
+
+    function openEditProfileSheet() {
+      if (!CREATOR) return;
+      document.getElementById('edit-name').value = CREATOR.name || '';
+      document.getElementById('edit-bio').value = CREATOR.bio || '';
+      document.getElementById('edit-category').value = CREATOR.category || '';
+      document.getElementById('profile-pic-preview').src = CREATOR.profilePic || '/logo-suite/primary/logo-khukuri-512x512.png';
+      SELECTED_PROFILE_PIC = null;
+      document.getElementById('edit-profile-sheet').classList.add('open');
+      document.getElementById('edit-profile-backdrop').classList.add('open');
+    }
+
+    function closeEditProfileSheet() {
+      document.getElementById('edit-profile-sheet').classList.remove('open');
+      document.getElementById('edit-profile-backdrop').classList.remove('open');
+      SELECTED_PROFILE_PIC = null;
+    }
+
+    function handleProfilePicSelect(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      openCropper(file);
+      e.target.value = '';
+    }
+
+    async function saveProfileChanges() {
+      const name = document.getElementById('edit-name').value.trim();
+      const bio = document.getElementById('edit-bio').value.trim();
+      const category = document.getElementById('edit-category').value.trim();
+      if (!name) { alert('Name is required'); return; }
+
+      const saveBtn = document.getElementById('save-profile-btn');
+      try {
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Saving...';
+
+        let profilePicUrl = CREATOR.profilePic;
+
+        if (SELECTED_PROFILE_PIC) {
+          try {
+            const fileName = `profile_${session.getUserId()}_${Date.now()}.jpg`;
+            const bunnyStorageZone = 'gorkhareels';
+            const bunnyApiKey = 'cf694f78-8568-4497-9e764c8848c4-728e-4d89';
+            
+            const uploadRes = await fetch(`https://storage.bunnycdn.com/${bunnyStorageZone}/profile-pics/${fileName}`, {
+              method: 'PUT',
+              headers: { 
+                'AccessKey': bunnyApiKey,
+                'Content-Type': 'image/jpeg'
+              },
+              body: SELECTED_PROFILE_PIC
+            });
+            
+            if (!uploadRes.ok) {
+              const errText = await uploadRes.text();
+              throw new Error(`Bunny upload failed (${uploadRes.status}): ${errText}`);
+            }
+            
+            profilePicUrl = `https://gorkhareel-video.b-cdn.net/profile-pics/${fileName}`;
+          } catch (uploadErr) {
+            console.error('Picture upload failed:', uploadErr);
+            showToast('Could not upload picture: ' + uploadErr.message, true);
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Save Changes';
+            return;
+          }
+        }
+
+        await db.update(APPWRITE_CONFIG.COLLECTIONS.CREATORS, session.getUserId(), { name, bio, category, profilePic: profilePicUrl });
+        CREATOR.name = name;
+        CREATOR.bio = bio;
+        CREATOR.category = category;
+        CREATOR.profilePic = profilePicUrl;
+        showToast('Profile updated!');
+        closeEditProfileSheet();
+        await loadDashboard();
+      } catch (err) {
+        console.error('Save failed:', err);
+        showToast('Could not save profile', true);
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Save Changes';
+      }
+    }
+
+    const cropState = { img: null, scale: 1, minScale: 1, offsetX: 0, offsetY: 0, dragging: false, startX: 0, startY: 0, canvasSize: 0 };
+
+    function setupCropper() {
+      const canvas = document.getElementById('crop-canvas');
+      const area = document.getElementById('crop-area');
+      const zoom = document.getElementById('crop-zoom');
+
+      document.getElementById('crop-cancel').onclick = closeCropper;
+      document.getElementById('crop-apply').onclick = applyCrop;
+
+      zoom.oninput = () => {
+        cropState.scale = parseFloat(zoom.value) * cropState.minScale;
+        clampOffsets();
+        drawCrop();
+      };
+
+      const getPoint = (e) => {
+        if (e.touches && e.touches[0]) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        return { x: e.clientX, y: e.clientY };
+      };
+      const start = (e) => { cropState.dragging = true; const p = getPoint(e); cropState.startX = p.x; cropState.startY = p.y; };
+      const move = (e) => {
+        if (!cropState.dragging) return;
+        e.preventDefault();
+        const p = getPoint(e);
+        cropState.offsetX += (p.x - cropState.startX);
+        cropState.offsetY += (p.y - cropState.startY);
+        cropState.startX = p.x;
+        cropState.startY = p.y;
+        clampOffsets();
+        drawCrop();
+      };
+      const end = () => { cropState.dragging = false; };
+
+      area.addEventListener('mousedown', start);
+      area.addEventListener('mousemove', move);
+      area.addEventListener('mouseup', end);
+      area.addEventListener('mouseleave', end);
+      area.addEventListener('touchstart', start, { passive: false });
+      area.addEventListener('touchmove', move, { passive: false });
+      area.addEventListener('touchend', end);
+    }
+
+    function openCropper(file) {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const img = new Image();
+        img.onload = () => {
+          cropState.img = img;
+          document.getElementById('crop-modal-backdrop').classList.add('open');
+          requestAnimationFrame(() => {
+            const canvas = document.getElementById('crop-canvas');
+            let size = document.getElementById('crop-area').clientWidth;
+            if (!size || size < 50) size = 300;
+            cropState.canvasSize = size;
+            canvas.width = size;
+            canvas.height = size;
+
+            cropState.minScale = Math.max(size / img.width, size / img.height);
+            cropState.scale = cropState.minScale;
+            document.getElementById('crop-zoom').value = 1;
+            cropState.offsetX = (size - img.width * cropState.scale) / 2;
+            cropState.offsetY = (size - img.height * cropState.scale) / 2;
+            drawCrop();
+          });
+        };
+        img.onerror = () => { showToast('Could not load image. Try another photo.', true); };
+        img.src = ev.target.result;
+      };
+      reader.onerror = () => { showToast('Could not read file', true); };
+      reader.readAsDataURL(file);
+    }
+
+    function clampOffsets() {
+      const size = cropState.canvasSize;
+      const w = cropState.img.width * cropState.scale;
+      const h = cropState.img.height * cropState.scale;
+      if (cropState.offsetX > 0) cropState.offsetX = 0;
+      if (cropState.offsetY > 0) cropState.offsetY = 0;
+      if (cropState.offsetX < size - w) cropState.offsetX = size - w;
+      if (cropState.offsetY < size - h) cropState.offsetY = size - h;
+    }
+
+    function drawCrop() {
+      const canvas = document.getElementById('crop-canvas');
+      const ctx = canvas.getContext('2d');
+      const size = cropState.canvasSize;
+      ctx.clearRect(0, 0, size, size);
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, size, size);
+      const w = cropState.img.width * cropState.scale;
+      const h = cropState.img.height * cropState.scale;
+      ctx.drawImage(cropState.img, cropState.offsetX, cropState.offsetY, w, h);
+    }
+
+    function closeCropper() {
+      document.getElementById('crop-modal-backdrop').classList.remove('open');
+      cropState.img = null;
+    }
+
+    function applyCrop() {
+      const exportSize = 400;
+      const out = document.createElement('canvas');
+      out.width = exportSize;
+      out.height = exportSize;
+      const octx = out.getContext('2d');
+      const scaleFactor = exportSize / cropState.canvasSize;
+      octx.fillStyle = '#000';
+      octx.fillRect(0, 0, exportSize, exportSize);
+      const w = cropState.img.width * cropState.scale * scaleFactor;
+      const h = cropState.img.height * cropState.scale * scaleFactor;
+      octx.drawImage(cropState.img, cropState.offsetX * scaleFactor, cropState.offsetY * scaleFactor, w, h);
+
+      out.toBlob((blob) => {
+        if (!blob) { showToast('Crop failed', true); return; }
+        SELECTED_PROFILE_PIC = new File([blob], 'profile.jpg', { type: 'image/jpeg' });
+        const url = URL.createObjectURL(blob);
+        document.getElementById('profile-pic-preview').src = url;
+        closeCropper();
+        showToast('Photo ready! Tap Save Changes');
+      }, 'image/jpeg', 0.9);
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
   </script>
 </body>
 </html>
