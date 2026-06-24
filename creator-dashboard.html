@@ -50,18 +50,55 @@
     .profile-bio { font-size: 14px; color: #888; line-height: 1.4; }
     .profile-category { font-size: 13px; color: #0B5E6B; margin-top: 6px; font-weight: 600; }
 
-    .profile-actions { display: flex; gap: 8px; margin-bottom: 24px; }
+    .profile-actions { display: flex; gap: 8px; margin-bottom: 16px; }
     .action-btn-secondary, .action-btn-primary { flex: 1; padding: 9px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: opacity 0.15s; }
     .action-btn-secondary { background: #1a1a1a; color: #fff; border: 1px solid #2d2d2d; }
     .action-btn-primary { background: #0B5E6B; color: #fff; }
     .action-btn-secondary:active, .action-btn-primary:active { opacity: 0.7; }
 
-    .earnings-strip { display: flex; align-items: center; justify-content: space-between; background: linear-gradient(135deg, #1a1a1a, #20190c); border: 1px solid #2d2d2d; border-radius: 12px; padding: 14px 16px; margin-bottom: 24px; }
-    .earnings-left { display: flex; flex-direction: column; gap: 2px; }
-    .earnings-label { font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
-    .earnings-amount { font-size: 22px; font-weight: 700; color: #D4A574; }
-    .withdraw-btn { background: #D4A574; color: #0f0f0f; border: none; border-radius: 8px; padding: 9px 18px; font-size: 14px; font-weight: 700; cursor: pointer; }
-    .withdraw-btn:active { opacity: 0.8; }
+    /* Earnings Cards */
+    .earnings-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .earning-card {
+      background: linear-gradient(135deg, #1a1a1a, #20190c);
+      border: 1px solid #2d2d2d;
+      border-radius: 12px;
+      padding: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .earning-card:active { transform: scale(0.96); background: linear-gradient(135deg, #262626, #2d2410); }
+    .earning-label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+    .earning-value { font-size: 20px; font-weight: 700; color: #D4A574; }
+    .earning-sub { font-size: 11px; color: #666; margin-top: 4px; }
+
+    .quick-actions {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .quick-btn {
+      flex: 1;
+      padding: 11px;
+      background: #1a1a1a;
+      border: 1px solid #2d2d2d;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    .quick-btn:active { background: #262626; }
+    .quick-btn-icon { font-size: 18px; }
 
     .videos-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
     .videos-title { font-size: 16px; font-weight: 700; }
@@ -85,19 +122,79 @@
     .video-menu-item.danger { color: #ff453a; }
     .video-menu-cancel { width: 100%; padding: 16px; background: #1c1c1e; border: none; border-radius: 14px; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; }
 
-    .edit-profile-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 300; display: none; }
-    .edit-profile-backdrop.open { display: block; }
-    .edit-profile-sheet { position: fixed; bottom: 0; left: 0; right: 0; background: #1c1c1e; z-index: 310; border-radius: 16px 16px 0 0; transform: translateY(100%); transition: transform 0.3s ease; max-height: 85vh; overflow-y: auto; max-width: 640px; margin: 0 auto; width: 100%; }
-    .edit-profile-sheet.open { transform: translateY(0); }
-    .sheet-header { display: flex; justify-content: space-between; align-items: center; padding: 16px; border-bottom: 1px solid #2d2d2d; position: sticky; top: 0; background: #1c1c1e; z-index: 5; }
+    /* Sheets */
+    .sheet-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 300; display: none; }
+    .sheet-backdrop.open { display: block; }
+    .sheet { position: fixed; bottom: 0; left: 0; right: 0; background: #1c1c1e; z-index: 310; border-radius: 16px 16px 0 0; transform: translateY(100%); transition: transform 0.3s ease; max-height: 85vh; overflow-y: auto; }
+    .sheet.open { transform: translateY(0); }
+    .sheet-header { display: flex; justify-content: space-between; align-items: center; padding: 16px; border-bottom: 1px solid #2d2d2d; position: sticky; top: 0; background: #1c1c1e; }
     .sheet-header h2 { font-size: 18px; font-weight: 700; }
     .close-btn { background: none; border: none; color: #fff; font-size: 24px; cursor: pointer; }
     .sheet-content { padding: 20px 16px; }
-    .edit-section { margin-bottom: 20px; }
-    .edit-section label { display: block; font-size: 13px; font-weight: 600; color: #888; margin-bottom: 8px; text-transform: uppercase; }
-    .edit-section input, .edit-section textarea, .edit-section select { width: 100%; padding: 10px; background: #2d2d2d; color: #fff; border: 1px solid #3d3d3d; border-radius: 8px; font-size: 15px; font-family: inherit; }
-    .edit-section textarea { resize: vertical; }
-    .edit-section select option { background: #1c1c1e; }
+
+    .form-group { margin-bottom: 14px; }
+    .form-label { display: block; font-size: 13px; font-weight: 600; color: #888; margin-bottom: 8px; text-transform: uppercase; }
+    .form-input { width: 100%; padding: 11px 12px; background: #2d2d2d; border: 1px solid #3d3d3d; border-radius: 8px; color: #fff; font-size: 15px; font-family: inherit; }
+    .form-input:focus { outline: none; border-color: #0B5E6B; }
+    .form-input::placeholder { color: #666; }
+
+    .referral-code-box {
+      background: #2d2d2d;
+      border: 1px solid #3d3d3d;
+      padding: 12px;
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 12px;
+      word-break: break-all;
+      margin-bottom: 12px;
+      color: #D4A574;
+    }
+
+    .btn { 
+      width: 100%;
+      padding: 11px;
+      background: #0B5E6B;
+      border: none;
+      color: #fff;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.2s;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .btn:active { opacity: 0.8; }
+    .btn.secondary { background: #2d2d2d; border: 1px solid #3d3d3d; }
+
+    .payout-history {
+      background: linear-gradient(135deg, #1a1a1a, #0d2d3a);
+      border: 1px solid #2d2d2d;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .payout-item {
+      padding: 12px 16px;
+      border-bottom: 1px solid #2d2d2d;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .payout-item:last-child { border-bottom: none; }
+    .payout-left { display: flex; flex-direction: column; gap: 4px; }
+    .payout-amount { font-weight: 700; }
+    .payout-date { font-size: 12px; color: #888; }
+    .payout-status { font-size: 11px; padding: 2px 8px; border-radius: 4px; }
+    .payout-status.pending { background: #b45309; color: #fff; }
+    .payout-status.completed { background: #16a34a; color: #fff; }
+
+    .edit-profile-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 300; display: none; }
+    .edit-profile-backdrop.open { display: block; }
+    .edit-profile-sheet { position: fixed; bottom: 0; left: 0; right: 0; background: #1c1c1e; z-index: 310; border-radius: 16px 16px 0 0; transform: translateY(100%); transition: transform 0.3s ease; max-height: 85vh; overflow-y: auto; }
+    .edit-profile-sheet.open { transform: translateY(0); }
+
     .pic-preview-container { display: flex; flex-direction: column; align-items: center; gap: 12px; }
     .pic-preview { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid #0B5E6B; }
     .upload-btn { padding: 9px 16px; background: #0B5E6B; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
@@ -186,24 +283,38 @@
       <button class="action-btn-primary" id="upload-btn">+ Upload</button>
     </div>
 
-    <div class="earnings-strip">
-      <div class="earnings-left">
-        <span class="earnings-label">Total Earnings</span>
-        <span class="earnings-amount" id="total-earnings">₹ 0.00</span>
+    <!-- NEW: Earnings Cards -->
+    <div class="earnings-cards">
+      <div class="earning-card" onclick="openEarningsSheet()">
+        <div class="earning-label">💰 Total Tips</div>
+        <div class="earning-value" id="total-tips">₹0</div>
+        <div class="earning-sub">From creators</div>
       </div>
-      <button class="withdraw-btn" id="withdraw-btn">Withdraw</button>
+      <div class="earning-card" onclick="openReferralSheet()">
+        <div class="earning-label">🔗 Referrals</div>
+        <div class="earning-value" id="referral-earnings">₹0</div>
+        <div class="earning-sub">From network</div>
+      </div>
+    </div>
+
+    <!-- NEW: Quick Actions -->
+    <div class="quick-actions">
+      <button class="quick-btn" onclick="openPayoutSheet()"><span class="quick-btn-icon">💳</span> Withdraw</button>
+      <button class="quick-btn" onclick="window.location='creator-analytics.html'"><span class="quick-btn-icon">📊</span> Analytics</button>
     </div>
 
     <div class="videos-header"><span class="videos-title">🎬 My Videos</span></div>
     <div id="my-reels-container"><div class="loading"><div class="spinner"></div></div></div>
   </div>
 
+  <!-- Video Menu -->
   <div class="video-menu-backdrop" id="video-menu-backdrop"></div>
   <div class="video-menu" id="video-menu">
     <div class="video-menu-items" id="video-menu-items"></div>
     <button class="video-menu-cancel" id="video-menu-cancel">Cancel</button>
   </div>
 
+  <!-- Edit Profile Sheet -->
   <div class="edit-profile-backdrop" id="edit-profile-backdrop"></div>
   <div class="edit-profile-sheet" id="edit-profile-sheet">
     <div class="sheet-header">
@@ -211,21 +322,21 @@
       <button class="close-btn" id="close-edit-profile">✕</button>
     </div>
     <div class="sheet-content">
-      <div class="edit-section">
-        <label>Profile Picture</label>
+      <div class="form-group">
+        <label class="form-label">Profile Picture</label>
         <div class="pic-preview-container">
           <img id="profile-pic-preview" class="pic-preview" src="" alt="Profile">
           <button class="upload-btn" id="upload-pic-btn">📷 Choose Photo</button>
           <input type="file" id="profile-pic-input" accept="image/*" style="display:none;">
         </div>
       </div>
-      <div class="edit-section">
-        <label for="edit-name">Name</label>
-        <input type="text" id="edit-name" placeholder="Your name" maxlength="50">
+      <div class="form-group">
+        <label class="form-label">Name</label>
+        <input type="text" id="edit-name" class="form-input" placeholder="Your name" maxlength="50">
       </div>
-      <div class="edit-section">
-        <label for="edit-category">Category</label>
-        <select id="edit-category">
+      <div class="form-group">
+        <label class="form-label">Category</label>
+        <select id="edit-category" class="form-input">
           <option value="">-- Select Category (Optional) --</option>
           <option value="musician">🎵 Musician</option>
           <option value="artist">🎨 Artist</option>
@@ -233,18 +344,108 @@
           <option value="business">🏪 Business Owner</option>
           <option value="student">📚 Student</option>
         </select>
-        <small style="color: #888; margin-top: 4px; display: block;">Leave blank to appear in Common zone</small>
       </div>
-      <div class="edit-section">
-        <label for="edit-bio">Bio</label>
-        <textarea id="edit-bio" placeholder="Tell your story..." maxlength="150" rows="3"></textarea>
+      <div class="form-group">
+        <label class="form-label">Bio</label>
+        <textarea id="edit-bio" class="form-input" placeholder="Tell your story..." maxlength="150" rows="3"></textarea>
       </div>
-      <div class="edit-actions">
-        <button class="save-btn" id="save-profile-btn">Save Changes</button>
-      </div>
+      <button class="save-btn" id="save-profile-btn">Save Changes</button>
     </div>
   </div>
 
+  <!-- Earnings Sheet -->
+  <div class="sheet-backdrop" id="earnings-backdrop"></div>
+  <div class="sheet" id="earnings-sheet">
+    <div class="sheet-header">
+      <h2>💰 Your Earnings</h2>
+      <button class="close-btn" onclick="closeEarningsSheet()">✕</button>
+    </div>
+    <div class="sheet-content">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;">
+        <div style="background: #1a1a1a; padding: 12px; border-radius: 8px; text-align: center;">
+          <div style="font-size: 12px; color: #888; margin-bottom: 6px;">Tips Earned</div>
+          <div style="font-size: 20px; font-weight: 700; color: #4ade80;" id="tips-display">₹0</div>
+        </div>
+        <div style="background: #1a1a1a; padding: 12px; border-radius: 8px; text-align: center;">
+          <div style="font-size: 12px; color: #888; margin-bottom: 6px;">Available</div>
+          <div style="font-size: 20px; font-weight: 700; color: #D4A574;" id="available-display">₹0</div>
+        </div>
+      </div>
+      <button class="btn" onclick="openPayoutSheet()">💳 Withdraw Now</button>
+      <button class="btn secondary" onclick="closeEarningsSheet()">Close</button>
+    </div>
+  </div>
+
+  <!-- Referral Sheet -->
+  <div class="sheet-backdrop" id="referral-backdrop"></div>
+  <div class="sheet" id="referral-sheet">
+    <div class="sheet-header">
+      <h2>🔗 Referral Program</h2>
+      <button class="close-btn" onclick="closeReferralSheet()">✕</button>
+    </div>
+    <div class="sheet-content">
+      <div style="background: #1a1a1a; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+        <div style="font-size: 12px; color: #888; margin-bottom: 6px;">Your Referral Link</div>
+        <div class="referral-code-box" id="referral-link">Loading...</div>
+      </div>
+      <button class="btn" onclick="copyReferralLink()">📋 Copy Link</button>
+      <button class="btn" onclick="shareReferralWhatsApp()">💬 Share on WhatsApp</button>
+      <div style="background: linear-gradient(135deg, #1a4d2e, #0d2d20); border: 1px solid #2d5a3d; padding: 14px; border-radius: 8px; margin-top: 16px; margin-bottom: 16px;">
+        <div style="font-size: 13px; line-height: 1.6; color: #ccc;">
+          <p style="margin-bottom: 8px;"><strong>How it works:</strong></p>
+          <p style="margin-bottom: 6px;">1️⃣ Share your link</p>
+          <p style="margin-bottom: 6px;">2️⃣ Friends join & earn tips</p>
+          <p>3️⃣ You get 10% of their tips 💰</p>
+        </div>
+      </div>
+      <button class="btn secondary" onclick="closeReferralSheet()">Close</button>
+    </div>
+  </div>
+
+  <!-- Payout Sheet -->
+  <div class="sheet-backdrop" id="payout-backdrop"></div>
+  <div class="sheet" id="payout-sheet">
+    <div class="sheet-header">
+      <h2>💳 Withdraw Earnings</h2>
+      <button class="close-btn" onclick="closePayoutSheet()">✕</button>
+    </div>
+    <div class="sheet-content">
+      <div style="background: linear-gradient(135deg, #1a1a1a, #0d2d3a); border: 1px solid #2d2d2d; padding: 14px; border-radius: 8px; margin-bottom: 16px;">
+        <div style="font-size: 12px; color: #888; margin-bottom: 6px;">Available Balance</div>
+        <div style="font-size: 24px; font-weight: 700; color: #4ade80;" id="available-balance">₹0</div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Bank Name</label>
+        <input type="text" id="bank-name" class="form-input" placeholder="e.g., HDFC Bank">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Account Number</label>
+        <input type="text" id="account-number" class="form-input" placeholder="1234567890">
+      </div>
+      <div class="form-group">
+        <label class="form-label">IFSC Code</label>
+        <input type="text" id="ifsc-code" class="form-input" placeholder="HDFC0000001">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Withdrawal Amount (₹)</label>
+        <input type="number" id="payout-amount" class="form-input" placeholder="Minimum ₹100">
+      </div>
+
+      <button class="btn" onclick="submitPayoutRequest()">Submit Request</button>
+
+      <div style="margin-top: 20px;">
+        <h3 style="font-size: 14px; margin-bottom: 12px;">Recent Payouts</h3>
+        <div class="payout-history" id="payout-history">
+          <div style="padding: 20px; text-align: center; color: #888;">No payouts yet</div>
+        </div>
+      </div>
+
+      <button class="btn secondary" onclick="closePayoutSheet()" style="margin-top: 16px;">Close</button>
+    </div>
+  </div>
+
+  <!-- Crop Modal -->
   <div class="crop-modal-backdrop" id="crop-modal-backdrop">
     <div class="crop-modal">
       <div class="crop-modal-header">Adjust Photo</div>
@@ -266,12 +467,14 @@
     </div>
   </div>
 
+  <!-- Bottom Nav -->
   <nav class="bottom-nav">
     <button class="nav-btn" onclick="window.location='index.html'"><span>🏠</span><span class="nav-label">Home</span></button>
     <button class="nav-btn" onclick="window.location='upload.html'"><span>➕</span><span class="nav-label">Create</span></button>
     <button class="nav-btn active"><span>👤</span><span class="nav-label">Profile</span></button>
   </nav>
 
+  <!-- Drawer -->
   <div class="drawer-backdrop" id="drawer-backdrop"></div>
   <aside class="drawer" id="drawer">
     <div class="drawer-head">
@@ -282,7 +485,8 @@
       <button class="drawer-item" onclick="window.location='index.html'"><span class="di-icon">🏠</span> Home</button>
       <button class="drawer-item" onclick="window.location='search.html'"><span class="di-icon">🔍</span> Search</button>
       <button class="drawer-item" onclick="window.location='creator-dashboard.html'"><span class="di-icon">👤</span> My Profile</button>
-      <button class="drawer-item" id="edit-profile-drawer"><span class="di-icon">✏️</span> Edit Profile</button>
+      <button class="drawer-item" onclick="openEditProfileSheet()"><span class="di-icon">✏️</span> Edit Profile</button>
+      <button class="drawer-item" onclick="window.location='creator-analytics.html'"><span class="di-icon">📊</span> Analytics</button>
       <div class="drawer-sep"></div>
       <button class="drawer-item drawer-item-danger" id="drawer-logout"><span class="di-icon">🚪</span> Logout</button>
     </div>
@@ -299,7 +503,8 @@
     let CURRENT_REEL = null;
     let CREATOR = null;
     let SELECTED_PROFILE_PIC = null;
-    let viewsChartInstance = null;
+
+    const C = APPWRITE_CONFIG.COLLECTIONS;
 
     function getThumbSrc(reel) {
       const t = reel && reel.thumbnail;
@@ -315,6 +520,13 @@
       toast.textContent = msg;
       document.body.appendChild(toast);
       setTimeout(() => toast.remove(), 3000);
+    }
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
     }
 
     function getCategoryEmoji(cat) {
@@ -339,8 +551,6 @@
       document.getElementById('drawer-logout').onclick = async () => { try { await session.logout(); } catch (e) {} window.location = 'login.html'; };
       document.getElementById('edit-profile-btn').onclick = openEditProfileSheet;
       document.getElementById('upload-btn').onclick = () => window.location = 'upload.html';
-      document.getElementById('withdraw-btn').onclick = () => showToast('Withdrawal coming soon!');
-      document.getElementById('edit-profile-drawer').onclick = openEditProfileSheet;
       document.getElementById('video-menu-cancel').onclick = closeVideoMenu;
       document.getElementById('video-menu-backdrop').onclick = closeVideoMenu;
       document.getElementById('close-edit-profile').onclick = closeEditProfileSheet;
@@ -348,11 +558,14 @@
       document.getElementById('upload-pic-btn').onclick = () => document.getElementById('profile-pic-input').click();
       document.getElementById('profile-pic-input').onchange = handleProfilePicSelect;
       document.getElementById('save-profile-btn').onclick = saveProfileChanges;
+      document.getElementById('earnings-backdrop').onclick = closeEarningsSheet;
+      document.getElementById('referral-backdrop').onclick = closeReferralSheet;
+      document.getElementById('payout-backdrop').onclick = closePayoutSheet;
     }
 
     async function getOrCreateCreator(uid) {
       try {
-        return await db.get(APPWRITE_CONFIG.COLLECTIONS.CREATORS, uid);
+        return await db.get(C.CREATORS, uid);
       } catch (err) {
         const notFound = err && (err.code === 404 || err.type === 'document_not_found');
         if (!notFound) throw err;
@@ -374,14 +587,14 @@
           followers: 0,
           totalViews: 0,
           totalReels: 0,
-          totalEarnings: 0,
+          totalTips: 0,
           isVerified: false,
           isActive: true,
           isAdmin: false,
           createdAt: new Date().toISOString()
         };
 
-        const created = await db.create(APPWRITE_CONFIG.COLLECTIONS.CREATORS, newProfile, uid);
+        const created = await db.create(C.CREATORS, newProfile, uid);
         showToast('Welcome! Your profile is ready.');
         return created;
       }
@@ -396,10 +609,10 @@
         document.getElementById('creator-category').textContent = CREATOR.category ? getCategoryEmoji(CREATOR.category) : 'Common Zone';
         document.getElementById('creator-avatar').src = CREATOR.profilePic || '/logo-suite/primary/logo-khukuri-512x512.png';
 
-        const followers = await db.list(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, [Query.equal('followingId', uid)]);
+        const followers = await db.list(C.FOLLOWERS, [Query.equal('followingId', uid)]);
         document.getElementById('followers-count').textContent = followers.total;
 
-        const reels = await db.list(APPWRITE_CONFIG.COLLECTIONS.REELS, [
+        const reels = await db.list(C.REELS, [
           Query.equal('creatorId', uid),
           Query.orderDesc('uploadedAt'),
           Query.limit(100)
@@ -408,7 +621,49 @@
         document.getElementById('total-reels').textContent = REELS.length;
         const totalViews = REELS.reduce((s, r) => s + (r.views || 0), 0);
         document.getElementById('total-views').textContent = totalViews;
-        document.getElementById('total-earnings').textContent = '₹ ' + (CREATOR.totalEarnings || 0).toFixed(2);
+
+        // Load earnings
+        const totalTips = CREATOR.totalTips || 0;
+        document.getElementById('total-tips').textContent = '₹' + totalTips.toLocaleString();
+
+        // Calculate referral earnings
+        const referrals = await db.list(C.REFERRALS, [Query.equal('referrerId', uid)]);
+        const referralEarnings = referrals.documents.reduce((sum, r) => sum + (r.bonusEarned || 0), 0);
+        document.getElementById('referral-earnings').textContent = '₹' + referralEarnings.toLocaleString();
+
+        // Update earnings sheet
+        document.getElementById('tips-display').textContent = '₹' + totalTips.toLocaleString();
+        const payouts = await db.list(C.PAYOUTS, [Query.equal('creatorId', uid), Query.equal('status', 'completed')]);
+        const totalPaidOut = payouts.documents.reduce((sum, p) => sum + (p.amount || 0), 0);
+        const available = Math.max(0, totalTips - totalPaidOut);
+        document.getElementById('available-display').textContent = '₹' + available.toLocaleString();
+        document.getElementById('available-balance').textContent = '₹' + available.toLocaleString();
+
+        // Load referral code
+        if (!CREATOR.referralCode) {
+          const code = uid.substring(0, 8).toUpperCase() + Math.random().toString(36).substring(2, 7).toUpperCase();
+          await db.update(C.CREATORS, uid, { referralCode: code });
+          CREATOR.referralCode = code;
+        }
+        const referralUrl = `${window.location.origin}/signup?ref=${CREATOR.referralCode}`;
+        document.getElementById('referral-link').textContent = referralUrl;
+
+        // Load payout history
+        const allPayouts = await db.list(C.PAYOUTS, [Query.equal('creatorId', uid)]);
+        if (allPayouts.documents.length > 0) {
+          const historyHtml = allPayouts.documents
+            .sort((a, b) => new Date(b.requestedAt) - new Date(a.requestedAt))
+            .map(p => `
+              <div class="payout-item">
+                <div class="payout-left">
+                  <span class="payout-amount">₹${p.amount}</span>
+                  <span class="payout-date">${new Date(p.requestedAt).toLocaleDateString()}</span>
+                </div>
+                <span class="payout-status ${p.status}">${p.status.charAt(0).toUpperCase() + p.status.slice(1)}</span>
+              </div>
+            `).join('');
+          document.getElementById('payout-history').innerHTML = historyHtml;
+        }
 
         if (!REELS.length) {
           document.getElementById('my-reels-container').innerHTML = '<div class="empty-state">No videos yet. Start uploading!</div>';
@@ -463,7 +718,7 @@
     async function deleteVideo(reel) {
       if (!confirm('Delete this reel? This cannot be undone easily.')) return;
       try {
-        await db.update(APPWRITE_CONFIG.COLLECTIONS.REELS, reel.$id, { isDeleted: true });
+        await db.update(C.REELS, reel.$id, { isDeleted: true });
         REELS = REELS.filter(r => r.$id !== reel.$id);
         await loadDashboard();
       } catch (e) {
@@ -487,6 +742,103 @@
       document.getElementById('edit-profile-sheet').classList.remove('open');
       document.getElementById('edit-profile-backdrop').classList.remove('open');
       SELECTED_PROFILE_PIC = null;
+    }
+
+    function openEarningsSheet() {
+      document.getElementById('earnings-backdrop').classList.add('open');
+      document.getElementById('earnings-sheet').classList.add('open');
+    }
+
+    function closeEarningsSheet() {
+      document.getElementById('earnings-backdrop').classList.remove('open');
+      document.getElementById('earnings-sheet').classList.remove('open');
+    }
+
+    function openReferralSheet() {
+      document.getElementById('referral-backdrop').classList.add('open');
+      document.getElementById('referral-sheet').classList.add('open');
+    }
+
+    function closeReferralSheet() {
+      document.getElementById('referral-backdrop').classList.remove('open');
+      document.getElementById('referral-sheet').classList.remove('open');
+    }
+
+    function openPayoutSheet() {
+      document.getElementById('payout-backdrop').classList.add('open');
+      document.getElementById('payout-sheet').classList.add('open');
+    }
+
+    function closePayoutSheet() {
+      document.getElementById('payout-backdrop').classList.remove('open');
+      document.getElementById('payout-sheet').classList.remove('open');
+    }
+
+    async function copyReferralLink() {
+      const link = document.getElementById('referral-link').textContent;
+      try {
+        await navigator.clipboard.writeText(link);
+        showToast('Link copied! 📋');
+      } catch (e) {
+        showToast('Failed to copy', true);
+      }
+    }
+
+    async function shareReferralWhatsApp() {
+      const link = document.getElementById('referral-link').textContent;
+      const text = `Join GorkhaReels with my referral code and let's earn together! 💰\n\n${link}`;
+      const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+      window.open(whatsappUrl, '_blank');
+    }
+
+    async function submitPayoutRequest() {
+      const uid = session.getUserId();
+      const bankName = document.getElementById('bank-name').value.trim();
+      const accountNumber = document.getElementById('account-number').value.trim();
+      const ifscCode = document.getElementById('ifsc-code').value.trim();
+      const amount = parseInt(document.getElementById('payout-amount').value);
+
+      if (!bankName || !accountNumber || !ifscCode || !amount) {
+        showToast('Please fill all fields', true);
+        return;
+      }
+
+      if (amount < 100) {
+        showToast('Minimum withdrawal is ₹100', true);
+        return;
+      }
+
+      try {
+        const creator = await db.get(C.CREATORS, uid);
+        const payouts = await db.list(C.PAYOUTS, [Query.equal('creatorId', uid), Query.equal('status', 'completed')]);
+        const totalPaidOut = payouts.documents.reduce((sum, p) => sum + (p.amount || 0), 0);
+        const available = Math.max(0, (creator.totalTips || 0) - totalPaidOut);
+
+        if (amount > available) {
+          showToast('Amount exceeds available balance', true);
+          return;
+        }
+
+        const payoutId = ID.unique();
+        await db.create(C.PAYOUTS, {
+          payoutId,
+          creatorId: uid,
+          amount: amount,
+          bankName: bankName,
+          accountNumber: accountNumber,
+          ifscCode: ifscCode,
+          status: 'pending',
+          requestedAt: new Date().toISOString()
+        }, payoutId);
+
+        showToast('Payout request submitted! 🎉');
+        document.getElementById('payout-amount').value = '';
+        closePayoutSheet();
+        await loadDashboard();
+      } catch (e) {
+        console.error('Payout error:', e);
+        showToast('Failed to submit payout request', true);
+      }
     }
 
     function handleProfilePicSelect(e) {
@@ -539,7 +891,7 @@
           }
         }
 
-        await db.update(APPWRITE_CONFIG.COLLECTIONS.CREATORS, session.getUserId(), { name, bio, category, profilePic: profilePicUrl });
+        await db.update(C.CREATORS, session.getUserId(), { name, bio, category, profilePic: profilePicUrl });
         CREATOR.name = name;
         CREATOR.bio = bio;
         CREATOR.category = category;
