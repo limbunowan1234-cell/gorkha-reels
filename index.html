@@ -11,7 +11,8 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body { height: 100%; }
-    body { background: #0f0f0f; color: #fff; font-family: system-ui; overflow-x: hidden; }
+    body { background: #0f0f0f; color: #fff; font-family: system-ui; overflow-x: hidden; touch-action: manipulation; -webkit-text-size-adjust: 100%; }
+    .feed-video, .zone-reel-card, .action-btn, .feed-menu, button { touch-action: manipulation; }
 
     @keyframes storyGlow {
       0%, 100% { box-shadow: 0 0 12px rgba(11, 94, 107, 0.6), inset 0 0 12px rgba(11, 94, 107, 0.3); }
@@ -151,6 +152,18 @@
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
+
+    /* ====== OPTIONS BOTTOM SHEET ====== */
+    .options-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 170; display: none; }
+    .options-backdrop.open { display: block; }
+    .options-sheet { position: fixed; left: 0; right: 0; bottom: 0; background: #1a1a1a; border-radius: 18px 18px 0 0; z-index: 180; transform: translateY(100%); transition: transform 0.25s ease; padding: 8px 0 calc(8px + env(safe-area-inset-bottom)); box-shadow: 0 -4px 20px rgba(0,0,0,0.5); }
+    .options-sheet.open { transform: translateY(0); }
+    .options-handle { width: 40px; height: 4px; background: #444; border-radius: 2px; margin: 8px auto 12px; }
+    .options-item { width: 100%; display: flex; align-items: center; gap: 14px; padding: 16px 22px; background: none; border: none; color: #fff; font-size: 15px; font-weight: 500; cursor: pointer; text-align: left; }
+    .options-item:active { background: #262626; }
+    .options-item .oi-icon { font-size: 20px; width: 24px; text-align: center; }
+    .options-item-danger { color: #ef4444; }
+    .options-cancel { width: calc(100% - 32px); margin: 8px 16px 0; padding: 14px; background: #262626; border: none; border-radius: 12px; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -228,6 +241,16 @@
 
   <div class="feed" id="feed">
     <div class="loading">Loading...</div>
+  </div>
+
+
+  <div class="options-backdrop" id="options-backdrop" onclick="closeOptionsSheet()"></div>
+  <div class="options-sheet" id="options-sheet">
+    <div class="options-handle"></div>
+    <button class="options-item" onclick="optShare()"><span class="oi-icon">📤</span> Share</button>
+    <button class="options-item" onclick="optCopyLink()"><span class="oi-icon">🔗</span> Copy link</button>
+    <button class="options-item options-item-danger" onclick="optReport()"><span class="oi-icon">🚩</span> Report</button>
+    <button class="options-cancel" onclick="closeOptionsSheet()">Cancel</button>
   </div>
 
   <nav class="bottom-nav">
@@ -331,7 +354,6 @@
         
         if (existing.total === 0) { 
           await db.create(APPWRITE_CONFIG.COLLECTIONS.FOLLOWERS, ID.unique(), { 
-            followId: ID.unique(), 
             followerId: MY_USER_ID, 
             followingId: creatorId, 
             CreatorId: creatorId, 
@@ -394,7 +416,7 @@
                   <div class="feed-time">${creator.category ? '📌 ' + creator.category : 'Common Zone'} • ${getTimeAgo(new Date(reel.uploadedAt))}${reel.zone ? `<span class="zone-pill">📍 ${escapeHtml(reel.zone)}</span>` : ''}</div>
                 </div>
               </div>
-              <button class="feed-menu" onclick="showMoreOptions('${reel.$id}')">⋮</button>
+              <button class="feed-menu" onclick="showMoreOptions('${reel.$id}', 'reel')">⋮</button>
             </div>
             <div class="feed-video" onclick="window.location.href='./video-modal.html?reelId=${reel.$id}'">
               <video src="${reel.videoUrl}" muted playsinline preload="metadata" webkit-playsinline></video>
@@ -497,7 +519,7 @@
             const liked = MY_USER_ID ? await isVideoLiked(reel.$id) : false;
             const reelItem = document.createElement('div');
             reelItem.className = 'feed-item';
-            reelItem.innerHTML = `<div class="feed-header"><div class="feed-creator-info"><img class="feed-avatar" src="${creator.profilePic || '/logo-suite/primary/logo-khukuri-512x512.png'}" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'" onclick="window.location='creator-profile.html?creatorId=${creator.$id}'"><div class="feed-creator-meta"><div class="feed-creator-name" onclick="window.location='creator-profile.html?creatorId=${creator.$id}'">${escapeHtml(creator.name || 'User')}${creator.isVerified ? ' ✓' : ''}</div><div class="feed-time">${creator.category ? '📌 ' + creator.category : 'Common Zone'} • ${getTimeAgo(new Date(reel.uploadedAt))}${reel.zone ? `<span class="zone-pill">📍 ${escapeHtml(reel.zone)}</span>` : ''}</div></div></div><button class="feed-menu" onclick="showMoreOptions('${reel.$id}')">⋮</button></div><div class="feed-video" onclick="window.location.href='./video-modal.html?reelId=${reel.$id}'"><video src="${reel.videoUrl}" muted playsinline preload="metadata" webkit-playsinline></video></div><div class="feed-actions"><button class="action-btn ${liked ? 'liked' : ''}" id="like-${reel.$id}" onclick="toggleLike('${reel.$id}', this, 'reel')">${liked ? '❤️' : '🤍'}</button><button class="action-btn" onclick="window.location.href='./video-modal.html?reelId=${reel.$id}#comments'">💬</button><button class="action-btn" onclick="shareContent('${reel.$id}', 'reel')">📤</button></div><div class="feed-stats"><span id="likes-${reel.$id}">${reel.likes || 0} likes</span> • <span id="views-${reel.$id}">${reel.views || 0} views</span></div>`;
+            reelItem.innerHTML = `<div class="feed-header"><div class="feed-creator-info"><img class="feed-avatar" src="${creator.profilePic || '/logo-suite/primary/logo-khukuri-512x512.png'}" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'" onclick="window.location='creator-profile.html?creatorId=${creator.$id}'"><div class="feed-creator-meta"><div class="feed-creator-name" onclick="window.location='creator-profile.html?creatorId=${creator.$id}'">${escapeHtml(creator.name || 'User')}${creator.isVerified ? ' ✓' : ''}</div><div class="feed-time">${creator.category ? '📌 ' + creator.category : 'Common Zone'} • ${getTimeAgo(new Date(reel.uploadedAt))}${reel.zone ? `<span class="zone-pill">📍 ${escapeHtml(reel.zone)}</span>` : ''}</div></div></div><button class="feed-menu" onclick="showMoreOptions('${reel.$id}', 'reel')">⋮</button></div><div class="feed-video" onclick="window.location.href='./video-modal.html?reelId=${reel.$id}'"><video src="${reel.videoUrl}" muted playsinline preload="metadata" webkit-playsinline></video></div><div class="feed-actions"><button class="action-btn ${liked ? 'liked' : ''}" id="like-${reel.$id}" onclick="toggleLike('${reel.$id}', this, 'reel')">${liked ? '❤️' : '🤍'}</button><button class="action-btn" onclick="window.location.href='./video-modal.html?reelId=${reel.$id}#comments'">💬</button><button class="action-btn" onclick="shareContent('${reel.$id}', 'reel')">📤</button></div><div class="feed-stats"><span id="likes-${reel.$id}">${reel.likes || 0} likes</span> • <span id="views-${reel.$id}">${reel.views || 0} views</span></div>`;
             feed.appendChild(reelItem);
           } else if (item.type === 'post') {
             const post = item.data, creator = item.creator;
@@ -506,7 +528,7 @@
             try { hashtags = JSON.parse(post.hashtags || '[]'); } catch (e) {}
             const postItem = document.createElement('div');
             postItem.className = 'feed-item';
-            postItem.innerHTML = `<div class="feed-header"><div class="feed-creator-info"><img class="feed-avatar" src="${creator.profilePic || '/logo-suite/primary/logo-khukuri-512x512.png'}" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'" onclick="window.location='creator-profile.html?creatorId=${creator.$id}'"><div class="feed-creator-meta"><div class="feed-creator-name" onclick="window.location='creator-profile.html?creatorId=${creator.$id}'">${escapeHtml(creator.name || 'User')}${creator.isVerified ? ' ✓' : ''}</div><div class="feed-time">${creator.category ? '📌 ' + creator.category : 'Common Zone'} • ${getTimeAgo(new Date(post.createdAt))}</div></div></div><button class="feed-menu" onclick="showMoreOptions('${post.$id}')">⋮</button></div><div class="feed-text-content"><p>${escapeHtml(post.content)}</p>${hashtags.length > 0 ? `<div class="feed-hashtags">${hashtags.map(tag => `<a href="#" onclick="event.preventDefault(); alert('Hashtag search coming soon')">${tag}</a>`).join(' ')}</div>` : ''}</div><div class="feed-actions"><button class="action-btn ${liked ? 'liked' : ''}" id="like-${post.$id}" onclick="toggleLike('${post.$id}', this, 'post')">${liked ? '❤️' : '🤍'}</button><button class="action-btn" onclick="alert('Comments coming soon')">💬</button><button class="action-btn" onclick="shareContent('${post.$id}', 'post')">📤</button></div><div class="feed-stats"><span id="likes-${post.$id}">${post.likes || 0} likes</span> • <span id="shares-${post.$id}">${post.shares || 0} shares</span></div>`;
+            postItem.innerHTML = `<div class="feed-header"><div class="feed-creator-info"><img class="feed-avatar" src="${creator.profilePic || '/logo-suite/primary/logo-khukuri-512x512.png'}" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'" onclick="window.location='creator-profile.html?creatorId=${creator.$id}'"><div class="feed-creator-meta"><div class="feed-creator-name" onclick="window.location='creator-profile.html?creatorId=${creator.$id}'">${escapeHtml(creator.name || 'User')}${creator.isVerified ? ' ✓' : ''}</div><div class="feed-time">${creator.category ? '📌 ' + creator.category : 'Common Zone'} • ${getTimeAgo(new Date(post.createdAt))}</div></div></div><button class="feed-menu" onclick="showMoreOptions('${post.$id}', 'post')">⋮</button></div><div class="feed-text-content"><p>${escapeHtml(post.content)}</p>${hashtags.length > 0 ? `<div class="feed-hashtags">${hashtags.map(tag => `<a href="#" onclick="event.preventDefault(); alert('Hashtag search coming soon')">${tag}</a>`).join(' ')}</div>` : ''}</div><div class="feed-actions"><button class="action-btn ${liked ? 'liked' : ''}" id="like-${post.$id}" onclick="toggleLike('${post.$id}', this, 'post')">${liked ? '❤️' : '🤍'}</button><button class="action-btn" onclick="alert('Comments coming soon')">💬</button><button class="action-btn" onclick="shareContent('${post.$id}', 'post')">📤</button></div><div class="feed-stats"><span id="likes-${post.$id}">${post.likes || 0} likes</span> • <span id="shares-${post.$id}">${post.shares || 0} shares</span></div>`;
             feed.appendChild(postItem);
           }
         }
@@ -549,7 +571,73 @@
 
     function shareContent(contentId, type) { const path = type === 'reel' ? 'video-modal.html?reelId=' : 'posts/'; const url = `${window.location.origin}/${path}${contentId}`; navigator.share?.({ url, title: 'Check this out on GorkhaReels!' }); }
 
-    function showMoreOptions(contentId) { alert('More options coming soon!'); }
+    function showMoreOptions(contentId, type) {
+      const sheet = document.getElementById('options-sheet');
+      sheet.dataset.contentId = contentId;
+      sheet.dataset.contentType = type || 'reel';
+      sheet.classList.add('open');
+      document.getElementById('options-backdrop').classList.add('open');
+    }
+
+    function closeOptionsSheet() {
+      document.getElementById('options-sheet').classList.remove('open');
+      document.getElementById('options-backdrop').classList.remove('open');
+    }
+
+    function buildContentUrl(contentId, type) {
+      const path = type === 'reel' ? 'video-modal.html?reelId=' : 'video-modal.html?postId=';
+      return `${window.location.origin}/${path}${contentId}`;
+    }
+
+    async function optShare() {
+      const sheet = document.getElementById('options-sheet');
+      const url = buildContentUrl(sheet.dataset.contentId, sheet.dataset.contentType);
+      closeOptionsSheet();
+      if (navigator.share) {
+        try { await navigator.share({ url, title: 'Check this out on GorkhaReels!' }); } catch (e) {}
+      } else {
+        try { await navigator.clipboard.writeText(url); alert('Link copied!'); } catch (e) {}
+      }
+    }
+
+    async function optCopyLink() {
+      const sheet = document.getElementById('options-sheet');
+      const url = buildContentUrl(sheet.dataset.contentId, sheet.dataset.contentType);
+      closeOptionsSheet();
+      try {
+        await navigator.clipboard.writeText(url);
+        alert('Link copied!');
+      } catch (e) {
+        // Fallback for older browsers
+        const ta = document.createElement('textarea');
+        ta.value = url; document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); alert('Link copied!'); } catch (err) { alert('Could not copy'); }
+        document.body.removeChild(ta);
+      }
+    }
+
+    async function optReport() {
+      const sheet = document.getElementById('options-sheet');
+      const contentId = sheet.dataset.contentId;
+      const type = sheet.dataset.contentType;
+      closeOptionsSheet();
+      if (!session.isLoggedIn()) { window.location = 'login.html'; return; }
+      const reason = prompt('Why are you reporting this? (optional)');
+      if (reason === null) return; // user cancelled
+      try {
+        await db.create(APPWRITE_CONFIG.COLLECTIONS.REPORTS, ID.unique(), {
+          reporterId: MY_USER_ID,
+          contentId: contentId,
+          contentType: type,
+          reason: reason || 'No reason given',
+          createdAt: new Date().toISOString()
+        });
+        alert('Thank you. This content has been reported.');
+      } catch (err) {
+        console.error('Report error:', err);
+        alert('Could not submit report. Please try again.');
+      }
+    }
 
     function filterByCategory(category, evt) { 
       currentFilter = category; 
