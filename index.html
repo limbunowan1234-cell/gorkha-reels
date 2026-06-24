@@ -187,6 +187,9 @@
     .feed-stats { padding: 8px 16px; font-size: 13px; color: #888; }
     .loading { text-align: center; padding: 20px; color: #666; }
 
+    /* ====== ZONE PILL (NEW) ====== */
+    .zone-pill { display: inline-flex; align-items: center; gap: 4px; background: rgba(11,94,107,0.18); border: 1px solid rgba(11,94,107,0.4); color: #4db8c4; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 12px; margin-left: 6px; vertical-align: middle; }
+
     .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #1a1a1a; border-top: 1px solid #2d2d2d; display: flex; justify-content: space-around; align-items: center; z-index: 100; padding: 8px 0; }
     .nav-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; background: none; border: none; color: #666; cursor: pointer; flex: 1; padding: 10px; font-size: 18px; }
     .nav-btn.active { color: #0B5E6B; }
@@ -381,6 +384,7 @@
 
     /**
      * NEW: Load live strip with recent Darjeeling content
+     * Shows the real zone tagged on each reel.
      */
     async function loadLiveStrip() {
       try {
@@ -397,10 +401,10 @@
           return;
         }
         
-        container.innerHTML = items.slice(0, 6).map((reel, idx) => `
+        container.innerHTML = items.slice(0, 6).map((reel) => `
           <div class="live-strip-item" onclick="window.location.href='./video-modal.html?reelId=${reel.$id}'">
             <video src="${reel.videoUrl}" muted playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>
-            <div class="live-strip-item-label">${['Tiger Hill', 'Mall Road', 'Tea Garden', 'Toy Train', 'Local', 'Scenic'][idx % 6]}</div>
+            <div class="live-strip-item-label">📍 ${escapeHtml(reel.zone || 'Darjeeling')}</div>
           </div>
         `).join('');
       } catch (err) {
@@ -523,7 +527,7 @@
                     ${escapeHtml(creator.name || 'User')}${creator.isVerified ? ' ✓' : ''}
                     ${badge ? ` <span style="color: #ff6b35; margin-left: 4px;">${badge}</span>` : ''}
                   </div>
-                  <div class="feed-time">${creator.category ? '📌 ' + creator.category : 'Common Zone'} • ${getTimeAgo(new Date(reel.uploadedAt))}</div>
+                  <div class="feed-time">${creator.category ? '📌 ' + creator.category : 'Common Zone'} • ${getTimeAgo(new Date(reel.uploadedAt))}${reel.zone ? `<span class="zone-pill">📍 ${escapeHtml(reel.zone)}</span>` : ''}</div>
                 </div>
               </div>
               <button class="feed-menu" onclick="showMoreOptions('${reel.$id}')">⋮</button>
@@ -620,7 +624,7 @@
             const liked = MY_USER_ID ? await isVideoLiked(reel.$id) : false;
             const reelItem = document.createElement('div');
             reelItem.className = 'feed-item';
-            reelItem.innerHTML = `<div class="feed-header"><div class="feed-creator-info"><img class="feed-avatar" src="${creator.profilePic || '/logo-suite/primary/logo-khukuri-512x512.png'}" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'" onclick="window.location='creator-profile.html?creatorId=${creator.$id}'"><div class="feed-creator-meta"><div class="feed-creator-name" onclick="window.location='creator-profile.html?creatorId=${creator.$id}'">${escapeHtml(creator.name || 'User')}${creator.isVerified ? ' ✓' : ''}</div><div class="feed-time">${creator.category ? '📌 ' + creator.category : 'Common Zone'} • ${getTimeAgo(new Date(reel.uploadedAt))}</div></div></div><button class="feed-menu" onclick="showMoreOptions('${reel.$id}')">⋮</button></div><div class="feed-video" onclick="window.location.href='./video-modal.html?reelId=${reel.$id}'"><video src="${reel.videoUrl}" muted playsinline></video></div><div class="feed-actions"><button class="action-btn ${liked ? 'liked' : ''}" id="like-${reel.$id}" onclick="toggleLike('${reel.$id}', this, 'reel')">${liked ? '❤️' : '🤍'}</button><button class="action-btn" onclick="window.location.href='./video-modal.html?reelId=${reel.$id}#comments'">💬</button><button class="action-btn" onclick="shareContent('${reel.$id}', 'reel')">📤</button></div><div class="feed-stats"><span id="likes-${reel.$id}">${reel.likes || 0} likes</span> • <span id="views-${reel.$id}">${reel.views || 0} views</span></div>`;
+            reelItem.innerHTML = `<div class="feed-header"><div class="feed-creator-info"><img class="feed-avatar" src="${creator.profilePic || '/logo-suite/primary/logo-khukuri-512x512.png'}" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'" onclick="window.location='creator-profile.html?creatorId=${creator.$id}'"><div class="feed-creator-meta"><div class="feed-creator-name" onclick="window.location='creator-profile.html?creatorId=${creator.$id}'">${escapeHtml(creator.name || 'User')}${creator.isVerified ? ' ✓' : ''}</div><div class="feed-time">${creator.category ? '📌 ' + creator.category : 'Common Zone'} • ${getTimeAgo(new Date(reel.uploadedAt))}${reel.zone ? `<span class="zone-pill">📍 ${escapeHtml(reel.zone)}</span>` : ''}</div></div></div><button class="feed-menu" onclick="showMoreOptions('${reel.$id}')">⋮</button></div><div class="feed-video" onclick="window.location.href='./video-modal.html?reelId=${reel.$id}'"><video src="${reel.videoUrl}" muted playsinline></video></div><div class="feed-actions"><button class="action-btn ${liked ? 'liked' : ''}" id="like-${reel.$id}" onclick="toggleLike('${reel.$id}', this, 'reel')">${liked ? '❤️' : '🤍'}</button><button class="action-btn" onclick="window.location.href='./video-modal.html?reelId=${reel.$id}#comments'">💬</button><button class="action-btn" onclick="shareContent('${reel.$id}', 'reel')">📤</button></div><div class="feed-stats"><span id="likes-${reel.$id}">${reel.likes || 0} likes</span> • <span id="views-${reel.$id}">${reel.views || 0} views</span></div>`;
             feed.appendChild(reelItem);
           } else if (item.type === 'post') {
             const post = item.data, creator = item.creator;
@@ -696,9 +700,59 @@
         await session.refresh();
         if (session.isLoggedIn()) { MY_USER_ID = session.getUserId(); try { if (typeof lastSeenTracker !== 'undefined' && lastSeenTracker.init) { lastSeenTracker.init(MY_USER_ID); } } catch (e) {} await new Promise(resolve => setTimeout(resolve, 100)); }
         setupDrawer();
-        await Promise.allSettled([ loadSuggestedCreators(), loadVideos(), loadLiveStrip() ]);
+        await Promise.allSettled([ loadSuggestedCreators(), loadVideos(), loadLiveStrip(), loadStoryCarousel() ]);
         setupInfiniteScroll();
       } catch (err) { setupDrawer(); await loadVideos(); }
+    }
+
+    async function loadStoryCarousel() {
+      try {
+        const scroll = document.getElementById('story-carousel-scroll');
+        const now = new Date().toISOString();
+
+        // Active (unexpired) stories, newest first
+        const res = await db.list('status', [
+          Query.greaterThan('expiresAt', now),
+          Query.orderDesc('createdAt'),
+          Query.limit(100)
+        ]);
+
+        const stories = res.documents || [];
+        if (stories.length === 0) return; // keep just the "Your Story" button
+
+        // One entry per creator (dedupe), preserving newest-first order
+        const seen = new Set();
+        const uniqueCreatorIds = [];
+        for (const s of stories) {
+          if (!seen.has(s.creatorId)) {
+            seen.add(s.creatorId);
+            uniqueCreatorIds.push(s.creatorId);
+          }
+        }
+
+        // Fetch each creator's profile (skip failures)
+        const creators = await Promise.all(
+          uniqueCreatorIds.map(id => db.get(APPWRITE_CONFIG.COLLECTIONS.CREATORS, id).catch(() => null))
+        );
+
+        const html = creators
+          .filter(c => c)
+          .map(c => `
+            <a href="story.html?creator=${c.$id}" class="story-item">
+              <img class="story-avatar has-unseen"
+                   src="${c.profilePic || '/logo-suite/primary/logo-khukuri-512x512.png'}"
+                   onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'"
+                   alt="${escapeHtml(c.name || 'User')}">
+              <div class="story-name">${escapeHtml(c.name || 'User')}</div>
+            </a>
+          `).join('');
+
+        // Append after the "Your Story" button (never wipe it)
+        scroll.insertAdjacentHTML('beforeend', html);
+      } catch (err) {
+        console.error('Story carousel error:', err);
+        // On failure the "Your Story" button stays — no broken UI
+      }
     }
 
     function escapeHtml(text) {
