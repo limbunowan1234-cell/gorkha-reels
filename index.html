@@ -86,8 +86,8 @@
     .feed-creator-name { font-size: 14px; font-weight: 700; color: #fff; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .feed-time { font-size: 11px; color: #888; }
     .feed-menu { background: none; border: none; color: #666; font-size: 18px; cursor: pointer; padding: 4px; }
-    .feed-video { position: relative; background: #000; aspect-ratio: 9/16; overflow: hidden; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-    .feed-video img, .feed-video video { width: 100%; height: 100%; object-fit: contain; }
+    .feed-video { position: relative; background: #000; overflow: hidden; cursor: pointer; display: flex; align-items: center; justify-content: center; max-height: 70vh; }
+    .feed-video img, .feed-video video { width: 100%; height: auto; max-height: 70vh; object-fit: contain; display: block; }
     .feed-text-content { padding: 12px 16px; font-size: 15px; line-height: 1.5; color: #fff; word-break: break-word; }
     .feed-hashtags { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; }
     .feed-hashtags a { color: #0B5E6B; text-decoration: none; font-weight: 600; font-size: 13px; }
