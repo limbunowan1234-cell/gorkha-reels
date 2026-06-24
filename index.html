@@ -28,109 +28,21 @@
     .banner-btn { width: 38px; height: 38px; border: none; border-radius: 50%; background: rgba(255,255,255,0.18); color: #fff; font-size: 19px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
     .banner-btn:active { background: rgba(255,255,255,0.3); transform: scale(0.92); }
 
-    /* ====== GEO CONTEXT TABS (NEW) ====== */
-    .geo-context-tabs {
-      position: sticky;
-      top: 56px;
-      z-index: 99;
-      background: linear-gradient(180deg, rgba(15,15,15,0.98) 0%, rgba(15,15,15,0.95) 100%);
-      padding: 12px 16px;
-      border-bottom: 1px solid #1a1a1a;
-      display: flex;
-      gap: 8px;
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-      scroll-behavior: smooth;
-    }
-    .geo-context-tabs::-webkit-scrollbar { height: 3px; }
-    .geo-context-tabs::-webkit-scrollbar-thumb { background: #0B5E6B; border-radius: 2px; }
-    .geo-tab {
-      flex: 0 0 auto;
-      padding: 8px 14px;
-      border: 1px solid rgba(11, 94, 107, 0.3);
-      border-radius: 20px;
-      background: transparent;
-      color: #888;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      white-space: nowrap;
-      transition: all 0.25s ease;
-      text-transform: uppercase;
-      letter-spacing: 0.4px;
-    }
-    .geo-tab:hover {
-      border-color: #0B5E6B;
-      background: rgba(11, 94, 107, 0.1);
-    }
-    .geo-tab.active {
-      background: linear-gradient(135deg, #0B5E6B, #0D7377);
-      border-color: #0D7377;
-      color: #fff;
-      box-shadow: 0 4px 12px rgba(11, 94, 107, 0.3);
-    }
-
-    /* ====== LIVE DARJEELING STRIP (NEW) ====== */
-    .live-darjeeling-strip {
-      background: #0f0f0f;
-      padding: 12px 16px;
-      border-bottom: 1px solid #1a1a1a;
-      position: relative;
-      z-index: 98;
-    }
-    .live-strip-title {
-      font-size: 11px;
-      font-weight: 700;
-      color: #888;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .live-strip-container {
-      display: flex;
-      gap: 10px;
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-      scroll-behavior: smooth;
-      padding-bottom: 4px;
-    }
-    .live-strip-container::-webkit-scrollbar { height: 4px; }
-    .live-strip-container::-webkit-scrollbar-thumb { background: #0B5E6B; border-radius: 2px; }
-    .live-strip-item {
-      flex: 0 0 100px;
-      aspect-ratio: 9/16;
-      border-radius: 8px;
-      overflow: hidden;
-      background: #1a1a1a;
-      border: 1px solid #2d2d2d;
-      cursor: pointer;
-      position: relative;
-      transition: all 0.2s ease;
-    }
-    .live-strip-item:hover {
-      border-color: #0B5E6B;
-      transform: translateY(-4px);
-    }
-    .live-strip-item img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-    .live-strip-item-label {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
-      padding: 6px 8px;
-      font-size: 10px;
-      font-weight: 600;
-      color: #fff;
-      text-align: center;
-    }
+    /* ====== ZONE HIGHLIGHTS (TOP 2 REELS PER ZONE) ====== */
+    .zone-highlights-section { background: #0f0f0f; border-bottom: 1px solid #1a1a1a; z-index: 98; }
+    .zone-highlights-header { padding: 16px; }
+    .zone-highlights-title { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 12px; }
+    .zone-highlights-tabs { display: flex; gap: 6px; overflow-x: auto; scroll-behavior: smooth; padding: 8px 0; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+    .zone-highlights-tabs::-webkit-scrollbar { display: none; }
+    .zone-highlight-tab { flex: 0 0 auto; padding: 6px 12px; background: #1a1a1a; border: 1px solid #2d2d2d; color: #888; border-radius: 16px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+    .zone-highlight-tab.active { background: #0B5E6B; border-color: #0B5E6B; color: #fff; }
+    .zone-highlights-feed { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 0 16px 12px; }
+    .zone-reel-card { position: relative; aspect-ratio: 9/16; border-radius: 10px; overflow: hidden; background: #1a1a1a; border: 1px solid #2d2d2d; cursor: pointer; }
+    .zone-reel-card video { width: 100%; height: 100%; object-fit: cover; }
+    .zone-reel-card-overlay { position: absolute; inset: 0; background: linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.8)); display: flex; flex-direction: column; justify-content: flex-end; padding: 8px; color: #fff; }
+    .zone-reel-stats { font-size: 10px; color: rgba(255,255,255,0.8); }
+    .see-more-btn { width: calc(100% - 32px); margin: 12px 16px; padding: 12px; background: linear-gradient(135deg, #0B5E6B, #0D7377); border: none; border-radius: 10px; color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .see-more-btn:active { transform: scale(0.98); }
 
     .story-carousel-section { padding: 16px; border-bottom: 1px solid #1a1a1a; background: #0f0f0f; z-index: 97; }
     .story-carousel-scroll { display: flex; gap: 12px; overflow-x: auto; scroll-behavior: smooth; padding: 8px 0; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
@@ -257,20 +169,28 @@
     </div>
   </header>
 
-  <!-- NEW: GEO CONTEXT TABS -->
-  <div class="geo-context-tabs" id="geo-context-tabs">
-    <button class="geo-tab active" data-context="FOR_YOU" onclick="switchGeoContext('FOR_YOU', event)">For You</button>
-    <button class="geo-tab" data-context="NEAR_YOU" onclick="switchGeoContext('NEAR_YOU', event)">📍 Near You</button>
-    <button class="geo-tab" data-context="SCENIC" onclick="switchGeoContext('SCENIC', event)">🏔️ Scenic</button>
-    <button class="geo-tab" data-context="TRENDING" onclick="switchGeoContext('TRENDING', event)">🔥 Trending</button>
-  </div>
-
-  <!-- NEW: LIVE DARJEELING STRIP -->
-  <div class="live-darjeeling-strip" id="live-darjeeling-strip">
-    <div class="live-strip-title">📍 Live in Darjeeling</div>
-    <div class="live-strip-container" id="live-strip-container">
-      <div class="loading" style="padding: 12px;">Loading...</div>
+  <!-- ZONE HIGHLIGHTS: TOP 2 REELS PER ZONE -->
+  <div class="zone-highlights-section" id="zone-highlights-section">
+    <div class="zone-highlights-header">
+      <div class="zone-highlights-title">🏔️ Trending from Zones</div>
+      <div class="zone-highlights-tabs">
+        <button class="zone-highlight-tab active" data-zone="Darjeeling" onclick="switchZoneHighlight('Darjeeling', event)">Darjeeling</button>
+        <button class="zone-highlight-tab" data-zone="Kalimpong" onclick="switchZoneHighlight('Kalimpong', event)">Kalimpong</button>
+        <button class="zone-highlight-tab" data-zone="Kurseong" onclick="switchZoneHighlight('Kurseong', event)">Kurseong</button>
+        <button class="zone-highlight-tab" data-zone="Siliguri" onclick="switchZoneHighlight('Siliguri', event)">Siliguri</button>
+        <button class="zone-highlight-tab" data-zone="Mirik" onclick="switchZoneHighlight('Mirik', event)">Mirik</button>
+        <button class="zone-highlight-tab" data-zone="Sukhiapokhri" onclick="switchZoneHighlight('Sukhiapokhri', event)">Sukhiapokhri</button>
+        <button class="zone-highlight-tab" data-zone="Takdah" onclick="switchZoneHighlight('Takdah', event)">Takdah</button>
+        <button class="zone-highlight-tab" data-zone="Sonada" onclick="switchZoneHighlight('Sonada', event)">Sonada</button>
+        <button class="zone-highlight-tab" data-zone="Bijanbari" onclick="switchZoneHighlight('Bijanbari', event)">Bijanbari</button>
+        <button class="zone-highlight-tab" data-zone="Pedong" onclick="switchZoneHighlight('Pedong', event)">Pedong</button>
+        <button class="zone-highlight-tab" data-zone="Other" onclick="switchZoneHighlight('Other', event)">Other</button>
+      </div>
     </div>
+    <div class="zone-highlights-feed" id="zone-highlights-feed">
+      <div class="loading">Loading zone highlights...</div>
+    </div>
+    <button class="see-more-btn" id="see-more-btn" onclick="seeMoreZone()">See More from this Zone →</button>
   </div>
 
   <div class="story-carousel-section" id="story-carousel-section">
@@ -296,7 +216,7 @@
     </div>
   </div>
 
-  <div class="suggested-banner" id="suggested-banner">
+  <div class="suggested-banner hidden" id="suggested-banner">
     <div class="suggested-header">
       <div class="suggested-title">✨ Creators You May Like</div>
       <button class="suggested-close" onclick="document.getElementById('suggested-banner').classList.add('hidden')">✕</button>
@@ -341,13 +261,9 @@
   <script src="js/appwrite-config.js"></script>
   <script src="js/last-seen-tracker.js"></script>
   <script src="js/trending.js"></script>
-  <script src="js/geo-feed-engine.js"></script>
-  <script src="js/geo-context.js"></script>
-  <script src="js/interstitial-manager.js"></script>
 
   <script>
-    let MY_USER_ID = null, lastOffset = 0, isLoadingMore = false, currentFilter = 'all', currentGeoContext = 'FOR_YOU';
-    let geoFeedEngine = null, geoContextManager = null, interstitialManager = null;
+    let MY_USER_ID = null, lastOffset = 0, isLoadingMore = false, currentFilter = 'all', currentZone = 'all';
 
     function setupDrawer() {
       const openBtn = document.getElementById('open-drawer');
@@ -359,58 +275,6 @@
       backdrop.onclick = () => { drawer.classList.remove('open'); backdrop.classList.remove('open'); };
       items.forEach(item => { item.addEventListener('click', () => { drawer.classList.remove('open'); backdrop.classList.remove('open'); }); });
       document.getElementById('drawer-logout').onclick = async () => { try { await session.logout(); } catch (e) {} window.location = 'login.html'; };
-    }
-
-    /**
-     * NEW: Switch geo context (For You, Near You, Scenic, Trending)
-     */
-    async function switchGeoContext(context, evt) {
-      currentGeoContext = context;
-      
-      // Update UI
-      document.querySelectorAll('.geo-tab').forEach(tab => tab.classList.remove('active'));
-      if (evt && evt.target) evt.target.classList.add('active');
-      
-      // Reset feed and reload
-      lastOffset = 0;
-      isLoadingMore = false;
-      
-      // Switch engine context
-      if (geoFeedEngine) geoFeedEngine.setContext(context);
-      
-      // Reload with new context
-      await loadVideos();
-    }
-
-    /**
-     * NEW: Load live strip with recent Darjeeling content
-     * Shows the real zone tagged on each reel.
-     */
-    async function loadLiveStrip() {
-      try {
-        const container = document.getElementById('live-strip-container');
-        const response = await db.list(APPWRITE_CONFIG.COLLECTIONS.REELS, [
-          Query.equal('isDeleted', false),
-          Query.orderDesc('uploadedAt'),
-          Query.limit(10)
-        ]);
-        
-        const items = response.documents || [];
-        if (items.length === 0) {
-          container.innerHTML = '<div class="loading">No live content yet</div>';
-          return;
-        }
-        
-        container.innerHTML = items.slice(0, 6).map((reel) => `
-          <div class="live-strip-item" onclick="window.location.href='./video-modal.html?reelId=${reel.$id}'">
-            <video src="${reel.videoUrl}" muted playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>
-            <div class="live-strip-item-label">📍 ${escapeHtml(reel.zone || 'Darjeeling')}</div>
-          </div>
-        `).join('');
-      } catch (err) {
-        console.error('Live strip error:', err);
-        document.getElementById('live-strip-container').innerHTML = '<div class="loading">Error</div>';
-      }
     }
 
     async function checkFollowStatus(creatorId, btn) {
@@ -581,6 +445,12 @@
             }
           }
           
+          if (currentZone !== 'all') {
+            if (!reel.zone || reel.zone !== currentZone) {
+              continue;
+            }
+          }
+          
           allContent.push({ type: 'reel', data: reel, creator: creator, timestamp: new Date(reel.uploadedAt) });
         }
         
@@ -599,17 +469,19 @@
             }
           }
           
+          if (currentZone !== 'all') {
+            if (!reel.zone || reel.zone !== currentZone) {
+              continue;
+            }
+          }
+          
           allContent.push({ type: 'post', data: post, creator: creator, timestamp: new Date(post.createdAt) });
         }
         
-        // NEW: Apply geo ranking if not "all" filter
-        if (geoFeedEngine && currentGeoContext !== 'FOR_YOU') {
-          allContent = geoFeedEngine.rankContent(allContent, creatorMap);
-        } else {
-          allContent.sort((a, b) => b.timestamp - a.timestamp);
-        }
+        // Sort by recency (no geo ranking)
+        allContent.sort((a, b) => b.timestamp - a.timestamp);
         
-        const paginatedContent = allContent.slice(lastOffset, lastOffset + 10);
+        const pageSize = lastOffset === 0 ? 6 : 10; const paginatedContent = allContent.slice(lastOffset, lastOffset + pageSize);
         if (paginatedContent.length === 0 && lastOffset === 0) { 
           document.getElementById('feed').innerHTML = '<div class="loading">No content yet. Follow creators to see their reels and posts!</div>'; 
           return; 
@@ -639,6 +511,15 @@
         }
         
         lastOffset += paginatedContent.length;
+        
+        // Show suggested creators after first 6 reels
+        if (lastOffset >= 6 && document.getElementById('suggested-banner').classList.contains('hidden')) {
+          document.getElementById('suggested-banner').classList.remove('hidden');
+          // Move it into the feed visually by inserting before the feed
+          const feedContainer = document.getElementById('feed');
+          feedContainer.insertAdjacentElement('beforebegin', document.getElementById('suggested-banner'));
+        }
+        
         isLoadingMore = false;
       } catch (err) { 
         console.error('Load videos error:', err);
@@ -690,17 +571,11 @@
 
     async function init() {
       try {
-        // Initialize geo systems
-        geoFeedEngine = new GeoFeedEngine();
-        geoContextManager = new GeoContextManager();
-        interstitialManager = new InterstitialManager();
-        
-        await geoContextManager.initialize();
-        
+
         await session.refresh();
         if (session.isLoggedIn()) { MY_USER_ID = session.getUserId(); try { if (typeof lastSeenTracker !== 'undefined' && lastSeenTracker.init) { lastSeenTracker.init(MY_USER_ID); } } catch (e) {} await new Promise(resolve => setTimeout(resolve, 100)); }
         setupDrawer();
-        await Promise.allSettled([ loadSuggestedCreators(), loadVideos(), loadLiveStrip(), loadStoryCarousel() ]);
+        await Promise.allSettled([ loadZoneHighlights("Darjeeling"), loadSuggestedCreators(), loadVideos(), loadStoryCarousel() ]);
         setupInfiniteScroll();
       } catch (err) { setupDrawer(); await loadVideos(); }
     }
@@ -752,6 +627,75 @@
       } catch (err) {
         console.error('Story carousel error:', err);
         // On failure the "Your Story" button stays — no broken UI
+      }
+    }
+
+    let currentHighlightZone = 'Darjeeling';
+
+    async function loadZoneHighlights(zone) {
+      try {
+        const feed = document.getElementById('zone-highlights-feed');
+        feed.innerHTML = '<div class="loading">Loading...</div>';
+        
+        // Get top 10 reels from this zone
+        const res = await db.list(APPWRITE_CONFIG.COLLECTIONS.REELS, [
+          Query.equal('isDeleted', false),
+          Query.equal('zone', zone),
+          Query.orderDesc('uploadedAt'),
+          Query.limit(10)
+        ]);
+        
+        const reels = res.documents || [];
+        
+        if (reels.length === 0) {
+          feed.innerHTML = '<div class="loading">No reels from this zone yet</div>';
+          return;
+        }
+        
+        // Score by popularity: views(0.4) + likes(0.3) + shares(0.3)
+        const scored = reels.map(r => ({
+          ...r,
+          popularityScore: (r.views || 0) * 0.4 + (r.likes || 0) * 0.3 + (r.shares || 0) * 0.3
+        })).sort((a, b) => b.popularityScore - a.popularityScore);
+        
+        // Show top 2
+        const top2 = scored.slice(0, 2);
+        feed.innerHTML = top2.map(reel => `
+          <div class="zone-reel-card" onclick="window.location.href='./video-modal.html?reelId=${reel.$id}'">
+            <video src="${reel.videoUrl}" muted playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>
+            <div class="zone-reel-card-overlay">
+              <div class="zone-reel-stats">❤️ ${reel.likes || 0} • 👁️ ${reel.views || 0}</div>
+            </div>
+          </div>
+        `).join('');
+      } catch (err) {
+        console.error('Zone highlights error:', err);
+        document.getElementById('zone-highlights-feed').innerHTML = '<div class="loading">Error loading</div>';
+      }
+    }
+
+    function switchZoneHighlight(zone, evt) {
+      currentHighlightZone = zone;
+      document.querySelectorAll('.zone-highlight-tab').forEach(t => t.classList.remove('active'));
+      if (evt && evt.target) evt.target.classList.add('active');
+      loadZoneHighlights(zone);
+    }
+
+    function seeMoreZone() {
+      filterByZone(currentHighlightZone, null);
+    }
+
+    async function filterByZone(zone, evt) {
+      currentZone = zone;
+      document.querySelectorAll('.zone-tab').forEach(tab => tab.classList.remove('active'));
+      if (evt && evt.target) evt.target.classList.add('active');
+      lastOffset = 0;
+      isLoadingMore = false;
+      
+      if (currentFilter === 'trending') {
+        loadTrendingFeed();
+      } else {
+        loadVideos();
       }
     }
 
