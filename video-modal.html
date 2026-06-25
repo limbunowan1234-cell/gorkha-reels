@@ -246,6 +246,35 @@
       word-wrap: break-word;
       overflow-wrap: break-word;
     }
+    .reel-tagged {
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      font-size: 12px;
+      color: #aaa;
+    }
+    .reel-tagged-label {
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+    .reel-tagged-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .reel-tagged-badge {
+      background: rgba(11,94,107,0.3);
+      border: 1px solid rgba(11,94,107,0.5);
+      color: #0B5E6B;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .reel-tagged-badge:active {
+      background: rgba(11,94,107,0.5);
+    }
 
     .feed-loading { 
       position: fixed; 
@@ -632,6 +661,16 @@
               ${reel.creatorId ? `<button class="reel-follow" data-index="${i}" onclick="event.stopPropagation();">Follow</button>` : ''}
             </div>
             <div class="reel-title">${escapeHtml(reel.title || '')}</div>
+            ${reel.taggedCreators && reel.taggedCreators.trim() ? (() => {
+              try {
+                const tagged = JSON.parse(reel.taggedCreators);
+                if (Array.isArray(tagged) && tagged.length > 0) {
+                  const taggedHtml = tagged.map(t => `<span class="reel-tagged-badge" onclick="event.stopPropagation(); window.location='creator-profile.html?creatorId=${escapeHtml(t.creatorId)}'">🏷️ ${escapeHtml(t.creatorName)}</span>`).join('');
+                  return `<div class="reel-tagged"><div class="reel-tagged-label">Tagged Creators</div><div class="reel-tagged-list">${taggedHtml}</div></div>`;
+                }
+              } catch (e) {}
+              return '';
+            })() : ''}
           </div>
         `;
         feed.appendChild(slide);
