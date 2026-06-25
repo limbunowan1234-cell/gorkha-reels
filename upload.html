@@ -59,6 +59,26 @@
     .selected-hashtags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #2d2d2d; }
     .hashtag-badge { background: #0B5E6B; color: #fff; padding: 6px 10px; border-radius: 16px; font-size: 12px; display: flex; align-items: center; gap: 6px; }
     .hashtag-badge button { background: none; border: none; color: #fff; cursor: pointer; font-size: 14px; padding: 0; }
+    .creator-section { background: #1a1a1a; border: 1px solid #2d2d2d; border-radius: 10px; padding: 12px; margin-bottom: 18px; }
+    .creator-label { font-size: 12px; font-weight: 600; color: #a3a3a3; margin-bottom: 10px; display: flex; gap: 6px; align-items: center; }
+    .creator-search-wrapper { position: relative; }
+    .creator-search-input { width: 100%; background: #242424; border: 1px solid #2d2d2d; border-radius: 10px; padding: 10px 12px; color: #fff; font-size: 14px; box-sizing: border-box; transition: all 0.2s; }
+    .creator-search-input:focus { outline: none; border-color: #0B5E6B; background: #2d2d2d; }
+    .creator-search-input::placeholder { color: #666; }
+    #creator-search-results { position: absolute; top: 100%; left: 0; right: 0; background: #242424; border: 1px solid #2d2d2d; border-top: none; border-radius: 0 0 10px 10px; max-height: 200px; overflow-y: auto; z-index: 10; display: none; }
+    #creator-search-results:not(:empty) { display: block; }
+    .creator-result { width: 100%; padding: 10px 12px; background: none; border: none; border-bottom: 1px solid #2d2d2d; color: #fff; text-align: left; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: background 0.2s; font-size: 13px; }
+    .creator-result:last-child { border-bottom: none; }
+    .creator-result:hover { background: #2d2d2d; }
+    .creator-result.selected { background: rgba(11, 94, 107, 0.2); }
+    .creator-result-pic { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+    .creator-result-name { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .creator-result-check { color: #0B5E6B; font-weight: 700; font-size: 14px; }
+    #selected-tags-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid #2d2d2d; }
+    #selected-tags-container:empty { display: none; }
+    .tag-pill { background: rgba(11, 94, 107, 0.2); border: 1px solid #0B5E6B; color: #0B5E6B; padding: 6px 10px; border-radius: 16px; font-size: 12px; display: flex; align-items: center; gap: 6px; }
+    .tag-remove { background: none; border: none; color: #0B5E6B; cursor: pointer; font-size: 14px; padding: 0; transition: color 0.2s; }
+    .tag-remove:active { color: #0D7377; }
     .story-section { padding: 20px 16px; flex: 1; }
     .story-media-preview { position: relative; background: #1a1a1a; border-radius: 16px; overflow: hidden; margin-bottom: 24px; aspect-ratio: 9 / 16; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px dashed #2d2d2d; transition: all 0.2s; }
     .story-media-preview:hover { border-color: #0B5E6B; background: #1f1f1f; }
@@ -162,7 +182,15 @@
       </div>
 
       <div class="info-box"><span>📍</span> Tagging a zone helps your reel reach people watching Darjeeling content. Leave it on Darjeeling if unsure.</div>
-    </div>
+
+      <div class="creator-section">
+        <div class="creator-label">🏷️ Tag Creators (Optional)</div>
+        <div class="creator-search-wrapper">
+          <input type="text" id="creator-search-input" class="creator-search-input" placeholder="Search creators to tag...">
+          <div id="creator-search-results"></div>
+        </div>
+        <div id="selected-tags-container"></div>
+      </div>
     <div class="post-btn-container">
       <button id="post-btn" type="button" onclick="window.uploader.post()">🚀 Post Reel</button>
     </div>
@@ -223,6 +251,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/appwrite@18"></script>
   <script src="js/appwrite-config.js"></script>
+  <script src="js/notifications.js"></script>
   <script src="js/last-seen-tracker.js"></script>
   <script src="js/upload.js"></script>
 
