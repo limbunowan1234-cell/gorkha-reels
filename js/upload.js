@@ -1,5 +1,5 @@
 /**
- * GorkhaReels - Upload with Hashtag Support
+ * GorkhaReels - Upload with Hashtag + Creator Tagging Support
  */
 
 function log(msg, type) {
@@ -14,6 +14,8 @@ class SimpleUpload {
     log('🚀 SimpleUpload constructor running');
     this.selectedFile = null;
     this.selectedHashtags = new Set();
+    this.selectedTags = new Map(); // creatorId -> creatorName
+    this.creatorSearchResults = [];
     this.init();
   }
 
@@ -77,6 +79,14 @@ class SimpleUpload {
         this.selectVideo(e.dataTransfer.files[0]);
       }
     });
+
+    // Creator search input
+    const creatorInput = document.getElementById('creator-search-input');
+    if (creatorInput) {
+      creatorInput.addEventListener('input', (e) => {
+        this.searchCreators(e.target.value.trim());
+      });
+    }
   }
 
   selectVideo(file) {
@@ -107,6 +117,8 @@ class SimpleUpload {
         stepDetails.style.display = 'none';
         this.selectedFile = null;
         this.selectedHashtags.clear();
+        this.selectedTags.clear();
+        this.renderSelectedTags();
       };
 
     } catch(err) {
@@ -123,8 +135,6 @@ class SimpleUpload {
         done = true;
         clearTimeout(safetyTimer);
         cleanup();
-        // Many mobile browsers only fire metadata/seek events reliably
-        // for video elements that are actually in the DOM.
         if (video.parentNode) video.parentNode.removeChild(video);
         resolve(result);
       };
@@ -136,9 +146,6 @@ class SimpleUpload {
       video.muted = true;
       video.playsInline = true;
       video.setAttribute('playsinline', '');
-      // Off-screen but still in the DOM — fixes mobile browsers (notably iOS
-      // Safari) that silently fail to fire loadedmetadata/seeked on a video
-      // element that was never attached to the page.
       video.style.position = 'fixed';
       video.style.left = '-9999px';
       video.style.width = '1px';
@@ -212,6 +219,88 @@ class SimpleUpload {
     });
   }
 
+  async searchCreators(query) {
+    if (!query || query.length < 1) {
+      this.creatorSearchResults = [];
+      this.renderCreatorSearchResults();
+      return;
+    }
+
+    try {
+      const res = await db.list(APPWRITE_CONFIG.COLLECTIONS.CREATORS, [Query.limit(50)]);
+      const allCreators = res.documents || [];
+
+      // Filter by name (client-side)
+      this.creatorSearchResults = allCreators.filter(c => 
+        c.name && c.name.toLowerCase().includes(query.toLowerCase()) &&
+        c.$id !== session.getUserId() // Exclude self
+      ).slice(0, 10);
+
+      this.renderCreatorSearchResults();
+    } catch(err) {
+      logErr('Creator search failed: ' + err.message);
+    }
+  }
+
+  renderCreatorSearchResults() {
+    const resultsContainer = document.getElementById('creator-search-results');
+    if (!resultsContainer) return;
+
+    if (this.creatorSearchResults.length === 0) {
+      resultsContainer.innerHTML = '';
+      return;
+    }
+
+    let html = this.creatorSearchResults.map(creator => {
+      const isSelected = this.selectedTags.has(creator.$id);
+      return `
+        <button type="button" class="creator-result ${isSelected ? 'selected' : ''}" 
+          onclick="window.uploader.addTag('${creator.$id}', '${escapeHtml(creator.name)}')">
+          <img src="${creator.profilePic || '/logo-suite/primary/logo-khukuri-512x512.png'}" alt="${escapeHtml(creator.name)}" class="creator-result-pic">
+          <span class="creator-result-name">${escapeHtml(creator.name)}</span>
+          ${isSelected ? '<span class="creator-result-check">✓</span>' : ''}
+        </button>
+      `;
+    }).join('');
+
+    resultsContainer.innerHTML = html;
+  }
+
+  addTag(creatorId, creatorName) {
+    if (this.selectedTags.has(creatorId)) {
+      this.selectedTags.delete(creatorId);
+    } else {
+      this.selectedTags.set(creatorId, creatorName);
+    }
+    this.renderSelectedTags();
+    this.renderCreatorSearchResults();
+  }
+
+  removeTag(creatorId) {
+    this.selectedTags.delete(creatorId);
+    this.renderSelectedTags();
+    this.renderCreatorSearchResults();
+  }
+
+  renderSelectedTags() {
+    const container = document.getElementById('selected-tags-container');
+    if (!container) return;
+
+    if (this.selectedTags.size === 0) {
+      container.innerHTML = '';
+      return;
+    }
+
+    let html = Array.from(this.selectedTags.entries()).map(([id, name]) => `
+      <div class="tag-pill">
+        <span>${escapeHtml(name)}</span>
+        <button type="button" onclick="window.uploader.removeTag('${id}')" class="tag-remove">✕</button>
+      </div>
+    `).join('');
+
+    container.innerHTML = html;
+  }
+
   async post() {
     if (!this.selectedFile) {
       Toast.error('Select a video');
@@ -250,6 +339,14 @@ class SimpleUpload {
       const reelId = ID.unique();
       const hashtagsString = Array.from(this.selectedHashtags).join(',');
       
+      // Format taggedCreators as JSON
+      const taggedCreators = this.selectedTags.size > 0 
+        ? JSON.stringify(Array.from(this.selectedTags.entries()).map(([id, name]) => ({
+            creatorId: id,
+            creatorName: name
+          })))
+        : '';
+      
       await db.create(APPWRITE_CONFIG.COLLECTIONS.REELS, {
         reelId,
         creatorId: session.getUserId(),
@@ -261,6 +358,7 @@ class SimpleUpload {
         zone: (document.getElementById('post-zone')?.value || 'Darjeeling'),
         language: document.getElementById('post-language').value || 'Nepali',
         hashtags: hashtagsString,
+        taggedCreators: taggedCreators,
         views: 0,
         likes: 0,
         comments: 0,
@@ -274,7 +372,27 @@ class SimpleUpload {
         isDeleted: false
       }, reelId);
 
-      log('✅ Reel posted with hashtags');
+      // Create notifications for tagged creators
+      if (this.selectedTags.size > 0) {
+        for (const [creatorId, creatorName] of this.selectedTags.entries()) {
+          try {
+            if (typeof NotificationsManager !== 'undefined') {
+              await NotificationsManager.createNotification(
+                creatorId,
+                session.getUserId(),
+                'tagged',
+                `🏷️ ${session.currentUser?.name || 'A creator'} tagged you in a video`,
+                reelId,
+                `./video-modal.html?id=${reelId}`
+              );
+            }
+          } catch (notifErr) {
+            logErr('Notification failed for ' + creatorName + ': ' + notifErr.message);
+          }
+        }
+      }
+
+      log('✅ Reel posted with hashtags and tagged creators');
       Toast.success('🎉 Reel posted!');
       setTimeout(() => { window.location.href = './creator-dashboard.html'; }, 1500);
 
@@ -285,6 +403,13 @@ class SimpleUpload {
       postBtn.textContent = '🚀 Post Reel';
     }
   }
+}
+
+function escapeHtml(text) {
+  if (!text) return '';
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
 }
 
 document.readyState === 'loading'
