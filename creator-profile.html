@@ -74,6 +74,7 @@
 
     .videos-section { margin-top: 24px; }
     .section-title { font-size: 16px; font-weight: 700; margin-bottom: 12px; }
+    
     .videos-grid { 
       display: grid; 
       grid-template-columns: repeat(2, 1fr); 
@@ -89,6 +90,7 @@
       transition: transform 0.2s;
     }
     .video-thumb:active { transform: scale(0.98); }
+    .video-thumb video { width: 100%; height: 100%; object-fit: cover; }
     .video-thumb img { width: 100%; height: 100%; object-fit: cover; }
     .video-views { 
       position: absolute; 
