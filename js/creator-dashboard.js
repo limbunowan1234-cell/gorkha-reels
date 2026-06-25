@@ -1,5 +1,5 @@
 /**
- * GorkhaReels - Creator Dashboard (UPDATED with Options Sheet)
+ * GorkhaReels - Creator Dashboard (UPDATED with Edit Modal + Tagging + Notifications)
  * 
  * UPDATES APPLIED:
  * ✅ View counting integrated: totalViews now includes VIEWS collection tracking
@@ -9,6 +9,10 @@
  * ✅ Bank details with corrected bankUpiId field
  * ✅ Profile editing with image upload
  * ✅ Options sheet with Edit, Reshare, Delete buttons
+ * ✅ EDIT MODAL with title, description, category, hashtags, tag search
+ * ✅ Tag @mention system with creator search
+ * ✅ Save edited video + create notifications for tagged creators
+ * ✅ Videos I'm tagged in section (tagged videos visibility)
  */
 
 class DashboardManager {
@@ -16,6 +20,9 @@ class DashboardManager {
     this.user = null;
     this.creatorData = null;
     this.myReels = [];
+    this.taggedReels = [];
+    this.currentEditReel = null;
+    this.selectedTags = new Map(); // creatorId => creatorName
     this.init();
   }
 
@@ -28,6 +35,7 @@ class DashboardManager {
     this.user = session.getUser();
     await this.loadCreatorData();
     await this.loadMyReels();
+    await this.loadTaggedReels();
     this.setupEventListeners();
   }
 
@@ -136,6 +144,36 @@ class DashboardManager {
     }
   }
 
+  async loadTaggedReels() {
+    try {
+      const response = await db.list(APPWRITE_CONFIG.COLLECTIONS.REELS, [
+        Query.equal('isDeleted', false),
+        Query.orderDesc('uploadedAt'),
+        Query.limit(100)
+      ]);
+      
+      // Filter for reels where this user is tagged
+      this.taggedReels = response.documents.filter(reel => {
+        if (!reel.taggedCreators) return false;
+        try {
+          const tags = typeof reel.taggedCreators === 'string' 
+            ? JSON.parse(reel.taggedCreators) 
+            : reel.taggedCreators;
+          return tags.some(tag => tag.creatorId === this.user.$id);
+        } catch {
+          return false;
+        }
+      });
+      
+      console.log(`✅ Loaded ${this.taggedReels.length} reels where user is tagged`);
+      this.displayTaggedReels();
+    } catch (error) {
+      console.error('Error loading tagged reels:', error);
+      this.taggedReels = [];
+      this.displayTaggedReels();
+    }
+  }
+
   displayMyReels() {
     const container = document.getElementById('my-reels-container');
     if (!container) return;
@@ -154,6 +192,27 @@ class DashboardManager {
     container.innerHTML = `
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;">
         ${this.myReels.map(r => this.renderReelCard(r)).join('')}
+      </div>
+    `;
+  }
+
+  displayTaggedReels() {
+    const container = document.getElementById('tagged-reels-container');
+    if (!container) return;
+
+    if (this.taggedReels.length === 0) {
+      container.innerHTML = `
+        <div style="text-align:center;padding:40px 20px;color:var(--text-secondary);">
+          <div style="font-size:40px;margin-bottom:12px;">🏷️</div>
+          <p>You're not tagged in any videos yet</p>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = `
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;">
+        ${this.taggedReels.map(r => this.renderTaggedReelCard(r)).join('')}
       </div>
     `;
   }
@@ -184,6 +243,25 @@ class DashboardManager {
     `;
   }
 
+  renderTaggedReelCard(reel) {
+    return `
+      <div style="position:relative;aspect-ratio:9/16;border-radius:6px;overflow:hidden;background:var(--dark-secondary);cursor:pointer;" onclick="window.location.href='./video-modal.html?id=${reel.$id}'">
+        <video
+          src="${reel.videoUrl}#t=0.5"
+          style="width:100%;height:100%;object-fit:cover;"
+          preload="metadata"
+          muted
+          playsinline
+        ></video>
+        <div style="position:absolute;bottom:0;left:0;right:0;padding:6px 8px;background:linear-gradient(transparent,rgba(0,0,0,0.8));">
+          <div style="display:flex;align-items:center;gap:4px;color:#fff;font-size:12px;font-weight:600;">
+            <span>👁️</span><span>${this.formatNumber(reel.views || 0)}</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
   openReelOptions(reelId, title) {
     const backdrop = document.getElementById('reel-options-backdrop');
     const sheet = document.getElementById('reel-options-sheet');
@@ -206,7 +284,7 @@ class DashboardManager {
     // Button handlers
     document.getElementById('opt-edit').onclick = () => {
       this.closeReelOptions();
-      Toast.info('📝 Edit coming soon!');
+      this.openEditVideoModal(reelId);
     };
     
     document.getElementById('opt-reshare').onclick = () => {
@@ -232,6 +310,308 @@ class DashboardManager {
     
     if (backdrop) backdrop.classList.remove('open');
     if (sheet) sheet.classList.remove('open');
+  }
+
+  openEditVideoModal(reelId) {
+    // Find the reel data
+    const reel = this.myReels.find(r => r.$id === reelId);
+    if (!reel) {
+      Toast.error('Video not found');
+      return;
+    }
+
+    // Load existing tags
+    this.selectedTags.clear();
+    if (reel.taggedCreators) {
+      try {
+        const tags = typeof reel.taggedCreators === 'string'
+          ? JSON.parse(reel.taggedCreators)
+          : reel.taggedCreators;
+        tags.forEach(tag => {
+          this.selectedTags.set(tag.creatorId, tag.creatorName);
+        });
+      } catch (e) {
+        console.log('Could not parse tags:', e);
+      }
+    }
+
+    const modal = document.createElement('div');
+    modal.id = 'edit-video-modal';
+    modal.style.cssText = `position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto;`;
+    modal.innerHTML = `
+      <div style="background:var(--dark-card,#1a1a1a);border-radius:16px;width:100%;max-width:420px;margin:auto;">
+        <div style="padding:20px;border-bottom:1px solid var(--border-color,#333);display:flex;justify-content:space-between;align-items:center;">
+          <h3 style="color:#fff;margin:0;font-size:18px;">✏️ Edit Video</h3>
+          <button id="close-edit-modal" style="background:none;border:none;color:#fff;font-size:24px;cursor:pointer;">✕</button>
+        </div>
+        <div style="padding:20px;max-height:60vh;overflow-y:auto;">
+          <!-- Title -->
+          <div style="margin-bottom:16px;">
+            <label style="display:block;color:var(--text-secondary,#888);font-size:13px;margin-bottom:6px;">Title</label>
+            <input id="edit-title" type="text" value="${escapeHtml(reel.title || '')}" placeholder="Video title" style="width:100%;background:var(--dark-bg,#000);border:1px solid var(--border-color,#333);border-radius:8px;padding:12px;color:#fff;font-size:14px;box-sizing:border-box;">
+          </div>
+
+          <!-- Description -->
+          <div style="margin-bottom:16px;">
+            <label style="display:block;color:var(--text-secondary,#888);font-size:13px;margin-bottom:6px;">Description</label>
+            <textarea id="edit-description" rows="3" placeholder="Tell us about your video..." style="width:100%;background:var(--dark-bg,#000);border:1px solid var(--border-color,#333);border-radius:8px;padding:12px;color:#fff;font-size:14px;box-sizing:border-box;resize:vertical;">${escapeHtml(reel.description || '')}</textarea>
+          </div>
+
+          <!-- Category -->
+          <div style="margin-bottom:16px;">
+            <label style="display:block;color:var(--text-secondary,#888);font-size:13px;margin-bottom:6px;">Category</label>
+            <select id="edit-category" style="width:100%;background:var(--dark-bg,#000);border:1px solid var(--border-color,#333);border-radius:8px;padding:12px;color:#fff;font-size:14px;box-sizing:border-box;">
+              <option value="">Select a category</option>
+              <option value="Musician" ${reel.category === 'Musician' ? 'selected' : ''}>🎵 Musician</option>
+              <option value="Artist" ${reel.category === 'Artist' ? 'selected' : ''}>🎨 Artist</option>
+              <option value="Tour Guide" ${reel.category === 'Tour Guide' ? 'selected' : ''}>🗺️ Tour Guide</option>
+              <option value="Business Owner" ${reel.category === 'Business Owner' ? 'selected' : ''}>💼 Business Owner</option>
+              <option value="Student" ${reel.category === 'Student' ? 'selected' : ''}>📚 Student</option>
+            </select>
+          </div>
+
+          <!-- Language -->
+          <div style="margin-bottom:16px;">
+            <label style="display:block;color:var(--text-secondary,#888);font-size:13px;margin-bottom:6px;">Language</label>
+            <select id="edit-language" style="width:100%;background:var(--dark-bg,#000);border:1px solid var(--border-color,#333);border-radius:8px;padding:12px;color:#fff;font-size:14px;box-sizing:border-box;">
+              <option value="">Select a language</option>
+              <option value="Nepali" ${reel.language === 'Nepali' ? 'selected' : ''}>🇳🇵 Nepali</option>
+              <option value="Hindi" ${reel.language === 'Hindi' ? 'selected' : ''}>🇮🇳 Hindi</option>
+              <option value="English" ${reel.language === 'English' ? 'selected' : ''}>🇬🇧 English</option>
+              <option value="Limboo" ${reel.language === 'Limboo' ? 'selected' : ''}>💬 Limboo</option>
+            </select>
+          </div>
+
+          <!-- Hashtags -->
+          <div style="margin-bottom:16px;">
+            <label style="display:block;color:var(--text-secondary,#888);font-size:13px;margin-bottom:6px;">Hashtags (comma separated)</label>
+            <input id="edit-hashtags" type="text" value="${escapeHtml((reel.hashtags || []).join(', '))}" placeholder="#gorkha #nepal #music" style="width:100%;background:var(--dark-bg,#000);border:1px solid var(--border-color,#333);border-radius:8px;padding:12px;color:#fff;font-size:14px;box-sizing:border-box;">
+          </div>
+
+          <!-- Tag Creators Search -->
+          <div style="margin-bottom:16px;">
+            <label style="display:block;color:var(--text-secondary,#888);font-size:13px;margin-bottom:6px;">🏷️ Tag Creators</label>
+            <input id="tag-search" type="text" placeholder="Search creators to tag..." style="width:100%;background:var(--dark-bg,#000);border:1px solid var(--border-color,#333);border-radius:8px;padding:12px;color:#fff;font-size:14px;box-sizing:border-box;margin-bottom:8px;">
+            <div id="tag-search-results" style="display:none;max-height:150px;overflow-y:auto;border:1px solid var(--border-color,#333);border-radius:6px;background:var(--dark-bg,#000);"></div>
+          </div>
+
+          <!-- Selected Tags -->
+          <div id="selected-tags-container" style="margin-bottom:20px;display:flex;flex-wrap:wrap;gap:8px;">
+            ${Array.from(this.selectedTags.entries()).map(([id, name]) => `
+              <div style="background:var(--primary-teal,#0B5E6B);color:#fff;padding:8px 12px;border-radius:20px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;">
+                @${escapeHtml(name)}
+                <button type="button" onclick="window.dashboardManager.removeTag('${id}')" style="background:none;border:none;color:#fff;font-size:16px;cursor:pointer;padding:0;margin-left:4px;">✕</button>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="padding:20px;border-top:1px solid var(--border-color,#333);display:flex;gap:12px;">
+          <button id="cancel-edit-btn" style="flex:1;background:var(--dark-bg,#000);border:1px solid var(--border-color,#333);border-radius:8px;padding:12px;color:#fff;font-weight:600;cursor:pointer;">Cancel</button>
+          <button id="save-edit-btn" style="flex:1;background:var(--primary-red,#dc2626);border:none;border-radius:8px;padding:12px;color:#fff;font-weight:600;cursor:pointer;">💾 Save Changes</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // Store reel ID for save function
+    this.currentEditReel = reel;
+
+    // Setup event listeners
+    document.getElementById('close-edit-modal').onclick = () => modal.remove();
+    document.getElementById('cancel-edit-btn').onclick = () => modal.remove();
+    document.getElementById('save-edit-btn').onclick = () => this.saveEditedVideo();
+
+    // Tag search
+    document.getElementById('tag-search').addEventListener('input', (e) => {
+      this.searchCreators(e.target.value);
+    });
+
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) modal.remove();
+    });
+  }
+
+  async searchCreators(query) {
+    const resultsContainer = document.getElementById('tag-search-results');
+    if (!resultsContainer) return;
+
+    if (!query.trim()) {
+      resultsContainer.style.display = 'none';
+      return;
+    }
+
+    try {
+      const response = await db.list(APPWRITE_CONFIG.COLLECTIONS.CREATORS, [
+        Query.limit(10)
+      ]);
+
+      const filtered = response.documents.filter(creator => {
+        // Don't show self
+        if (creator.$id === this.user.$id) return false;
+        // Search by name
+        return creator.name.toLowerCase().includes(query.toLowerCase());
+      });
+
+      if (filtered.length === 0) {
+        resultsContainer.innerHTML = '<div style="padding:12px;color:var(--text-secondary,#888);font-size:13px;">No creators found</div>';
+        resultsContainer.style.display = 'block';
+        return;
+      }
+
+      resultsContainer.innerHTML = filtered.map(creator => `
+        <div onclick="window.dashboardManager.addTag('${creator.$id}', '${escapeHtml(creator.name)}')" 
+          style="padding:12px;border-bottom:1px solid var(--border-color,#333);cursor:pointer;display:flex;align-items:center;gap:10px;transition:background 0.2s;" 
+          onmouseover="this.style.background='var(--dark-secondary,#2d2d2d)'" 
+          onmouseout="this.style.background='transparent'">
+          <img src="${creator.profilePic || 'assets/logo.png'}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">
+          <div style="flex:1;min-width:0;">
+            <div style="color:#fff;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">@${escapeHtml(creator.name)}</div>
+          </div>
+        </div>
+      `).join('');
+      resultsContainer.style.display = 'block';
+    } catch (error) {
+      console.error('Search creators failed:', error);
+      resultsContainer.innerHTML = '<div style="padding:12px;color:#dc2626;font-size:13px;">Search failed</div>';
+      resultsContainer.style.display = 'block';
+    }
+  }
+
+  addTag(creatorId, creatorName) {
+    // Don't add if already tagged
+    if (this.selectedTags.has(creatorId)) {
+      Toast.info(`@${creatorName} is already tagged`);
+      return;
+    }
+
+    this.selectedTags.set(creatorId, creatorName);
+
+    // Hide search results
+    const resultsContainer = document.getElementById('tag-search-results');
+    if (resultsContainer) resultsContainer.style.display = 'none';
+
+    // Clear search input
+    const searchInput = document.getElementById('tag-search');
+    if (searchInput) searchInput.value = '';
+
+    // Update selected tags display
+    this.renderSelectedTags();
+    Toast.success(`🏷️ @${creatorName} tagged`);
+  }
+
+  removeTag(creatorId) {
+    const name = this.selectedTags.get(creatorId);
+    this.selectedTags.delete(creatorId);
+    this.renderSelectedTags();
+    if (name) Toast.info(`Removed @${name}`);
+  }
+
+  renderSelectedTags() {
+    const container = document.getElementById('selected-tags-container');
+    if (!container) return;
+
+    if (this.selectedTags.size === 0) {
+      container.innerHTML = '';
+      return;
+    }
+
+    container.innerHTML = Array.from(this.selectedTags.entries()).map(([id, name]) => `
+      <div style="background:var(--primary-teal,#0B5E6B);color:#fff;padding:8px 12px;border-radius:20px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;">
+        @${escapeHtml(name)}
+        <button type="button" onclick="window.dashboardManager.removeTag('${id}')" style="background:none;border:none;color:#fff;font-size:16px;cursor:pointer;padding:0;margin-left:4px;">✕</button>
+      </div>
+    `).join('');
+  }
+
+  async saveEditedVideo() {
+    if (!this.currentEditReel) return;
+
+    const title = document.getElementById('edit-title')?.value?.trim();
+    const description = document.getElementById('edit-description')?.value?.trim();
+    const category = document.getElementById('edit-category')?.value?.trim();
+    const language = document.getElementById('edit-language')?.value?.trim();
+    const hashtags = document.getElementById('edit-hashtags')?.value?.trim();
+
+    if (!title) {
+      Toast.error('Title is required');
+      return;
+    }
+
+    const saveBtn = document.getElementById('save-edit-btn');
+    if (saveBtn) {
+      saveBtn.disabled = true;
+      saveBtn.textContent = '⏳ Saving...';
+    }
+
+    try {
+      // Parse hashtags
+      const hashtagsArray = hashtags
+        ? hashtags.split(',').map(h => h.trim().replace(/^#/, '')).filter(h => h)
+        : [];
+
+      // Convert tags to JSON array
+      const taggedCreators = Array.from(this.selectedTags.entries()).map(([creatorId, creatorName]) => ({
+        creatorId,
+        creatorName
+      }));
+
+      // Update reel
+      await db.update(APPWRITE_CONFIG.COLLECTIONS.REELS, this.currentEditReel.$id, {
+        title,
+        description: description || '',
+        category: category || '',
+        language: language || '',
+        hashtags: hashtagsArray,
+        taggedCreators: JSON.stringify(taggedCreators)
+      });
+
+      console.log('✅ Video updated');
+
+      // Create notifications for newly tagged creators
+      const oldTags = this.currentEditReel.taggedCreators
+        ? (typeof this.currentEditReel.taggedCreators === 'string'
+            ? JSON.parse(this.currentEditReel.taggedCreators)
+            : this.currentEditReel.taggedCreators)
+        : [];
+      const oldTagIds = oldTags.map(t => t.creatorId);
+
+      for (const [creatorId, creatorName] of this.selectedTags) {
+        // Only notify if this is a new tag
+        if (!oldTagIds.includes(creatorId)) {
+          try {
+            await NotificationsManager.createNotification(
+              creatorId,                                    // userId (who receives)
+              this.user.$id,                                // fromCreatorId (who tagged)
+              'tagged',                                     // type
+              `🏷️ ${this.creatorData.name} tagged you in a video`,  // message
+              this.currentEditReel.$id,                     // reelId
+              `./video-modal.html?id=${this.currentEditReel.$id}`  // actionUrl
+            );
+            console.log(`✅ Notification sent to @${creatorName}`);
+          } catch (notifErr) {
+            console.warn(`Could not send notification to ${creatorName}:`, notifErr);
+          }
+        }
+      }
+
+      Toast.success('✅ Video updated!');
+      document.getElementById('edit-video-modal')?.remove();
+
+      // Reload reels
+      await this.loadMyReels();
+      await this.loadTaggedReels();
+
+    } catch (error) {
+      console.error('Save failed:', error);
+      Toast.error('Failed to save video');
+      if (saveBtn) {
+        saveBtn.disabled = false;
+        saveBtn.textContent = '💾 Save Changes';
+      }
+    }
   }
 
   confirmDelete(reelId, title) {
@@ -275,6 +655,7 @@ class DashboardManager {
       
       if (modal) modal.remove();
       await this.loadMyReels();
+      await this.loadTaggedReels();
 
     } catch (error) {
       console.error('Delete failed:', error);
@@ -663,4 +1044,4 @@ if (document.readyState === 'loading') {
   window.dashboardManager = new DashboardManager();
 }
 
-console.log('✅ Dashboard Manager Loaded (with options sheet for video actions)');
+console.log('✅ Dashboard Manager Loaded (with edit modal + tagging + notifications)');
