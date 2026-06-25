@@ -1,11 +1,12 @@
 /**
- * GorkhaReels - Creator Profile Viewer
+ * GorkhaReels - Creator Profile Viewer (UPDATED with Tagged Videos)
  * 
  * Displays public creator profile with:
  * ✅ Real-time view aggregation from REELS
  * ✅ Video count from REELS collection
  * ✅ Creator followers, bio, profile pic
  * ✅ Video grid with view counts
+ * ✅ Videos I'm tagged in section
  * ✅ Proper error handling
  */
 
@@ -13,6 +14,7 @@ class CreatorProfileViewer {
   constructor() {
     this.creator = null;
     this.reels = [];
+    this.taggedReels = [];
     this.init();
   }
 
@@ -25,6 +27,7 @@ class CreatorProfileViewer {
     
     await this.loadCreator(creatorId);
     await this.loadCreatorReels(creatorId);
+    await this.loadTaggedReels(creatorId);
     this.renderProfile();
   }
 
@@ -47,10 +50,38 @@ class CreatorProfileViewer {
         Query.limit(50)
       ]);
       this.reels = response.documents;
-      console.log(`✅ Loaded ${this.reels.length} reels`);
+      console.log(`✅ Loaded ${this.reels.length} creator reels`);
     } catch (error) {
       console.error('Error loading reels:', error);
       this.reels = [];
+    }
+  }
+
+  async loadTaggedReels(creatorId) {
+    try {
+      const response = await db.list(APPWRITE_CONFIG.COLLECTIONS.REELS, [
+        Query.equal('isDeleted', false),
+        Query.orderDesc('uploadedAt'),
+        Query.limit(100)
+      ]);
+      
+      // Filter for reels where this creator is tagged
+      this.taggedReels = response.documents.filter(reel => {
+        if (!reel.taggedCreators) return false;
+        try {
+          const tags = typeof reel.taggedCreators === 'string' 
+            ? JSON.parse(reel.taggedCreators) 
+            : reel.taggedCreators;
+          return tags.some(tag => tag.creatorId === creatorId);
+        } catch {
+          return false;
+        }
+      });
+      
+      console.log(`✅ Loaded ${this.taggedReels.length} reels where creator is tagged`);
+    } catch (error) {
+      console.error('Error loading tagged reels:', error);
+      this.taggedReels = [];
     }
   }
 
@@ -62,42 +93,61 @@ class CreatorProfileViewer {
     const totalViews = this.reels.reduce((sum, r) => sum + (r.views || 0), 0);
     const totalFollowers = d.followers || 0;
 
-    // Update creator info
-    this.setTextById('creator-name', d.name || 'Creator');
-    this.setTextById('creator-bio', d.bio || 'No bio yet');
-    this.setTextById('videos-count', totalReels);
-    this.setTextById('views-count', this.formatNumber(totalViews));
-    this.setTextById('followers-count', this.formatNumber(totalFollowers));
+    const html = `
+      <div class="profile-header">
+        <img class="profile-pic" src="${d.profilePic || '/logo-suite/primary/logo-khukuri-512x512.png'}" alt="${escapeHtml(d.name)}" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'">
+        <div class="profile-name">${escapeHtml(d.name || 'Creator')}</div>
+        <div class="profile-bio">${escapeHtml(d.bio || 'No bio yet')}</div>
+      </div>
 
-    // Update profile picture
-    const avatar = document.getElementById('creator-avatar');
-    if (avatar) {
-      avatar.src = d.profilePic || '/logo-suite/primary/logo-khukuri-512x512.png';
-      avatar.onerror = function() { this.src = '/logo-suite/primary/logo-khukuri-512x512.png'; };
-    }
+      <div class="profile-stats">
+        <div class="stat">
+          <div class="stat-num">${totalReels}</div>
+          <div class="stat-label">Videos</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">${this.formatNumber(totalFollowers)}</div>
+          <div class="stat-label">Followers</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">${this.formatNumber(totalViews)}</div>
+          <div class="stat-label">Views</div>
+        </div>
+      </div>
 
-    // Render reels grid
-    this.renderReelsGrid();
+      <div class="profile-actions">
+        <button class="action-btn btn-follow" onclick="alert('Follow feature coming soon!')">Follow</button>
+        <button class="action-btn btn-message" onclick="alert('Message feature coming soon!')">Message</button>
+      </div>
 
-    console.log(`📊 Profile: ${d.name} | Videos: ${totalReels} | Views: ${totalViews}`);
+      <div class="videos-section">
+        <div class="section-title">📹 Videos</div>
+        <div id="creator-reels-grid" class="videos-grid">
+          ${this.reels.length === 0 
+            ? '<div class="empty-state" style="grid-column:1/-1;">No videos yet</div>'
+            : this.reels.map(reel => this.renderReelCard(reel)).join('')
+          }
+        </div>
+      </div>
+
+      ${this.taggedReels.length > 0 ? `
+        <div class="videos-section">
+          <div class="section-title">🏷️ Videos Tagged With Me</div>
+          <div id="tagged-reels-grid" class="videos-grid">
+            ${this.taggedReels.map(reel => this.renderTaggedReelCard(reel)).join('')}
+          </div>
+        </div>
+      ` : ''}
+    `;
+
+    document.getElementById('creator-profile-container').innerHTML = html;
+
+    console.log(`📊 Profile: ${d.name} | Videos: ${totalReels} | Views: ${totalViews} | Tagged in: ${this.taggedReels.length}`);
   }
 
-  renderReelsGrid() {
-    const container = document.getElementById('creator-reels-grid');
-    if (!container) return;
-
-    if (this.reels.length === 0) {
-      container.innerHTML = `
-        <div style="text-align:center;padding:40px 20px;color:var(--text-secondary);grid-column:1/-1;">
-          <div style="font-size:40px;margin-bottom:12px;">🎬</div>
-          <p>No videos yet</p>
-        </div>
-      `;
-      return;
-    }
-
-    container.innerHTML = this.reels.map(reel => `
-      <div style="position:relative;aspect-ratio:9/16;border-radius:8px;overflow:hidden;background:var(--dark-secondary);cursor:pointer;transition:transform 0.2s;" onclick="window.location.href='./index.html?reel=${reel.$id}'">
+  renderReelCard(reel) {
+    return `
+      <div class="video-thumb" onclick="window.location.href='./video-modal.html?id=${reel.$id}'">
         <video
           src="${reel.videoUrl}#t=0.5"
           style="width:100%;height:100%;object-fit:cover;"
@@ -105,34 +155,34 @@ class CreatorProfileViewer {
           muted
           playsinline
         ></video>
-        <div style="position:absolute;bottom:0;left:0;right:0;padding:8px;background:linear-gradient(transparent,rgba(0,0,0,0.8));">
-          <div style="color:#fff;font-size:12px;font-weight:600;">
-            👁️ ${this.formatNumber(reel.views || 0)}
-          </div>
-          <div style="color:#fff;font-size:13px;font-weight:600;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
-            ${escapeHtml(reel.title || 'Untitled')}
-          </div>
-        </div>
+        <div class="video-views">👁️ ${this.formatNumber(reel.views || 0)}</div>
       </div>
-    `).join('');
+    `;
+  }
+
+  renderTaggedReelCard(reel) {
+    return `
+      <div class="video-thumb" onclick="window.location.href='./video-modal.html?id=${reel.$id}'">
+        <video
+          src="${reel.videoUrl}#t=0.5"
+          style="width:100%;height:100%;object-fit:cover;"
+          preload="metadata"
+          muted
+          playsinline
+        ></video>
+        <div class="video-views">👁️ ${this.formatNumber(reel.views || 0)}</div>
+      </div>
+    `;
   }
 
   showError(message) {
-    const container = document.getElementById('creator-profile-container');
-    if (container) {
-      container.innerHTML = `
-        <div style="text-align:center;padding:40px 20px;color:#dc2626;">
-          <div style="font-size:40px;margin-bottom:12px;">❌</div>
-          <p>${escapeHtml(message)}</p>
-          <a href="./index.html" style="display:inline-block;margin-top:16px;text-decoration:none;padding:10px 24px;border-radius:8px;background:var(--primary-red);color:#fff;font-weight:700;">Back to Home</a>
-        </div>
-      `;
-    }
-  }
-
-  setTextById(id, value) {
-    const el = document.getElementById(id);
-    if (el) el.textContent = value;
+    document.getElementById('creator-profile-container').innerHTML = `
+      <div style="text-align:center;padding:40px 20px;color:#dc2626;">
+        <div style="font-size:40px;margin-bottom:12px;">❌</div>
+        <p>${escapeHtml(message)}</p>
+        <a href="./index.html" style="display:inline-block;margin-top:16px;text-decoration:none;padding:10px 24px;border-radius:8px;background:var(--primary-red);color:#fff;font-weight:700;">Back to Home</a>
+      </div>
+    `;
   }
 
   formatNumber(num) {
@@ -158,4 +208,4 @@ if (document.readyState === 'loading') {
   window.creatorProfileViewer = new CreatorProfileViewer();
 }
 
-console.log('✅ Creator Profile Viewer Loaded (with view aggregation)');
+console.log('✅ Creator Profile Viewer Loaded (with tagged videos + tagging system)');
