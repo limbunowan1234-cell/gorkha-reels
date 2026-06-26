@@ -1,317 +1,432 @@
 /**
- * GorkhaReels - Production Feed (FIXED likes + counter)
+ * GorkhaReels - Feed Logic (Appwrite Web SDK)
+ * Infinite scroll feed with fullscreen video playback
+ * FIXED: Added initialization checks for Query, db, APPWRITE_CONFIG
  */
+
 class FeedManager {
   constructor() {
-    this.reels = []; this.currentIndex = 0; this.isLoading = false;
-    this.currentVideo = null; this.likedReels = new Set(); this.isFullscreen = false;
-    this.soundEnabled = false; // Session-level: once user unmutes, stay unmuted on swipe
+    this.reels = [];
+    this.currentIndex = 0;
+    this.isLoading = false;
+    this.hasMore = true;
+    this.pageSize = 10;
+    this.currentVideo = null;
+    this.likedReels = new Set();
+    this.isFullscreen = false;
+
     this.init();
   }
 
   async init() {
+    console.log('Initializing Feed...');
+
+    // Check if Appwrite is loaded
+    if (typeof Query === 'undefined' || typeof db === 'undefined') {
+      console.warn('⏳ Waiting for Appwrite to load...');
+      setTimeout(() => this.init(), 500);
+      return;
+    }
+
+    // Check session with Appwrite (async)
     await session.refresh();
-    if (!session.isLoggedIn()) { location.href='./login.html'; return; }
 
-    try {
-      const response = await db.list(APPWRITE_CONFIG.COLLECTIONS.REELS, [
-        Query.equal('isDeleted', false),
-        Query.orderDesc('uploadedAt'),
-        Query.limit(20)
-      ]);
-      this.reels = response.documents;
+    if (!session.isLoggedIn()) {
+      this.showLoginPrompt();
+      return;
+    }
 
-      await this.loadUserLikes();
+    await this.loadReels();
+    this.setupEventListeners();
 
-      if (this.reels.length > 0) {
-        this.displayCurrentVideo();
-        this.setupSwipe();
-      }
-
-      // Wire up bottom navigation buttons
-      this.setupNavigation();
-    } catch(e) {
-      console.error('Init error:', e);
-      Toast.error('Load failed: ' + e.message);
+    if (this.reels.length === 0) {
+      this.showEmptyState();
+    } else {
+      this.displayCurrentVideo();
     }
   }
 
-  setupNavigation() {
-    document.querySelectorAll('.nav-item').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const nav = btn.dataset.nav;
-        switch(nav) {
-          case 'home':
-            // Reload feed
-            this.currentIndex = 0;
-            if (this.reels.length) this.displayCurrentVideo();
-            break;
-          case 'trending':
-            this.loadTrending();
-            break;
-          case 'create':
-            location.href = './upload.html';
-            break;
-          case 'profile':
-            location.href = './creator-dashboard.html';
-            break;
-        }
-      });
+  async loadReels() {
+    if (this.isLoading || !this.hasMore) return;
+
+    // Safety check: ensure globals are available
+    if (typeof Query === 'undefined' || typeof db === 'undefined' || typeof APPWRITE_CONFIG === 'undefined') {
+      console.warn('⏳ Appwrite config not ready, retrying...');
+      setTimeout(() => this.loadReels(), 500);
+      return;
+    }
+
+    this.isLoading = true;
+    try {
+      const queries = [
+        Query.equal('isDeleted', false),
+        Query.orderDesc('uploadedAt'),
+        Query.limit(this.pageSize),
+        Query.offset(this.reels.length)
+      ];
+
+      const response = await db.list(APPWRITE_CONFIG.COLLECTIONS.REELS, queries);
+
+      this.reels = [...this.reels, ...response.documents];
+      this.hasMore = response.documents.length === this.pageSize;
+
+      console.log(`✅ Loaded ${response.documents.length} reels`);
+    } catch (error) {
+      console.error('Load videos error:', error.message || error);
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
+  setupEventListeners() {
+    document.addEventListener('wheel', (e) => this.handleScroll(e), { passive: true });
+    document.addEventListener('touchstart', (e) => this.handleTouchStart(e), { passive: true });
+    document.addEventListener('touchend', (e) => this.handleTouchEnd(e), { passive: true });
+    document.addEventListener('keydown', (e) => this.handleKeypress(e));
+
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.addEventListener('click', (e) => this.handleNavClick(e));
     });
   }
 
-  async loadTrending() {
-    try {
-      Toast.info('Loading trending 🔥');
-      const response = await db.list(APPWRITE_CONFIG.COLLECTIONS.REELS, [
-        Query.equal('isDeleted', false),
-        Query.orderDesc('views'),
-        Query.limit(20)
-      ]);
-      if (response.documents.length === 0) {
-        Toast.error('No trending videos yet');
-        return;
-      }
-      // Score by views + likes*3 + comments*2
-      this.reels = response.documents
-        .map(r => ({ ...r, _score: (r.views||0) + ((r.likes||0)*3) + ((r.comments||0)*2) }))
-        .sort((a,b) => b._score - a._score);
-      this.currentIndex = 0;
-      this.displayCurrentVideo();
-      Toast.success('Trending now 🔥');
-    } catch(e) {
-      console.error('Trending failed:', e);
-      Toast.error('Failed to load trending');
+  handleScroll(e) {
+    if (this._scrollLock || this.isFullscreen) return;
+    this._scrollLock = true;
+    setTimeout(() => { this._scrollLock = false; }, 600);
+
+    if (e.deltaY > 0) this.nextVideo();
+    else if (e.deltaY < 0) this.previousVideo();
+  }
+
+  touchStartY = 0;
+  handleTouchStart(e) {
+    this.touchStartY = e.changedTouches[0].screenY;
+  }
+  handleTouchEnd(e) {
+    if (this.isFullscreen) return;
+    const diff = this.touchStartY - e.changedTouches[0].screenY;
+    if (Math.abs(diff) > 50) {
+      if (diff > 0) this.nextVideo();
+      else this.previousVideo();
     }
   }
 
-  async loadUserLikes() {
-    try {
-      const userId = session.getUserId();
-      const likes = await db.list(APPWRITE_CONFIG.COLLECTIONS.LIKES, [
-        Query.equal('userId', userId),
-        Query.limit(100)
-      ]);
-      // FIX: store reelId values — we compare against reel.$id below,
-      // so we must save likes keyed by the SAME id we check with.
-      this.likedReels = new Set(likes.documents.map(l => l.reelId));
-      console.log(`✅ Loaded ${this.likedReels.size} likes`);
-    } catch(e) {
-      console.warn('Likes load failed (permissions?)', e);
-      this.likedReels = new Set();
+  handleKeypress(e) {
+    if (e.key === 'Escape' && this.isFullscreen) {
+      this.exitFullscreen();
+    } else if (e.key === 'ArrowUp' && this.isFullscreen) {
+      this.previousVideo();
+    } else if (e.key === 'ArrowDown' && this.isFullscreen) {
+      this.nextVideo();
+    }
+  }
+
+  nextVideo() {
+    if (this.currentIndex < this.reels.length - 1) {
+      this.currentIndex++;
+      this.displayCurrentVideo();
+      if (this.currentIndex >= this.reels.length - 3) this.loadReels();
+    } else if (this.hasMore) {
+      this.loadReels().then(() => {
+        if (this.reels.length > this.currentIndex + 1) {
+          this.currentIndex++;
+          this.displayCurrentVideo();
+        }
+      });
+    }
+  }
+
+  previousVideo() {
+    if (this.currentIndex > 0) {
+      this.currentIndex--;
+      this.displayCurrentVideo();
     }
   }
 
   displayCurrentVideo() {
     const reel = this.reels[this.currentIndex];
+    if (!reel) return;
     this.currentVideo = reel;
-    // FIX: check using reel.$id (the document id), consistent everywhere
-    const isLiked = this.likedReels.has(reel.$id);
 
-    document.getElementById('feed-container').innerHTML = `
-      <div class="video-card">
-        <video class="video-player" src="${reel.videoUrl}" loop playsinline autoplay muted style="width:100%;height:100vh;object-fit:cover"></video>
+    if (this.isFullscreen) {
+      this.displayFullscreenVideo(reel);
+    } else {
+      this.displayNormalVideo(reel);
+    }
 
-        <div style="position:absolute;right:15px;bottom:120px;display:flex;flex-direction:column;gap:20px;align-items:center">
-          <button class="like-btn" data-id="${reel.$id}" style="background:${isLiked?'#ff3b30':'rgba(0,0,0,0.6)'};border:none;width:55px;height:55px;border-radius:50%;color:white;font-size:26px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 10px rgba(0,0,0,0.3)">❤️</button>
-          <div class="like-count" style="color:white;font-size:12px;margin-top:-15px">${reel.likes||0}</div>
+    const video = document.querySelector('.video-player');
+    if (video) {
+      video.play().catch(e => console.log('Autoplay blocked:', e));
+    }
 
-          <button style="background:rgba(0,0,0,0.6);border:none;width:55px;height:55px;border-radius:50%;color:white;font-size:24px">💬</button>
-          <button style="background:rgba(0,0,0,0.6);border:none;width:55px;height:55px;border-radius:50%;color:white;font-size:24px">↗️</button>
+    this.incrementViews(reel);
+  }
+
+  displayNormalVideo(reel) {
+    const container = document.getElementById('feed-container');
+    if (!container) return;
+
+    container.innerHTML = this.renderVideoCard(reel);
+    this.setupCardEventListeners();
+  }
+
+  displayFullscreenVideo(reel) {
+    const container = document.getElementById('feed-container');
+    if (!container) return;
+
+    container.innerHTML = `
+      <div class="fullscreen-video-container">
+        <video class="video-player fullscreen-video" src="${reel.videoUrl}" playsinline autoplay muted loop></video>
+        
+        <div class="fullscreen-header">
+          <img src="assets/logo.png" alt="GorkhaReels" class="fullscreen-logo">
         </div>
-        <div style="position:absolute;bottom:80px;left:15px;right:80px;color:white">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px" onclick="location.href='./creator-profile.html?id=${reel.creatorId}'">
-            <img src="${reel.creatorProfilePic || 'assets/logo.png'}" onerror="this.src='assets/logo.png'" style="width:36px;height:36px;border-radius:50%;border:2px solid white">
-            <span style="font-weight:700">@${reel.creatorName || 'creator'}</span>
-          </div>
-          <h3 style="margin:0 0 5px;font-size:16px">${reel.title}</h3>
+
+        <div class="fullscreen-actions">
+          <button class="fullscreen-action-btn like-btn ${this.likedReels.has(reel.$id) ? 'liked' : ''}" data-reel-id="${reel.$id}" title="Like">
+            <div class="action-icon">❤️</div>
+            <div class="action-count">${reel.likes || 0}</div>
+          </button>
+          
+          <button class="fullscreen-action-btn comment-btn" data-reel-id="${reel.$id}" title="Comment">
+            <div class="action-icon">💬</div>
+            <div class="action-count">${reel.comments || 0}</div>
+          </button>
+          
+          <button class="fullscreen-action-btn share-btn" data-reel-id="${reel.$id}" title="Share">
+            <div class="action-icon">↗️</div>
+            <div class="action-count">${reel.shares || 0}</div>
+          </button>
+
+          <button class="fullscreen-action-btn exit-btn" title="Exit Fullscreen">
+            <div class="action-icon">✕</div>
+          </button>
+        </div>
+
+        <div class="fullscreen-info">
+          <h2>${reel.title}</h2>
+          <p>${reel.description || ''}</p>
         </div>
       </div>
     `;
 
-    const video = document.querySelector('video');
+    this.setupFullscreenEventListeners();
+  }
 
-    // Auto-unmute if user previously unmuted a video
-    if (this.soundEnabled) {
-      video.muted = false;
-    }
+  renderVideoCard(reel) {
+    const isLiked = this.likedReels.has(reel.$id);
+    return `
+      <div class="video-card">
+        <video class="video-player" src="${reel.videoUrl}" loop playsinline preload="metadata"></video>
+        <div class="video-overlay">
+          <span class="video-category">${reel.category || 'General'}</span>
+          <h2 class="video-title">${reel.title}</h2>
+          <div class="video-meta">
+            <span>${reel.views || 0} views</span>
+            <span>•</span>
+            <span>${reel.language || 'Nepali'}</span>
+          </div>
+          <p class="video-description">${reel.description || ''}</p>
+        </div>
+        <div class="action-buttons">
+          <button class="action-btn like-btn ${isLiked ? 'liked' : ''}" data-reel-id="${reel.$id}" title="Like">
+            ❤️<span class="action-count">${reel.likes || 0}</span>
+          </button>
+          <button class="action-btn comment-btn" data-reel-id="${reel.$id}" title="Comment">
+            💬<span class="action-count">${reel.comments || 0}</span>
+          </button>
+          <button class="action-btn share-btn" data-reel-id="${reel.$id}" title="Share">
+            ↗️<span class="action-count">${reel.shares || 0}</span>
+          </button>
+          <button class="action-btn fullscreen-btn" data-reel-id="${reel.$id}" title="Fullscreen">
+            ⛶<span class="action-count"></span>
+          </button>
+        </div>
+      </div>
+    `;
+  }
 
-    // Click video to unmute + play (and stay unmuted for session)
-    video.addEventListener('click', () => {
-      if (video.muted) {
-        video.muted = false;
-        this.soundEnabled = true; // Stay unmuted for all future videos
-        video.play().catch(()=>{});
-      } else if (video.paused) {
-        video.play().catch(()=>{});
-      } else {
-        video.pause();
-      }
+  setupCardEventListeners() {
+    document.querySelector('.like-btn')?.addEventListener('click', (e) => {
+      this.toggleLike(e.currentTarget.dataset.reelId);
+    });
+    document.querySelector('.comment-btn')?.addEventListener('click', () => {
+      Toast.success('Comments coming soon!');
+    });
+    document.querySelector('.share-btn')?.addEventListener('click', (e) => {
+      this.shareVideo(e.currentTarget.dataset.reelId);
+    });
+    document.querySelector('.fullscreen-btn')?.addEventListener('click', (e) => {
+      this.enterFullscreen();
     });
 
-    document.querySelector('.like-btn').onclick = (e) => {
-      e.stopPropagation();
-      this.toggleLike(reel.$id);
-    };
-    video.play().catch(()=>{});
+    const video = document.querySelector('.video-player');
+    if (video) {
+      video.addEventListener('click', () => {
+        if (video.paused) video.play();
+        else video.pause();
+      });
+      video.addEventListener('dblclick', () => this.enterFullscreen());
+    }
+  }
+
+  setupFullscreenEventListeners() {
+    document.querySelector('.like-btn')?.addEventListener('click', (e) => {
+      this.toggleLike(e.currentTarget.dataset.reelId);
+    });
+    document.querySelector('.comment-btn')?.addEventListener('click', () => {
+      Toast.success('Comments coming soon!');
+    });
+    document.querySelector('.share-btn')?.addEventListener('click', (e) => {
+      this.shareVideo(e.currentTarget.dataset.reelId);
+    });
+    document.querySelector('.exit-btn')?.addEventListener('click', () => {
+      this.exitFullscreen();
+    });
+
+    const video = document.querySelector('.video-player');
+    if (video) {
+      video.addEventListener('click', () => {
+        if (video.paused) video.play();
+        else video.pause();
+      });
+    }
+  }
+
+  enterFullscreen() {
+    this.isFullscreen = true;
+    const container = document.getElementById('feed-container');
+    if (container) {
+      container.requestFullscreen().catch(err => {
+        console.log('Fullscreen request failed:', err);
+        this.isFullscreen = true; // Still enable fullscreen UI even if API fails
+        this.displayCurrentVideo();
+      });
+    }
+    this.displayCurrentVideo();
+  }
+
+  exitFullscreen() {
+    this.isFullscreen = false;
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+    }
+    this.displayCurrentVideo();
+  }
+
+  async incrementViews(reel) {
+    try {
+      await db.update(APPWRITE_CONFIG.COLLECTIONS.REELS, reel.$id, {
+        views: (reel.views || 0) + 1
+      });
+    } catch (e) {
+      // Non-critical
+    }
   }
 
   async toggleLike(reelId) {
-    const userId = session.getUserId();
+    const likeButton = document.querySelector('.like-btn');
     const isLiked = this.likedReels.has(reelId);
-    const btn = document.querySelector('.like-btn');
-    const countEl = document.querySelector('.like-count');
 
-    // Prevent double-tap spam while processing
-    if (btn.dataset.busy === '1') return;
-    btn.dataset.busy = '1';
+    if (isLiked) {
+      this.likedReels.delete(reelId);
+      likeButton.classList.remove('liked');
+      this.currentVideo.likes = Math.max(0, (this.currentVideo.likes || 1) - 1);
+    } else {
+      this.likedReels.add(reelId);
+      likeButton.classList.add('liked');
+      this.currentVideo.likes = (this.currentVideo.likes || 0) + 1;
+    }
+    likeButton.querySelector('.action-count').textContent = this.currentVideo.likes;
 
     try {
-      if (isLiked) {
-        // ===== UNLIKE =====
-        this.likedReels.delete(reelId);
-        btn.style.background = 'rgba(0,0,0,0.6)';
-
-        // Find and delete the like record
-        const likes = await db.list(APPWRITE_CONFIG.COLLECTIONS.LIKES, [
-          Query.equal('userId', userId),
-          Query.equal('reelId', reelId),
-          Query.limit(1)
-        ]);
-        if (likes.documents[0]) {
-          await db.remove(APPWRITE_CONFIG.COLLECTIONS.LIKES, likes.documents[0].$id);
-        }
-
-        // Decrement counter on the reel
-        const newCount = Math.max(0, (this.currentVideo.likes || 1) - 1);
-        await db.update(APPWRITE_CONFIG.COLLECTIONS.REELS, reelId, { likes: newCount });
-        this.currentVideo.likes = newCount;
-        if (countEl) countEl.textContent = newCount;
-
-        Toast.success('Unliked');
-      } else {
-        // ===== LIKE =====
-        // SAFETY: check DB first to avoid duplicate-document errors
-        const existing = await db.list(APPWRITE_CONFIG.COLLECTIONS.LIKES, [
-          Query.equal('userId', userId),
-          Query.equal('reelId', reelId),
-          Query.limit(1)
-        ]);
-
-        if (existing.documents.length === 0) {
-          // Your LIKES collection requires a 'likeId' field
-          await db.create(APPWRITE_CONFIG.COLLECTIONS.LIKES, {
-            likeId: ID.unique(),
-            userId: userId,
-            reelId: reelId,
-            creatorId: this.currentVideo.creatorId,
-            createdAt: new Date().toISOString()
-          });
-        }
-
-        this.likedReels.add(reelId);
-        btn.style.background = '#ff3b30';
-        btn.style.transform = 'scale(1.2)';
-        setTimeout(()=>btn.style.transform='scale(1)',200);
-
-        // Increment counter on the reel
-        const newCount = (this.currentVideo.likes || 0) + 1;
-        await db.update(APPWRITE_CONFIG.COLLECTIONS.REELS, reelId, { likes: newCount });
-        this.currentVideo.likes = newCount;
-        if (countEl) countEl.textContent = newCount;
-
-        Toast.success('❤️ Liked!');
-      }
-    } catch(e) {
-      console.error('Like error:', e);
-      Toast.error('Like failed: ' + e.message);
-      // Revert visual state on error
-      if (isLiked) this.likedReels.add(reelId); else this.likedReels.delete(reelId);
-      btn.style.background = this.likedReels.has(reelId) ? '#ff3b30' : 'rgba(0,0,0,0.6)';
-    } finally {
-      btn.dataset.busy = '0';
+      await db.update(APPWRITE_CONFIG.COLLECTIONS.REELS, reelId, {
+        likes: this.currentVideo.likes
+      });
+    } catch (e) {
+      console.error('Like update failed:', e);
     }
   }
 
-  // Search button handler (header 🔍) — uses the search overlay in index.html
-  openSearch() {
-    const overlay = document.getElementById('search-overlay');
-    if (!overlay) return;
-    overlay.style.display = 'flex';
-    const input = document.getElementById('search-input-field');
-    if (input) {
-      setTimeout(() => input.focus(), 100);
-      input.oninput = (e) => this.handleSearchInput(e.target.value.trim());
+  shareVideo(reelId) {
+    const url = `${window.location.origin}${window.location.pathname}?reel=${reelId}`;
+    if (navigator.share) {
+      navigator.share({
+        title: this.currentVideo.title,
+        text: this.currentVideo.description,
+        url
+      }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(url);
+      Toast.success('Link copied!');
     }
   }
 
-  closeSearch() {
-    const overlay = document.getElementById('search-overlay');
-    if (overlay) overlay.style.display = 'none';
-    const input = document.getElementById('search-input-field');
-    if (input) input.value = '';
+  handleNavClick(e) {
+    const nav = e.currentTarget.dataset.nav;
+    switch (nav) {
+      case 'home': window.location.href = './index.html'; break;
+      case 'create': window.location.href = './upload.html'; break;
+      case 'profile': window.location.href = './creator-dashboard.html'; break;
+      case 'trending': this.loadTrending(); break;
+    }
   }
 
-  handleSearchInput(query) {
-    const results = document.getElementById('search-results');
-    const clearBtn = document.getElementById('search-clear-btn');
-    if (clearBtn) clearBtn.style.display = query ? 'block' : 'none';
-    if (!results) return;
-
-    if (!query || query.length < 2) {
-      results.innerHTML = `<div style="text-align:center;color:#737373;padding:60px 20px;"><div style="font-size:40px;margin-bottom:12px;">🎬</div><p>Search for videos by title</p></div>`;
-      return;
+  async loadTrending() {
+    try {
+      const response = await db.list(APPWRITE_CONFIG.COLLECTIONS.REELS, [
+        Query.equal('isDeleted', false),
+        Query.orderDesc('views'),
+        Query.limit(20)
+      ]);
+      this.reels = response.documents;
+      this.currentIndex = 0;
+      if (this.reels.length) this.displayCurrentVideo();
+      else this.showEmptyState();
+      Toast.success('Showing trending 🔥');
+    } catch (e) {
+      Toast.error('Failed to load trending');
     }
+  }
 
-    const q = query.toLowerCase();
-    const matched = this.reels.filter(r =>
-      (r.title||'').toLowerCase().includes(q) ||
-      (r.description||'').toLowerCase().includes(q) ||
-      (r.category||'').toLowerCase().includes(q)
-    );
-
-    if (matched.length === 0) {
-      results.innerHTML = `<div style="text-align:center;color:#737373;padding:60px 20px;"><div style="font-size:40px;margin-bottom:12px;">😕</div><p>No videos found</p></div>`;
-      return;
-    }
-
-    results.innerHTML = matched.map(r => {
-      const idx = this.reels.findIndex(x => x.$id === r.$id);
-      return `
-      <div onclick="window.feedManager.playFromSearch(${idx})" style="display:flex;gap:12px;align-items:center;background:#1a1a1a;border-radius:12px;padding:10px;cursor:pointer;border:1px solid #2d2d2d;margin-bottom:10px;">
-        <div style="width:56px;height:72px;flex-shrink:0;border-radius:8px;overflow:hidden;background:#242424;">
-          <img src="${r.thumbnail || 'assets/logo.png'}" onerror="this.src='assets/logo.png'" style="width:100%;height:100%;object-fit:cover;">
+  showEmptyState() {
+    const container = document.getElementById('feed-container');
+    if (container) {
+      container.innerHTML = `
+        <div style="text-align:center;padding:40px 20px;display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:80vh;">
+          <img src="assets/logo.png" alt="GorkhaReels" style="height:60px;margin-bottom:20px;opacity:0.7;">
+          <h2 style="color:var(--text-primary);margin-bottom:12px;">No videos yet</h2>
+          <p style="color:var(--text-secondary);margin-bottom:30px;max-width:300px;">Be the first to share a video with the Gorkha community!</p>
+          <button class="btn btn-primary" onclick="window.location.href='./upload.html'" style="max-width:250px;">
+            📹 Upload First Video
+          </button>
         </div>
-        <div style="flex:1;min-width:0;">
-          <p style="color:#fff;font-weight:600;font-size:14px;margin:0 0 4px;">${r.title || 'Untitled'}</p>
-          <p style="color:#a3a3a3;font-size:12px;margin:0;">👁️ ${r.views||0} · ❤️ ${r.likes||0}</p>
-        </div>
-      </div>`;
-    }).join('');
-  }
-
-  playFromSearch(idx) {
-    this.closeSearch();
-    if (idx >= 0 && idx < this.reels.length) {
-      this.currentIndex = idx;
-      this.displayCurrentVideo();
+      `;
     }
   }
 
-  setupSwipe() {
-    let startY = 0;
-    document.addEventListener('touchstart', e => startY = e.touches[0].clientY, {passive:true});
-    document.addEventListener('touchend', e => {
-      const diff = startY - e.changedTouches[0].clientY;
-      if (Math.abs(diff) > 80) {
-        if (diff > 0 && this.currentIndex < this.reels.length-1) {
-          this.currentIndex++; this.displayCurrentVideo();
-        } else if (diff < 0 && this.currentIndex > 0) {
-          this.currentIndex--; this.displayCurrentVideo();
-        }
-      }
-    }, {passive:true});
+  showLoginPrompt() {
+    const container = document.getElementById('feed-container');
+    if (container) {
+      container.innerHTML = `
+        <div style="text-align:center;padding:40px 20px;display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:80vh;">
+          <img src="assets/logo.png" alt="GorkhaReels" style="height:60px;margin-bottom:20px;">
+          <h2 style="color:var(--primary-red);margin-bottom:20px;font-size:24px;">Welcome to GorkhaReels</h2>
+          <p style="color:var(--text-secondary);margin-bottom:30px;font-size:14px;max-width:300px;">Sign in to watch, upload, and share videos with the Gorkha community</p>
+          <button class="btn btn-primary" onclick="window.location.href='./login.html'" style="max-width:250px;margin-bottom:12px;">Sign In</button>
+          <button class="btn btn-secondary" onclick="window.location.href='./login.html'" style="max-width:250px;">Create Account</button>
+        </div>
+      `;
+    }
   }
 }
 
-window.feedManager = new FeedManager();
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    window.feedManager = new FeedManager();
+  });
+} else {
+  window.feedManager = new FeedManager();
+}
+
+console.log('✅ Feed Manager Loaded (with Fullscreen + Init checks)');
