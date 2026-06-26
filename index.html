@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>GorkhaReels - Live Darjeeling</title>
-  <link rel="icon" type="image/png" href="/logo-suite/favicon/logo-khukuri-32x32.png">
+  <link rel="icon" type="image/png" href="/favicon/logo-khukuri-32x32.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
@@ -170,7 +170,7 @@
 
   <header class="banner">
     <div class="banner-left">
-      <img class="banner-logo" src="/logo-suite/primary/logo-khukuri-256x256.png" alt="GorkhaReels">
+      <img class="banner-logo" src="/favicon/logo-khukuri-192x192.png" alt="GorkhaReels">
       <div class="banner-text">
         <div class="banner-title">GorkhaReels</div>
         <div class="banner-tagline">🏔️ Live Darjeeling</div>
@@ -287,7 +287,7 @@
   <div class="drawer-backdrop" id="drawer-backdrop"></div>
   <aside class="drawer" id="drawer">
     <div class="drawer-head">
-      <img src="/logo-suite/primary/logo-khukuri-256x256.png" alt="">
+      <img src="/favicon/logo-khukuri-192x192.png" alt="">
       <div>
         <div class="dh-title">GorkhaReels</div>
         <div class="dh-sub">Live Darjeeling</div>
@@ -416,7 +416,7 @@
         creators = creators.slice(0, 6);
         if (creators.length === 0) { document.getElementById('suggested-banner').classList.add('hidden'); return; }
         const scroll = document.getElementById('suggested-scroll');
-        const html = creators.map(creator => `<div class="creator-card" onclick="window.location.href='creator-profile.html?creatorId=${creator.$id}'"><img class="creator-pic" src="${creator.profilePic || '/logo-suite/primary/logo-khukuri-512x512.png'}" alt="${creator.name}" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'"><div class="creator-name">${escapeHtml(creator.name || 'User')}</div><div class="creator-followers">${creator.followers || 0} followers</div><button class="follow-btn" id="follow-btn-${creator.$id}" onclick="event.stopPropagation(); followCreator('${creator.$id}', this)">Follow</button></div>`).join('');
+        const html = creators.map(creator => `<div class="creator-card" onclick="window.location.href='creator-profile.html?creatorId=${creator.$id}'"><img class="creator-pic" src="${creator.profilePic || '/favicon/logo-khukuri-512x512.png'}" alt="${creator.name}" onerror="this.src='/favicon/logo-khukuri-512x512.png'"><div class="creator-name">${escapeHtml(creator.name || 'User')}</div><div class="creator-followers">${creator.followers || 0} followers</div><button class="follow-btn" id="follow-btn-${creator.$id}" onclick="event.stopPropagation(); followCreator('${creator.$id}', this)">Follow</button></div>`).join('');
         scroll.innerHTML = html;
         
         for (const creator of creators) {
@@ -490,8 +490,8 @@
           reelItem.innerHTML = `
             <div class="feed-header">
               <div class="feed-creator-info">
-                <img class="feed-avatar" src="${creator.profilePic || '/logo-suite/primary/logo-khukuri-512x512.png'}" 
-                     onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'" 
+                <img class="feed-avatar" src="${creator.profilePic || '/favicon/logo-khukuri-512x512.png'}" 
+                     onerror="this.src='/favicon/logo-khukuri-512x512.png'" 
                      onclick="window.location='creator-profile.html?creatorId=${creator.$id}'">
                 <div class="feed-creator-meta">
                   <div class="feed-creator-name" onclick="window.location='creator-profile.html?creatorId=${creator.$id}'">
@@ -604,7 +604,7 @@
             const liked = MY_USER_ID ? await isVideoLiked(reel.$id) : false;
             const reelItem = document.createElement('div');
             reelItem.className = 'feed-item';
-            reelItem.innerHTML = `<div class="feed-header"><div class="feed-creator-info"><img class="feed-avatar" src="${creator.profilePic || '/logo-suite/primary/logo-khukuri-512x512.png'}" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'" onclick="window.location='creator-profile.html?creatorId=${creator.$id}'"><div class="feed-creator-meta"><div class="feed-creator-name" onclick="window.location='creator-profile.html?creatorId=${creator.$id}'">${escapeHtml(creator.name || 'User')}${creator.isVerified ? ' ✓' : ''}</div><div class="feed-time">${creator.category ? '📌 ' + creator.category : 'Common Zone'} • ${getTimeAgo(new Date(reel.uploadedAt))}${reel.zone ? `<span class="zone-pill">📍 ${escapeHtml(reel.zone)}</span>` : ''}</div></div></div><button class="feed-menu" onclick="showMoreOptions('${reel.$id}', 'reel')">⋮</button></div><div class="feed-video" onclick="window.location.href='./video-modal.html?reelId=${reel.$id}'"><video src="${reel.videoUrl}" muted playsinline preload="metadata" webkit-playsinline></video></div><div class="feed-actions"><button class="action-btn ${liked ? 'liked' : ''}" id="like-${reel.$id}" onclick="toggleLike('${reel.$id}', this, 'reel')">${liked ? '❤️' : '🤍'}</button><button class="action-btn" onclick="window.location.href='./video-modal.html?reelId=${reel.$id}#comments'">💬</button><button class="action-btn" onclick="shareContent('${reel.$id}', 'reel')">📤</button></div><div class="feed-stats"><span id="likes-${reel.$id}">${reel.likes || 0} likes</span> • <span id="views-${reel.$id}">${reel.views || 0} views</span></div>`;
+            reelItem.innerHTML = `<div class="feed-header"><div class="feed-creator-info"><img class="feed-avatar" src="${creator.profilePic || '/favicon/logo-khukuri-512x512.png'}" onerror="this.src='/favicon/logo-khukuri-512x512.png'" onclick="window.location='creator-profile.html?creatorId=${creator.$id}'"><div class="feed-creator-meta"><div class="feed-creator-name" onclick="window.location='creator-profile.html?creatorId=${creator.$id}'">${escapeHtml(creator.name || 'User')}${creator.isVerified ? ' ✓' : ''}</div><div class="feed-time">${creator.category ? '📌 ' + creator.category : 'Common Zone'} • ${getTimeAgo(new Date(reel.uploadedAt))}${reel.zone ? `<span class="zone-pill">📍 ${escapeHtml(reel.zone)}</span>` : ''}</div></div></div><button class="feed-menu" onclick="showMoreOptions('${reel.$id}', 'reel')">⋮</button></div><div class="feed-video" onclick="window.location.href='./video-modal.html?reelId=${reel.$id}'"><video src="${reel.videoUrl}" muted playsinline preload="metadata" webkit-playsinline></video></div><div class="feed-actions"><button class="action-btn ${liked ? 'liked' : ''}" id="like-${reel.$id}" onclick="toggleLike('${reel.$id}', this, 'reel')">${liked ? '❤️' : '🤍'}</button><button class="action-btn" onclick="window.location.href='./video-modal.html?reelId=${reel.$id}#comments'">💬</button><button class="action-btn" onclick="shareContent('${reel.$id}', 'reel')">📤</button></div><div class="feed-stats"><span id="likes-${reel.$id}">${reel.likes || 0} likes</span> • <span id="views-${reel.$id}">${reel.views || 0} views</span></div>`;
             feed.appendChild(reelItem);
           } else if (item.type === 'post') {
             const post = item.data, creator = item.creator;
@@ -613,7 +613,7 @@
             try { hashtags = JSON.parse(post.hashtags || '[]'); } catch (e) {}
             const postItem = document.createElement('div');
             postItem.className = 'feed-item';
-            postItem.innerHTML = `<div class="feed-header"><div class="feed-creator-info"><img class="feed-avatar" src="${creator.profilePic || '/logo-suite/primary/logo-khukuri-512x512.png'}" onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'" onclick="window.location='creator-profile.html?creatorId=${creator.$id}'"><div class="feed-creator-meta"><div class="feed-creator-name" onclick="window.location='creator-profile.html?creatorId=${creator.$id}'">${escapeHtml(creator.name || 'User')}${creator.isVerified ? ' ✓' : ''}</div><div class="feed-time">${creator.category ? '📌 ' + creator.category : 'Common Zone'} • ${getTimeAgo(new Date(post.createdAt))}</div></div></div><button class="feed-menu" onclick="showMoreOptions('${post.$id}', 'post')">⋮</button></div><div class="feed-text-content"><p>${escapeHtml(post.content)}</p>${hashtags.length > 0 ? `<div class="feed-hashtags">${hashtags.map(tag => `<a href="#" onclick="event.preventDefault(); alert('Hashtag search coming soon')">${tag}</a>`).join(' ')}</div>` : ''}</div><div class="feed-actions"><button class="action-btn ${liked ? 'liked' : ''}" id="like-${post.$id}" onclick="toggleLike('${post.$id}', this, 'post')">${liked ? '❤️' : '🤍'}</button><button class="action-btn" onclick="alert('Comments coming soon')">💬</button><button class="action-btn" onclick="shareContent('${post.$id}', 'post')">📤</button></div><div class="feed-stats"><span id="likes-${post.$id}">${post.likes || 0} likes</span> • <span id="shares-${post.$id}">${post.shares || 0} shares</span></div>`;
+            postItem.innerHTML = `<div class="feed-header"><div class="feed-creator-info"><img class="feed-avatar" src="${creator.profilePic || '/favicon/logo-khukuri-512x512.png'}" onerror="this.src='/favicon/logo-khukuri-512x512.png'" onclick="window.location='creator-profile.html?creatorId=${creator.$id}'"><div class="feed-creator-meta"><div class="feed-creator-name" onclick="window.location='creator-profile.html?creatorId=${creator.$id}'">${escapeHtml(creator.name || 'User')}${creator.isVerified ? ' ✓' : ''}</div><div class="feed-time">${creator.category ? '📌 ' + creator.category : 'Common Zone'} • ${getTimeAgo(new Date(post.createdAt))}</div></div></div><button class="feed-menu" onclick="showMoreOptions('${post.$id}', 'post')">⋮</button></div><div class="feed-text-content"><p>${escapeHtml(post.content)}</p>${hashtags.length > 0 ? `<div class="feed-hashtags">${hashtags.map(tag => `<a href="#" onclick="event.preventDefault(); alert('Hashtag search coming soon')">${tag}</a>`).join(' ')}</div>` : ''}</div><div class="feed-actions"><button class="action-btn ${liked ? 'liked' : ''}" id="like-${post.$id}" onclick="toggleLike('${post.$id}', this, 'post')">${liked ? '❤️' : '🤍'}</button><button class="action-btn" onclick="alert('Comments coming soon')">💬</button><button class="action-btn" onclick="shareContent('${post.$id}', 'post')">📤</button></div><div class="feed-stats"><span id="likes-${post.$id}">${post.likes || 0} likes</span> • <span id="shares-${post.$id}">${post.shares || 0} shares</span></div>`;
             feed.appendChild(postItem);
           }
         }
@@ -810,8 +810,8 @@
           .map(c => `
             <a href="story.html?creator=${c.$id}" class="story-item">
               <img class="story-avatar has-unseen"
-                   src="${c.profilePic || '/logo-suite/primary/logo-khukuri-512x512.png'}"
-                   onerror="this.src='/logo-suite/primary/logo-khukuri-512x512.png'"
+                   src="${c.profilePic || '/favicon/logo-khukuri-512x512.png'}"
+                   onerror="this.src='/favicon/logo-khukuri-512x512.png'"
                    alt="${escapeHtml(c.name || 'User')}">
               <div class="story-name">${escapeHtml(c.name || 'User')}</div>
             </a>
