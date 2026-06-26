@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About Us - GorkhaReels</title>
+  <meta name="description" content="Learn about GorkhaReels - the platform for Gorkha creators and community">
+  <meta name="theme-color" content="#121212">
+  
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <link rel="stylesheet" href="css/styles.css">
+  
+  <style>
+    body {
+      background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
+    }
+
+    .about-container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 20px;
+      padding-bottom: 80px;
+    }
+
+    .about-header {
+      text-align: center;
+      margin-bottom: 40px;
+      padding-top: 20px;
+    }
+
+    .about-header img {
+      height: 80px;
+      margin-bottom: 20px;
+    }
+
+    .about-header h1 {
+      font-size: 32px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #dc2626 0%, #fbbf24 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin: 0 0 12px;
+    }
+
+    .about-header p {
+      color: var(--text-secondary);
+      font-size: 16px;
+      margin: 0;
+    }
+
+    .about-section {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 20px;
+      backdrop-filter: blur(10px);
+    }
+
+    .about-section h2 {
+      color: var(--accent-gold);
+      font-size: 20px;
+      font-weight: 700;
+      margin: 0 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .about-section p {
+      color: #e5e5e5;
+      line-height: 1.8;
+      margin: 0 0 12px;
+      font-size: 14px;
+    }
+
+    .about-section ul {
+      color: #e5e5e5;
+      line-height: 1.8;
+      font-size: 14px;
+      padding-left: 20px;
+      margin: 0;
+    }
+
+    .about-section li {
+      margin-bottom: 8px;
+    }
+
+    .team-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .team-member {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 12px;
+    }
+
+    .team-member-pic {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #dc2626 0%, #fbbf24 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+
+    .team-member-info h3 {
+      color: #fff;
+      margin: 0;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .team-member-info p {
+      margin: 4px 0 0;
+      color: #b3b3b3;
+      font-size: 12px;
+    }
+
+    .highlight {
+      color: var(--accent-gold);
+      font-weight: 600;
+    }
+
+    .cta-button {
+      display: inline-block;
+      padding: 14px 28px;
+      background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+      color: white;
+      text-decoration: none;
+      border-radius: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-size: 14px;
+      margin-top: 16px;
+      transition: all 0.3s;
+      box-shadow: 0 8px 24px rgba(220, 38, 38, 0.3);
+    }
+
+    .cta-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 36px rgba(220, 38, 38, 0.4);
+    }
+
+    @media (max-width: 480px) {
+      .about-header h1 {
+        font-size: 24px;
+      }
+
+      .about-section {
+        padding: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header style="background: rgba(15, 15, 15, 0.95); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border-light); padding: 16px 20px; position: sticky; top: 0; z-index: 100; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);">
+    <a href="/" style="display: flex; align-items: center; gap: 12px; text-decoration: none;">
+      <img src="assets/logo.png" alt="GorkhaReels" style="height: 32px; width: auto;">
+      <span class="header-logo">GorkhaReels</span>
+    </a>
+    <a href="./" style="background: none; border: none; color: white; cursor: pointer; font-size: 24px;">✕</a>
+  </header>
+
+  <!-- Main Content -->
+  <div class="about-container">
+    <!-- Header Section -->
+    <div class="about-header">
+      <img src="assets/logo.png" alt="GorkhaReels">
+      <h1>About GorkhaReels</h1>
+      <p>The platform for Gorkha creators and community</p>
+    </div>
+
+    <!-- Mission Section -->
+    <div class="about-section">
+      <h2>🎬 Our Mission</h2>
+      <p>
+        GorkhaReels is a <span class="highlight">community-first short-form video platform</span> designed to empower Gorkha creators, celebrate Himalayan culture, and amplify local voices from Darjeeling and beyond.
+      </p>
+      <p>
+        We believe in creating a space where creators can express themselves freely, connect with their community, and build sustainable audiences—all while celebrating the rich culture, traditions, and diversity of the Gorkha people.
+      </p>
+    </div>
+
+    <!-- Vision Section -->
+    <div class="about-section">
+      <h2>🌟 Our Vision</h2>
+      <p>
+        To become the <span class="highlight">leading platform for South Asian creators</span>, where local content thrives and community values are paramount. We envision a future where Gorkha creators compete on the global stage while staying rooted in their culture.
+      </p>
+    </div>
+
+    <!-- What We Offer -->
+    <div class="about-section">
+      <h2>🎯 What We Offer</h2>
+      <ul>
+        <li>📹 <strong>Creator Tools</strong> - Easy upload, editing, and discovery features</li>
+        <li>💰 <strong>Monetization</strong> - Ad revenue, tips, sponsorships, and partnerships</li>
+        <li>🤝 <strong>Community</strong> - Direct connection with audiences and fellow creators</li>
+        <li>🌍 <strong>Cultural Pride</strong> - Features that celebrate Gorkha identity and heritage</li>
+        <li>📊 <strong>Analytics</strong> - Real-time insights into your content performance</li>
+        <li>🔒 <strong>Safety First</strong> - Community guidelines and moderation for a safe space</li>
+      </ul>
+    </div>
+
+    <!-- Why Choose Us -->
+    <div class="about-section">
+      <h2>✨ Why Choose GorkhaReels?</h2>
+      <ul>
+        <li><strong>Community-Focused:</strong> Built BY creators FOR creators</li>
+        <li><strong>Fast & Responsive:</strong> Optimized for mobile-first experience</li>
+        <li><strong>Fair Monetization:</strong> Transparent earnings system with timely payouts</li>
+        <li><strong>Cultural Respect:</strong> Dedicated to promoting Gorkha and Himalayan content</li>
+        <li><strong>Growing Platform:</strong> Join a rapidly expanding community of creators</li>
+      </ul>
+    </div>
+
+    <!-- Team Section -->
+    <div class="about-section">
+      <h2>👥 Our Team</h2>
+      <p>GorkhaReels is built and maintained by passionate creators and developers from the Gorkha community who believe in the power of local content.</p>
+      
+      <div class="team-grid">
+        <div class="team-member">
+          <div class="team-member-pic">⚙️</div>
+          <div class="team-member-info">
+            <h3>Adhar Limbu</h3>
+            <p>Founder & Product Lead</p>
+          </div>
+        </div>
+        <div class="team-member">
+          <div class="team-member-pic">🎨</div>
+          <div class="team-member-info">
+            <h3>Darjeeling Web Studio</h3>
+            <p>Design & Development</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Get Started -->
+    <div class="about-section" style="text-align: center;">
+      <h2 style="justify-content: center;">🚀 Ready to Create?</h2>
+      <p>Join thousands of creators already building their audience on GorkhaReels.</p>
+      <a href="./login.html" class="cta-button">Get Started Now</a>
+    </div>
+
+    <!-- Contact Section -->
+    <div class="about-section">
+      <h2>📞 Get in Touch</h2>
+      <p>Have questions? We'd love to hear from you!</p>
+      <ul>
+        <li>📧 <strong>Email:</strong> support@gorkhareels.com</li>
+        <li>💬 <strong>Telegram:</strong> @gorkhareels</li>
+        <li>🌐 <strong>Website:</strong> gorkhareels.in</li>
+      </ul>
+    </div>
+
+    <!-- Footer -->
+    <div style="text-align: center; padding-top: 40px; border-top: 1px solid var(--border-light); margin-top: 40px;">
+      <p style="color: #a3a3a3; font-size: 13px;">
+        &copy; 2026 GorkhaReels. All rights reserved. | Made with ❤️ from Darjeeling
+      </p>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <button class="nav-item" onclick="window.location.href='./index.html'">
+      <span>🏠</span>
+      <span class="nav-label">Home</span>
+    </button>
+    <button class="nav-item" onclick="window.location.href='./index.html?trending'">
+      <span>🔥</span>
+      <span class="nav-label">Trending</span>
+    </button>
+    <button class="nav-item" onclick="window.location.href='./upload.html'">
+      <span>➕</span>
+      <span class="nav-label">Create</span>
+    </button>
+    <button class="nav-item" onclick="window.location.href='./creator-dashboard.html'">
+      <span>👤</span>
+      <span class="nav-label">Profile</span>
+    </button>
+  </nav>
+
+  <script src="js/appwrite-config.js"></script>
+</body>
+</html>
