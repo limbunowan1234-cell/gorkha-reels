@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact Us - GorkhaReels</title>
+  <meta name="description" content="Get in touch with GorkhaReels">
+  <meta name="theme-color" content="#121212">
+  
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <link rel="stylesheet" href="css/styles.css">
+  
+  <style>
+    body {
+      background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
+    }
+
+    .contact-container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 20px;
+      padding-bottom: 80px;
+    }
+
+    .contact-header {
+      text-align: center;
+      margin-bottom: 40px;
+      padding-top: 20px;
+    }
+
+    .contact-header h1 {
+      font-size: 32px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #dc2626 0%, #fbbf24 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin: 0 0 12px;
+    }
+
+    .contact-header p {
+      color: #e5e5e5;
+      font-size: 16px;
+      margin: 0;
+    }
+
+    .contact-section {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 20px;
+      backdrop-filter: blur(10px);
+    }
+
+    .contact-section h2 {
+      color: var(--accent-gold);
+      font-size: 20px;
+      font-weight: 700;
+      margin: 0 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .contact-form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .form-group label {
+      color: var(--text-primary);
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .form-group input,
+    .form-group textarea {
+      padding: 12px;
+      background: var(--dark-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 14px;
+      transition: all 0.3s;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: var(--accent-gold);
+      box-shadow: 0 0 10px rgba(251, 191, 36, 0.2);
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 120px;
+    }
+
+    .submit-btn {
+      padding: 14px 28px;
+      background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 8px 24px rgba(220, 38, 38, 0.3);
+    }
+
+    .submit-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 36px rgba(220, 38, 38, 0.4);
+    }
+
+    .submit-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .contact-info {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .info-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 12px;
+    }
+
+    .info-icon {
+      font-size: 24px;
+      min-width: 32px;
+      text-align: center;
+    }
+
+    .info-text h3 {
+      color: #fff;
+      margin: 0 0 4px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .info-text p {
+      color: #e5e5e5;
+      margin: 0;
+      font-size: 13px;
+      word-break: break-all;
+    }
+
+    .info-text a {
+      color: var(--accent-gold);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .info-text a:hover {
+      text-decoration: underline;
+    }
+
+    .response-message {
+      padding: 16px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      text-align: center;
+      font-weight: 600;
+      display: none;
+    }
+
+    .response-message.success {
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid #10b981;
+      color: #10b981;
+    }
+
+    .response-message.error {
+      background: rgba(220, 38, 38, 0.1);
+      border: 1px solid #dc2626;
+      color: #dc2626;
+    }
+
+    .faq-section {
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 16px;
+    }
+
+    .faq-item {
+      margin-bottom: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .faq-item:last-child {
+      margin-bottom: 0;
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+
+    .faq-q {
+      color: var(--accent-gold);
+      font-weight: 600;
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+
+    .faq-a {
+      color: #e5e5e5;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 480px) {
+      .contact-header h1 {
+        font-size: 24px;
+      }
+
+      .contact-section {
+        padding: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header style="background: rgba(15, 15, 15, 0.95); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border-light); padding: 16px 20px; position: sticky; top: 0; z-index: 100; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);">
+    <a href="/" style="display: flex; align-items: center; gap: 12px; text-decoration: none;">
+      <img src="assets/logo.png" alt="GorkhaReels" style="height: 32px; width: auto;">
+      <span class="header-logo">GorkhaReels</span>
+    </a>
+    <a href="./" style="background: none; border: none; color: white; cursor: pointer; font-size: 24px;">✕</a>
+  </header>
+
+  <!-- Main Content -->
+  <div class="contact-container">
+    <!-- Header Section -->
+    <div class="contact-header">
+      <h1>Get in Touch</h1>
+      <p>We'd love to hear from you. Send us a message and we'll respond as soon as possible.</p>
+    </div>
+
+    <!-- Contact Form -->
+    <div class="contact-section">
+      <h2>📬 Send us a Message</h2>
+      
+      <div id="response-message" class="response-message"></div>
+
+      <form class="contact-form" id="contact-form" onsubmit="handleContactForm(event)">
+        <div class="form-group">
+          <label for="name">Your Name *</label>
+          <input type="text" id="name" name="name" placeholder="Full name" required>
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email Address *</label>
+          <input type="email" id="email" name="email" placeholder="your.email@gmail.com" required>
+        </div>
+
+        <div class="form-group">
+          <label for="subject">Subject *</label>
+          <input type="text" id="subject" name="subject" placeholder="How can we help?" required>
+        </div>
+
+        <div class="form-group">
+          <label for="category">Category</label>
+          <select id="category" name="category" style="padding: 12px; background: var(--dark-bg); border: 1px solid var(--border-color); border-radius: 10px; color: var(--text-primary); font-family: inherit; font-size: 14px;">
+            <option value="">Select a category</option>
+            <option value="support">Technical Support</option>
+            <option value="partnership">Partnership</option>
+            <option value="feedback">Feedback</option>
+            <option value="report">Report Issue</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="message">Message *</label>
+          <textarea id="message" name="message" placeholder="Tell us more about your inquiry..." required></textarea>
+        </div>
+
+        <button type="submit" class="submit-btn">Send Message</button>
+      </form>
+
+      <p style="color: #a3a3a3; font-size: 12px; margin-top: 12px; text-align: center;">
+        We typically respond within 24 hours.
+      </p>
+    </div>
+
+    <!-- Direct Contact -->
+    <div class="contact-section">
+      <h2>📞 Direct Contact</h2>
+      <div class="contact-info">
+        <div class="info-card">
+          <div class="info-icon">📧</div>
+          <div class="info-text">
+            <h3>Email</h3>
+            <p><a href="mailto:support@gorkhareels.com">support@gorkhareels.com</a></p>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <div class="info-icon">💬</div>
+          <div class="info-text">
+            <h3>Telegram</h3>
+            <p><a href="https://t.me/gorkhareels" target="_blank">@gorkhareels</a></p>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <div class="info-icon">🌐</div>
+          <div class="info-text">
+            <h3>Website</h3>
+            <p><a href="https://gorkhareels.in" target="_blank">gorkhareels.in</a></p>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <div class="info-icon">📍</div>
+          <div class="info-text">
+            <h3>Location</h3>
+            <p>Darjeeling, West Bengal, India</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Response Times -->
+    <div class="contact-section">
+      <h2>⏰ Response Times</h2>
+      <div class="contact-info">
+        <div class="info-card">
+          <div class="info-icon">⚡</div>
+          <div class="info-text">
+            <h3>Support Issues</h3>
+            <p>Usually within 24 hours</p>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <div class="info-icon">🤝</div>
+          <div class="info-text">
+            <h3>Partnerships</h3>
+            <p>Response within 48 hours</p>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <div class="info-icon">📝</div>
+          <div class="info-text">
+            <h3>Feedback</h3>
+            <p>Reviewed regularly</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FAQ -->
+    <div class="contact-section">
+      <h2>❓ Frequently Asked Questions</h2>
+      <div class="faq-section">
+        <div class="faq-item">
+          <div class="faq-q">Q: How long does it take to verify my creator account?</div>
+          <div class="faq-a">A: Verification typically takes 24-48 hours. You can start uploading immediately after account creation.</div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-q">Q: When can I withdraw my earnings?</div>
+          <div class="faq-a">A: Earnings are available for withdrawal once you reach ₹500. Payouts are processed monthly.</div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-q">Q: What's the maximum video length?</div>
+          <div class="faq-a">A: Videos can be up to 10 minutes long. Keep them shorter (under 2 minutes) for better engagement.</div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-q">Q: How do I report inappropriate content?</div>
+          <div class="faq-a">A: Click the "Report" option on any video. We review all reports within 24 hours.</div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-q">Q: Can I collaborate with other creators?</div>
+          <div class="faq-a">A: Yes! You can tag other creators in your videos and they'll receive a notification.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div style="text-align: center; padding-top: 40px; border-top: 1px solid var(--border-light); margin-top: 40px;">
+      <p style="color: #a3a3a3; font-size: 13px;">
+        &copy; 2026 GorkhaReels. All rights reserved. | Made with ❤️ from Darjeeling
+      </p>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <button class="nav-item" onclick="window.location.href='./index.html'">
+      <span>🏠</span>
+      <span class="nav-label">Home</span>
+    </button>
+    <button class="nav-item" onclick="window.location.href='./index.html?trending'">
+      <span>🔥</span>
+      <span class="nav-label">Trending</span>
+    </button>
+    <button class="nav-item" onclick="window.location.href='./upload.html'">
+      <span>➕</span>
+      <span class="nav-label">Create</span>
+    </button>
+    <button class="nav-item" onclick="window.location.href='./creator-dashboard.html'">
+      <span>👤</span>
+      <span class="nav-label">Profile</span>
+    </button>
+  </nav>
+
+  <script src="js/appwrite-config.js"></script>
+  <script>
+    function handleContactForm(event) {
+      event.preventDefault();
+      
+      const name = document.getElementById('name').value;
+      const email = document.getElementById('email').value;
+      const subject = document.getElementById('subject').value;
+      const message = document.getElementById('message').value;
+      const category = document.getElementById('category').value || 'other';
+      
+      const messageEl = document.getElementById('response-message');
+      
+      try {
+        // Simulate form submission (in production, this would send to a backend)
+        // For now, show a success message
+        messageEl.textContent = '✅ Message sent successfully! We\'ll get back to you soon.';
+        messageEl.classList.add('success');
+        messageEl.classList.remove('error');
+        messageEl.style.display = 'block';
+        
+        // Reset form
+        document.getElementById('contact-form').reset();
+        
+        // Hide message after 5 seconds
+        setTimeout(() => {
+          messageEl.style.display = 'none';
+        }, 5000);
+        
+        console.log('Contact form submission:', { name, email, subject, category, message });
+      } catch (error) {
+        messageEl.textContent = '❌ Something went wrong. Please try again.';
+        messageEl.classList.add('error');
+        messageEl.classList.remove('success');
+        messageEl.style.display = 'block';
+      }
+    }
+  </script>
+</body>
+</html>
