@@ -337,7 +337,12 @@ class SimpleUpload {
       // Save to database
       postBtn.textContent = '⏳ Saving...';
       const reelId = ID.unique();
-      const hashtagsString = Array.from(this.selectedHashtags).join(',');
+      
+      // Format hashtags as comma-separated string with length limit
+      let hashtagsString = Array.from(this.selectedHashtags).join(',');
+      if (hashtagsString.length > 900) {
+        hashtagsString = hashtagsString.substring(0, 900);
+      }
       
       // Format taggedCreators as JSON
       const taggedCreators = this.selectedTags.size > 0 
