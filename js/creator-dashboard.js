@@ -548,9 +548,14 @@ class DashboardManager {
 
     try {
       // Parse hashtags
-      const hashtagsArray = hashtags
-        ? hashtags.split(',').map(h => h.trim().replace(/^#/, '')).filter(h => h)
-        : [];
+      let hashtagsString = hashtags
+        ? hashtags.split(',').map(h => h.trim().replace(/^#/, '')).filter(h => h).join(',')
+        : '';
+      
+      // Limit hashtags to 900 chars (field max is 1000)
+      if (hashtagsString.length > 900) {
+        hashtagsString = hashtagsString.substring(0, 900);
+      }
 
       // Convert tags to JSON array
       const taggedCreators = Array.from(this.selectedTags.entries()).map(([creatorId, creatorName]) => ({
@@ -564,7 +569,7 @@ class DashboardManager {
         description: description || '',
         category: category || '',
         language: language || '',
-        hashtags: hashtagsArray,
+        hashtags: hashtagsString,
         taggedCreators: JSON.stringify(taggedCreators)
       });
 
