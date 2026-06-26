@@ -2,184 +2,264 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>About Us - GorkhaReels</title>
   <meta name="description" content="Learn about GorkhaReels - the platform for Gorkha creators and community">
-  <meta name="theme-color" content="#121212">
+  <meta name="theme-color" content="#0B5E6B">
   
-  <link rel="icon" type="image/png" href="assets/logo.png">
-  <link rel="stylesheet" href="css/styles.css">
+  <link rel="icon" type="image/png" href="/favicon/logo-khukuri-32x32.png">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
   
   <style>
-    body {
-      background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; }
+    body { background: #0f0f0f; color: #fff; font-family: system-ui; }
+
+    /* Header */
+    header {
+      background: linear-gradient(135deg, #0B5E6B 0%, #0D7377 100%);
+      padding: 14px 16px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 14px rgba(0,0,0,0.4);
+    }
+    header a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: #fff;
+    }
+    header img {
+      width: 38px;
+      height: 38px;
+      border-radius: 9px;
+      background: rgba(255,255,255,0.15);
+      object-fit: cover;
+    }
+    .header-logo {
+      font-size: 18px;
+      font-weight: 900;
+      font-family: 'Space Grotesk', sans-serif;
+      color: #fff;
+    }
+    .close-btn {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 24px;
+      cursor: pointer;
+      padding: 6px;
     }
 
+    /* Main Content */
     .about-container {
-      max-width: 720px;
+      max-width: 680px;
       margin: 0 auto;
       padding: 20px;
-      padding-bottom: 80px;
+      padding-bottom: 100px;
     }
 
     .about-header {
       text-align: center;
       margin-bottom: 40px;
-      padding-top: 20px;
+      padding-top: 24px;
     }
-
     .about-header img {
-      height: 80px;
+      width: 72px;
+      height: 72px;
       margin-bottom: 20px;
+      border-radius: 12px;
+      background: rgba(11, 94, 107, 0.2);
+      padding: 8px;
     }
-
     .about-header h1 {
-      font-size: 32px;
-      font-weight: 800;
-      background: linear-gradient(135deg, #dc2626 0%, #fbbf24 100%);
+      font-size: 28px;
+      font-weight: 900;
+      font-family: 'Space Grotesk', sans-serif;
+      background: linear-gradient(135deg, #0B5E6B, #4ade80);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
       margin: 0 0 12px;
     }
-
     .about-header p {
-      color: var(--text-secondary);
-      font-size: 16px;
+      color: #a3a3a3;
+      font-size: 15px;
       margin: 0;
     }
 
     .about-section {
-      background: var(--glass-bg);
-      border: 1px solid var(--glass-border);
-      border-radius: 16px;
+      background: #1a1a1a;
+      border: 1px solid #2d2d2d;
+      border-radius: 14px;
       padding: 24px;
-      margin-bottom: 20px;
-      backdrop-filter: blur(10px);
+      margin-bottom: 18px;
     }
-
     .about-section h2 {
-      color: var(--accent-gold);
-      font-size: 20px;
+      color: #4ade80;
+      font-size: 18px;
       font-weight: 700;
       margin: 0 0 16px;
       display: flex;
       align-items: center;
       gap: 8px;
     }
-
     .about-section p {
       color: #e5e5e5;
-      line-height: 1.8;
+      line-height: 1.7;
       margin: 0 0 12px;
       font-size: 14px;
     }
-
+    .about-section p:last-child {
+      margin-bottom: 0;
+    }
     .about-section ul {
       color: #e5e5e5;
-      line-height: 1.8;
+      line-height: 1.7;
       font-size: 14px;
-      padding-left: 20px;
+      padding-left: 24px;
       margin: 0;
     }
-
     .about-section li {
-      margin-bottom: 8px;
+      margin-bottom: 10px;
+    }
+    .about-section strong {
+      color: #fff;
+    }
+
+    .highlight {
+      color: #4ade80;
+      font-weight: 600;
     }
 
     .team-grid {
       display: grid;
       grid-template-columns: 1fr;
-      gap: 16px;
+      gap: 12px;
       margin-top: 16px;
     }
-
     .team-member {
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 12px;
-      background: rgba(0, 0, 0, 0.3);
-      border-radius: 12px;
+      gap: 14px;
+      padding: 14px;
+      background: rgba(11, 94, 107, 0.1);
+      border-radius: 10px;
+      border: 1px solid rgba(11, 94, 107, 0.2);
     }
-
     .team-member-pic {
       width: 48px;
       height: 48px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #dc2626 0%, #fbbf24 100%);
+      background: linear-gradient(135deg, #0B5E6B, #4ade80);
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 24px;
       flex-shrink: 0;
     }
-
     .team-member-info h3 {
       color: #fff;
       margin: 0;
       font-size: 14px;
-      font-weight: 600;
+      font-weight: 700;
     }
-
     .team-member-info p {
       margin: 4px 0 0;
-      color: #b3b3b3;
+      color: #888;
       font-size: 12px;
-    }
-
-    .highlight {
-      color: var(--accent-gold);
-      font-weight: 600;
     }
 
     .cta-button {
       display: inline-block;
-      padding: 14px 28px;
-      background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+      padding: 13px 24px;
+      background: linear-gradient(135deg, #0B5E6B, #0D7377);
       color: white;
       text-decoration: none;
-      border-radius: 12px;
+      border-radius: 10px;
+      border: none;
       font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1px;
       font-size: 14px;
+      cursor: pointer;
       margin-top: 16px;
-      transition: all 0.3s;
-      box-shadow: 0 8px 24px rgba(220, 38, 38, 0.3);
+      transition: all 0.2s;
+      box-shadow: 0 4px 15px rgba(11, 94, 107, 0.3);
+    }
+    .cta-button:active { transform: scale(0.97); }
+
+    .footer-divider {
+      text-align: center;
+      padding-top: 32px;
+      border-top: 1px solid #2d2d2d;
+      margin-top: 32px;
+    }
+    .footer-divider p {
+      color: #a3a3a3;
+      font-size: 12px;
+      margin: 0;
     }
 
-    .cta-button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 36px rgba(220, 38, 38, 0.4);
+    /* Bottom Navigation */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #1a1a1a;
+      border-top: 1px solid #2d2d2d;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 100;
+      padding: 8px 0;
+    }
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      background: none;
+      border: none;
+      color: #666;
+      cursor: pointer;
+      flex: 1;
+      padding: 10px;
+      font-size: 16px;
+      transition: color 0.2s;
+    }
+    .nav-item:active { color: #0B5E6B; }
+    .nav-label {
+      font-size: 10px;
+      font-weight: 600;
     }
 
     @media (max-width: 480px) {
-      .about-header h1 {
-        font-size: 24px;
-      }
-
-      .about-section {
-        padding: 16px;
-      }
+      .about-header h1 { font-size: 24px; }
+      .about-section { padding: 18px; }
     }
   </style>
 </head>
 <body>
+
   <!-- Header -->
-  <header style="background: rgba(15, 15, 15, 0.95); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border-light); padding: 16px 20px; position: sticky; top: 0; z-index: 100; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);">
-    <a href="/" style="display: flex; align-items: center; gap: 12px; text-decoration: none;">
-      <img src="assets/logo.png" alt="GorkhaReels" style="height: 32px; width: auto;">
+  <header>
+    <a href="./">
+      <img src="/favicon/logo-khukuri-192x192.png" alt="GorkhaReels">
       <span class="header-logo">GorkhaReels</span>
     </a>
-    <a href="./" style="background: none; border: none; color: white; cursor: pointer; font-size: 24px;">✕</a>
+    <button class="close-btn" onclick="window.location.href='./'">✕</button>
   </header>
 
   <!-- Main Content -->
   <div class="about-container">
     <!-- Header Section -->
     <div class="about-header">
-      <img src="assets/logo.png" alt="GorkhaReels">
+      <img src="/favicon/logo-khukuri-192x192.png" alt="GorkhaReels">
       <h1>About GorkhaReels</h1>
       <p>The platform for Gorkha creators and community</p>
     </div>
@@ -207,12 +287,12 @@
     <div class="about-section">
       <h2>🎯 What We Offer</h2>
       <ul>
-        <li>📹 <strong>Creator Tools</strong> - Easy upload, editing, and discovery features</li>
-        <li>💰 <strong>Monetization</strong> - Ad revenue, tips, sponsorships, and partnerships</li>
-        <li>🤝 <strong>Community</strong> - Direct connection with audiences and fellow creators</li>
-        <li>🌍 <strong>Cultural Pride</strong> - Features that celebrate Gorkha identity and heritage</li>
-        <li>📊 <strong>Analytics</strong> - Real-time insights into your content performance</li>
-        <li>🔒 <strong>Safety First</strong> - Community guidelines and moderation for a safe space</li>
+        <li>📹 <strong>Creator Tools</strong> — Easy upload, editing, and discovery features</li>
+        <li>💰 <strong>Monetization</strong> — Ad revenue, tips, sponsorships, and partnerships</li>
+        <li>🤝 <strong>Community</strong> — Direct connection with audiences and fellow creators</li>
+        <li>🌍 <strong>Cultural Pride</strong> — Features that celebrate Gorkha identity and heritage</li>
+        <li>📊 <strong>Analytics</strong> — Real-time insights into your content performance</li>
+        <li>🔒 <strong>Safety First</strong> — Community guidelines and moderation for a safe space</li>
       </ul>
     </div>
 
@@ -270,10 +350,8 @@
     </div>
 
     <!-- Footer -->
-    <div style="text-align: center; padding-top: 40px; border-top: 1px solid var(--border-light); margin-top: 40px;">
-      <p style="color: #a3a3a3; font-size: 13px;">
-        &copy; 2026 GorkhaReels. All rights reserved. | Made with ❤️ from Darjeeling
-      </p>
+    <div class="footer-divider">
+      <p>&copy; 2026 GorkhaReels. All rights reserved. | Made with ❤️ from Darjeeling</p>
     </div>
   </div>
 
@@ -283,7 +361,7 @@
       <span>🏠</span>
       <span class="nav-label">Home</span>
     </button>
-    <button class="nav-item" onclick="window.location.href='./index.html?trending'">
+    <button class="nav-item" onclick="window.location.href='./trending.html'">
       <span>🔥</span>
       <span class="nav-label">Trending</span>
     </button>
@@ -297,6 +375,5 @@
     </button>
   </nav>
 
-  <script src="js/appwrite-config.js"></script>
 </body>
 </html>
